@@ -13,3 +13,10 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Ignore local IDE settings
+/.idea/
+
+# Ignore compiled app build outputs
+/app/release/
+/app/build/
