@@ -19,3 +19,12 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# Keep WorkManager and Room classes to prevent R8 from stripping them and causing initialization crashes.
+-keep class androidx.work.** { *; }
+-keep class androidx.room.** { *; }
+-keep class * extends androidx.room.RoomDatabase
+
+# Keep Glance ActionCallbacks and Receivers (instantiated via reflection)
+-keep class * implements androidx.glance.appwidget.action.ActionCallback { *; }
+-keep class * extends androidx.glance.appwidget.GlanceAppWidgetReceiver { *; }
