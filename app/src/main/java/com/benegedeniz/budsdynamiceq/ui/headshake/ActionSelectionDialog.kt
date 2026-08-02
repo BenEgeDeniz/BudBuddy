@@ -1,0 +1,252 @@
+package com.benegedeniz.budsdynamiceq.ui.headshake
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import com.benegedeniz.budsdynamiceq.data.model.GestureAction
+import com.benegedeniz.budsdynamiceq.ui.components.SearchBarInput
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ActionSelectionDialog(
+    hasExistingActions: Boolean = false,
+    onDismissRequest: () -> Unit,
+    onActionSelected: (GestureAction) -> Unit
+) {
+    var searchQuery by remember { mutableStateOf("") }
+    val focusManager = LocalFocusManager.current
+
+    val gridLayout = remember {
+        listOf(
+            "Media" to listOf(
+                listOf(GestureAction.PLAY_PAUSE),
+                listOf(GestureAction.PLAY, GestureAction.PAUSE),
+                listOf(GestureAction.SET_VOLUME),
+                listOf(GestureAction.MODIFY_VOLUME_INCREASE, GestureAction.MODIFY_VOLUME_DECREASE),
+                listOf(GestureAction.PREVIOUS_TRACK, GestureAction.NEXT_TRACK),
+                listOf(GestureAction.ANNOUNCE_TRACK)
+            ),
+            "Noise Controls" to listOf(
+                listOf(GestureAction.NC_TOGGLE),
+                listOf(GestureAction.NC_ACTIVE, GestureAction.NC_TRANSPARENT),
+                listOf(GestureAction.NC_ADAPTIVE),
+                listOf(GestureAction.NC_OFF)
+            ),
+            "System and Calls" to listOf(
+                listOf(GestureAction.ACCEPT_CALL, GestureAction.REJECT_CALL),
+                listOf(GestureAction.VOICE_ASSISTANT),
+                listOf(GestureAction.LAUNCH_APP),
+                listOf(GestureAction.READ_NOTIFICATIONS),
+                listOf(GestureAction.SPEAK_TEXT)
+            ),
+            "Other" to listOf(
+                listOf(GestureAction.FIT_TEST),
+                listOf(GestureAction.NO_ACTION)
+            )
+        )
+    }
+
+    val filteredActions = remember(searchQuery) {
+        if (searchQuery.isBlank()) {
+            emptyList()
+        } else {
+            GestureAction.entries.filter { 
+                it.displayName.contains(searchQuery, ignoreCase = true) || 
+                it.group.contains(searchQuery, ignoreCase = true) 
+            }
+        }
+    }
+
+    Dialog(
+        onDismissRequest = onDismissRequest,
+        properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)
+    ) {
+        Scaffold(
+            modifier = Modifier.fillMaxSize(),
+            containerColor = MaterialTheme.colorScheme.background,
+            topBar = {
+                CenterAlignedTopAppBar(
+                    title = { Text("Select Action") },
+                    navigationIcon = {
+                        IconButton(onClick = onDismissRequest) {
+                            Icon(Icons.Default.Close, contentDescription = "Close")
+                        }
+                    },
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.background
+                    )
+                )
+            }
+        ) { padding ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+            ) {
+                // Search Bar
+                SearchBarInput(
+                    query = searchQuery,
+                    onQueryChange = { searchQuery = it },
+                    placeholderText = "Search actions...",
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                )
+
+                // List
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 120.dp)
+                ) {
+                    if (searchQuery.isBlank()) {
+                        gridLayout.forEach { (group, rows) ->
+                            item {
+                                Text(
+                                    text = group,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.padding(start = 8.dp, bottom = 8.dp, top = if (group == gridLayout.first().first) 0.dp else 24.dp)
+                                )
+                            }
+                            items(rows) { rowActions ->
+                                Row(
+                                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    ActionItem(
+                                        action = rowActions[0], 
+                                        hasExistingActions = hasExistingActions,
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        onActionSelected(rowActions[0])
+                                    }
+                                    if (rowActions.size > 1) {
+                                        ActionItem(
+                                            action = rowActions[1], 
+                                            hasExistingActions = hasExistingActions,
+                                            modifier = Modifier.weight(1f)
+                                        ) {
+                                            onActionSelected(rowActions[1])
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        if (filteredActions.isEmpty()) {
+                            item {
+                                Box(modifier = Modifier.fillMaxWidth().padding(48.dp), contentAlignment = Alignment.Center) {
+                                    Text("No actions found", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                }
+                            }
+                        } else {
+                            items(filteredActions) { action ->
+                                ActionItem(
+                                    action = action, 
+                                    hasExistingActions = hasExistingActions,
+                                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+                                ) {
+                                    onActionSelected(action)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ActionItem(action: GestureAction, hasExistingActions: Boolean = false, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val isDisabledFitTest = action == GestureAction.FIT_TEST && hasExistingActions
+    
+    Card(
+        modifier = modifier
+            .clip(RoundedCornerShape(16.dp))
+            .clickable {
+                if (isDisabledFitTest) {
+                    android.widget.Toast.makeText(context, "Fit Test must be the only action in a flow.", android.widget.Toast.LENGTH_SHORT).show()
+                } else {
+                    onClick()
+                }
+            },
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = if (isDisabledFitTest) 0.2f else 0.5f))
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            val icon = when(action) {
+                GestureAction.PLAY_PAUSE -> Icons.Default.PlayArrow
+                GestureAction.PLAY -> Icons.Default.PlayArrow
+                GestureAction.PAUSE -> Icons.Default.Pause
+                GestureAction.SET_VOLUME -> Icons.Default.VolumeUp
+                GestureAction.MODIFY_VOLUME_INCREASE -> Icons.Default.VolumeUp
+                GestureAction.MODIFY_VOLUME_DECREASE -> Icons.Default.VolumeDown
+                GestureAction.NEXT_TRACK -> Icons.Default.SkipNext
+                GestureAction.PREVIOUS_TRACK -> Icons.Default.SkipPrevious
+                GestureAction.ANNOUNCE_TRACK -> Icons.Default.MusicNote
+                GestureAction.NC_TOGGLE -> Icons.Default.Hearing
+                GestureAction.NC_ACTIVE -> Icons.Default.VolumeOff
+                GestureAction.NC_OFF -> Icons.Default.Close
+                GestureAction.NC_TRANSPARENT -> Icons.Default.Hearing
+                GestureAction.NC_ADAPTIVE -> Icons.Default.AutoAwesome
+                GestureAction.VOICE_ASSISTANT -> Icons.Default.Mic
+                GestureAction.ACCEPT_CALL -> Icons.Default.Call
+                GestureAction.REJECT_CALL -> Icons.Default.CallEnd
+                GestureAction.READ_NOTIFICATIONS -> Icons.Default.Notifications
+                GestureAction.LAUNCH_APP -> Icons.Default.Apps
+                GestureAction.SPEAK_TEXT -> Icons.Default.RecordVoiceOver
+                GestureAction.FIT_TEST -> Icons.Default.CheckCircle
+                GestureAction.NO_ACTION -> Icons.Default.Cancel
+            }
+            val alpha = if (isDisabledFitTest) 0.3f else 1f
+            Box(
+                modifier = Modifier
+                    .size(36.dp)
+                    .background(MaterialTheme.colorScheme.surface.copy(alpha = alpha), RoundedCornerShape(10.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary.copy(alpha = alpha),
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+            Spacer(modifier = Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = action.displayName,
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = alpha),
+                    maxLines = 2,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                )
+            }
+        }
+    }
+}

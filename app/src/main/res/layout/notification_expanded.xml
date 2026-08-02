@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="12dp">
+
+    <!-- Title and Subtitle -->
+    <TextView
+        android:id="@+id/notification_title"
+        style="@style/TextAppearance.Compat.Notification.Title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="BudsService"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/notification_rule_state"
+        style="@style/TextAppearance.Compat.Notification.Line2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:text="Settings: None"
+        android:textSize="14sp" />
+
+    <!-- Hardware Real-time State -->
+    <TextView
+        android:id="@+id/notification_hardware_state"
+        style="@style/TextAppearance.Compat.Notification.Line2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:text="Active NC: Transparent"
+        android:textStyle="italic"
+        android:textSize="14sp" />
+
+    <!-- Earbuds Status Container -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:baselineAligned="false"
+        android:orientation="horizontal">
+
+        <!-- Left Bud -->
+        <LinearLayout
+            android:id="@+id/notification_l_container"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="4dp"
+            android:layout_weight="1"
+            android:background="@drawable/shape_notification_pill"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="8dp">
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/ic_headset" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:text="L"
+                android:textColor="@color/notification_primary_text"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <FrameLayout android:layout_width="0dp" android:layout_height="0dp" android:layout_weight="1" />
+
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:src="@drawable/ic_battery"
+                android:layout_marginEnd="4dp" />
+
+            <TextView
+                android:id="@+id/notification_l_status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="100%"
+                android:textColor="@color/notification_primary_text"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+        <!-- Right Bud -->
+        <LinearLayout
+            android:id="@+id/notification_r_container"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:layout_weight="1"
+            android:background="@drawable/shape_notification_pill"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="8dp">
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/ic_headset" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:text="R"
+                android:textColor="@color/notification_primary_text"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <FrameLayout android:layout_width="0dp" android:layout_height="0dp" android:layout_weight="1" />
+
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:src="@drawable/ic_battery"
+                android:layout_marginEnd="4dp" />
+
+            <TextView
+                android:id="@+id/notification_r_status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="100%"
+                android:textColor="@color/notification_primary_text"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- Action Button -->
+    <Button
+        android:id="@+id/notification_toggle_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:text="Toggle ANC / Ambient"
+        style="?android:attr/borderlessButtonStyle"
+        android:textColor="?android:attr/colorAccent"
+        android:textStyle="bold" />
+
+</LinearLayout>

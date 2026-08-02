@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="samsung_primary">#3E92FF</color>
+    <color name="samsung_surface">#1C1C1E</color>
+    <color name="samsung_surface_variant">#2C2C2E</color>
+    <color name="samsung_on_surface">#FFFFFF</color>
+    <color name="samsung_on_surface_variant">#EBEBF5</color>
+    <color name="samsung_divider">#33FFFFFF</color>
+</resources>
