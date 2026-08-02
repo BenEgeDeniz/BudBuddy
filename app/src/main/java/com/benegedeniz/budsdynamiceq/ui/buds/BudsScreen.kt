@@ -813,6 +813,14 @@ fun BudsScreen(viewModel: RulesViewModel, onFitTestClick: () -> Unit = {}, modif
                             uriHandler.openUri("https://benegedeniz.com")
                         }
                     )
+                    Text(
+                        text = "ege@benegedeniz.com",
+                        style = MaterialTheme.typography.bodyMedium.copy(textDecoration = TextDecoration.Underline),
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.clickable {
+                            uriHandler.openUri("mailto:ege@benegedeniz.com")
+                        }
+                    )
                     
                     Spacer(modifier = Modifier.height(8.dp))
                     HorizontalDivider()
