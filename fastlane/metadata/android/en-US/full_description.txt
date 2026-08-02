@@ -1,1 +1,4 @@
 Bud Buddy is an improved open-source alternative to the Samsung Galaxy Buds Manager. It brings advanced features to your earbuds such as custom head shake gestures, dynamic EQ rules that automatically adjust based on your environment, noise control widgets, and an earbud fit test. Built with Jetpack Compose and modern Android architecture, Bud Buddy gives you full control over your listening experience.
+
+Acknowledgments:
+The approach to controlling the earbuds via Bluetooth bytes was learned from the fantastic work done in the GalaxyBudsClient project (https://github.com/timschneeb/GalaxyBudsClient).
