@@ -20,6 +20,8 @@ import androidx.core.graphics.drawable.toBitmap
 import com.benegedeniz.budsdynamiceq.ui.components.SearchBarInput
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import androidx.compose.ui.res.stringResource
+import com.benegedeniz.budsdynamiceq.R
 
 data class AppInfo(val name: String, val packageName: String, val icon: android.graphics.drawable.Drawable)
 
@@ -70,13 +72,13 @@ fun AppSelectionDialog(
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text("Select Application", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.select_application), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                 Spacer(modifier = Modifier.height(12.dp))
                 
                 SearchBarInput(
                     query = searchQuery,
                     onQueryChange = { searchQuery = it },
-                    placeholderText = "Search apps...",
+                    placeholderText = stringResource(R.string.search_apps),
                     modifier = Modifier.padding(bottom = 12.dp)
                 )
                 
@@ -109,7 +111,7 @@ fun AppSelectionDialog(
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                     TextButton(onClick = onDismissRequest) {
-                        Text("Cancel")
+                        Text(stringResource(R.string.cancel))
                     }
                 }
             }

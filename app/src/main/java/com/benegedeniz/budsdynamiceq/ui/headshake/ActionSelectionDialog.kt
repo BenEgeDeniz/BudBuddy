@@ -27,6 +27,8 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.benegedeniz.budsdynamiceq.data.model.GestureAction
 import com.benegedeniz.budsdynamiceq.ui.components.SearchBarInput
+import androidx.compose.ui.res.stringResource
+import com.benegedeniz.budsdynamiceq.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -74,13 +76,14 @@ fun ActionSelectionDialog(
         }.filter { it.second.isNotEmpty() }
     }
 
+    val context = androidx.compose.ui.platform.LocalContext.current
     val filteredActions = remember(searchQuery, forbiddenActions) {
         if (searchQuery.isBlank()) {
             emptyList()
         } else {
             GestureAction.entries.filter { 
-                it !in forbiddenActions && (it.displayName.contains(searchQuery, ignoreCase = true) || 
-                it.group.contains(searchQuery, ignoreCase = true))
+                it !in forbiddenActions && (context.getString(it.displayNameRes).contains(searchQuery, ignoreCase = true) || 
+                context.getString(it.groupRes).contains(searchQuery, ignoreCase = true))
             }
         }
     }
@@ -94,10 +97,10 @@ fun ActionSelectionDialog(
             containerColor = MaterialTheme.colorScheme.background,
             topBar = {
                 CenterAlignedTopAppBar(
-                    title = { Text("Select Action") },
+                    title = { Text(stringResource(R.string.select_action)) },
                     navigationIcon = {
                         IconButton(onClick = onDismissRequest) {
-                            Icon(Icons.Default.Close, contentDescription = "Close")
+                            Icon(Icons.Default.Close, contentDescription = stringResource(R.string.close))
                         }
                     },
                     colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
@@ -115,7 +118,7 @@ fun ActionSelectionDialog(
                 SearchBarInput(
                     query = searchQuery,
                     onQueryChange = { searchQuery = it },
-                    placeholderText = "Search actions...",
+                    placeholderText = stringResource(R.string.search_actions),
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                 )
 
@@ -164,7 +167,7 @@ fun ActionSelectionDialog(
                         if (filteredActions.isEmpty()) {
                             item {
                                 Box(modifier = Modifier.fillMaxWidth().padding(48.dp), contentAlignment = Alignment.Center) {
-                                    Text("No actions found", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    Text(stringResource(R.string.no_actions_found), color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
                             }
                         } else {
@@ -201,7 +204,7 @@ fun ActionItem(
             .clip(RoundedCornerShape(16.dp))
             .clickable {
                 if (isDisabledFitTest) {
-                    android.widget.Toast.makeText(context, "Fit Test must be the only action in a flow.", android.widget.Toast.LENGTH_SHORT).show()
+                    android.widget.Toast.makeText(context, context.getString(R.string.fit_test_only_action), android.widget.Toast.LENGTH_SHORT).show()
                 } else {
                     onClick()
                 }
@@ -255,7 +258,7 @@ fun ActionItem(
             Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = action.displayName,
+                    text = stringResource(action.displayNameRes),
                     style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = alpha),
                     maxLines = 2,

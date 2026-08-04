@@ -151,7 +151,7 @@ fun WidgetContent(
                         ) {
                             Image(
                                 provider = ImageProvider(iconRes),
-                                contentDescription = mode.displayName,
+                                contentDescription = androidx.glance.LocalContext.current.getString(mode.displayNameRes),
                                 colorFilter = ColorFilter.tint(iconTint),
                                 modifier = GlanceModifier.size(28.dp) 
                             )
@@ -164,7 +164,7 @@ fun WidgetContent(
                         ) {
                             Image(
                                 provider = ImageProvider(iconRes),
-                                contentDescription = mode.displayName,
+                                contentDescription = androidx.glance.LocalContext.current.getString(mode.displayNameRes),
                                 colorFilter = ColorFilter.tint(androidx.glance.color.ColorProvider(day = Color(0xFFA0A0A3), night = Color(0xFF565657))),
                                 modifier = GlanceModifier.size(28.dp)
                             )

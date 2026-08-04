@@ -27,6 +27,8 @@ import com.benegedeniz.budsdynamiceq.data.model.WearStateAction
 import com.benegedeniz.budsdynamiceq.data.model.WearStateTrigger
 import com.benegedeniz.budsdynamiceq.ui.headshake.FlowActionItem
 import com.benegedeniz.budsdynamiceq.ui.headshake.ActionSelectionDialog
+import androidx.compose.ui.res.stringResource
+import com.benegedeniz.budsdynamiceq.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -86,7 +88,7 @@ fun WearStateEditScreen(
                             onClick = onDismiss,
                             modifier = Modifier.weight(1f)
                         ) {
-                            Text("Cancel")
+                            Text(stringResource(R.string.cancel), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
                         }
                         
                         VerticalDivider(
@@ -104,7 +106,7 @@ fun WearStateEditScreen(
                             modifier = Modifier.weight(1f),
                             enabled = actionWrappers.isNotEmpty()
                         ) {
-                            Text("Save Changes")
+                            Text(stringResource(R.string.save_changes), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
                         }
                     }
                 }
@@ -117,15 +119,20 @@ fun WearStateEditScreen(
                     .padding(horizontal = 24.dp)
             ) {
                 Spacer(modifier = Modifier.height(24.dp))
+                val displayName = when (initialAction.id) {
+                    "default_removed" -> stringResource(R.string.trigger_earbud_removed)
+                    "default_wearing" -> stringResource(R.string.trigger_both_worn)
+                    else -> initialAction.name.ifBlank { stringResource(R.string.wearstate_unnamed_action) }
+                }
                 Text(
-                    text = "Edit Flow: ${initialAction.name}",
+                    text = stringResource(R.string.wearstate_edit_flow, displayName),
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold
                 )
                 
                 Spacer(modifier = Modifier.height(24.dp))
                 Text(
-                    text = "Action Flow",
+                    text = stringResource(R.string.action_flow),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
@@ -180,7 +187,7 @@ fun WearStateEditScreen(
                             ) {
                                 Icon(Icons.Default.Add, contentDescription = null)
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Text("Action")
+                                Text(stringResource(R.string.action))
                             }
                             OutlinedButton(
                                 onClick = {
@@ -190,7 +197,7 @@ fun WearStateEditScreen(
                             ) {
                                 Icon(Icons.Default.Add, contentDescription = null)
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Text("Delay")
+                                Text(stringResource(R.string.delay))
                             }
                         }
                         

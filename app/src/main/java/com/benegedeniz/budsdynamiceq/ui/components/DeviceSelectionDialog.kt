@@ -49,6 +49,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.res.stringResource
+import com.benegedeniz.budsdynamiceq.R
 
 @Composable
 fun DeviceSelectionDialog(
@@ -116,13 +118,13 @@ fun DeviceSelectionDialog(
 
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "Select Device",
+                            text = stringResource(R.string.select_device),
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = "Choose your Galaxy Buds",
+                            text = stringResource(R.string.choose_your_galaxy_buds),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -137,7 +139,7 @@ fun DeviceSelectionDialog(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Refresh,
-                            contentDescription = "Refresh devices",
+                            contentDescription = stringResource(R.string.refresh_devices),
                             tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.rotate(rotation)
                         )
@@ -152,8 +154,8 @@ fun DeviceSelectionDialog(
                         BluetoothStateBanner(
                             icon = Icons.Default.BluetoothDisabled,
                             iconTint = MaterialTheme.colorScheme.error,
-                            title = "Bluetooth is Turned Off",
-                            subtitle = "Please enable Bluetooth to scan for and connect to your paired Galaxy Buds.",
+                            title = stringResource(R.string.bluetooth_is_turned_off),
+                            subtitle = stringResource(R.string.please_enable_bluetooth_to_scan_for_and_),
                             onOpenSettings = {
                                 try {
                                     context.startActivity(Intent(Settings.ACTION_BLUETOOTH_SETTINGS))
@@ -168,8 +170,8 @@ fun DeviceSelectionDialog(
                         BluetoothStateBanner(
                             icon = Icons.AutoMirrored.Filled.BluetoothSearching,
                             iconTint = MaterialTheme.colorScheme.primary,
-                            title = "No Paired Devices Found",
-                            subtitle = "Make sure your Galaxy Buds are turned on and paired in system Bluetooth settings first.",
+                            title = stringResource(R.string.no_paired_devices_found),
+                            subtitle = stringResource(R.string.make_sure_your_galaxy_buds_are_turned_on),
                             onOpenSettings = {
                                 try {
                                     context.startActivity(Intent(Settings.ACTION_BLUETOOTH_SETTINGS))
@@ -272,7 +274,7 @@ fun DeviceSelectionDialog(
                             contentPadding = PaddingValues(horizontal = 8.dp)
                         ) {
                             Text(
-                                text = "Forget Device",
+                                text = stringResource(R.string.forget_device),
                                 color = MaterialTheme.colorScheme.error,
                                 style = MaterialTheme.typography.labelMedium
                             )
@@ -285,7 +287,7 @@ fun DeviceSelectionDialog(
                         onClick = onDismissRequest,
                         shape = RoundedCornerShape(12.dp)
                     ) {
-                        Text("Close", style = MaterialTheme.typography.labelLarge)
+                        Text(stringResource(R.string.close), style = MaterialTheme.typography.labelLarge)
                     }
                 }
             }
@@ -385,7 +387,7 @@ private fun DeviceItemCard(
                             )
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(
-                                text = "Connected",
+                                text = stringResource(R.string.connected),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.primary,
                                 fontWeight = FontWeight.Bold
@@ -409,7 +411,7 @@ private fun DeviceItemCard(
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
-                                text = "Connecting",
+                                text = stringResource(R.string.connecting),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSecondaryContainer,
                                 fontWeight = FontWeight.Bold
@@ -423,7 +425,7 @@ private fun DeviceItemCard(
                         color = MaterialTheme.colorScheme.surfaceVariant
                     ) {
                         Text(
-                            text = "Saved",
+                            text = stringResource(R.string.saved),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontWeight = FontWeight.Medium,
@@ -507,7 +509,7 @@ private fun BluetoothStateBanner(
                 modifier = Modifier.size(16.dp)
             )
             Spacer(modifier = Modifier.width(8.dp))
-            Text("Open Bluetooth Settings", style = MaterialTheme.typography.labelMedium)
+            Text(stringResource(R.string.open_bluetooth_settings), style = MaterialTheme.typography.labelMedium)
         }
     }
 }

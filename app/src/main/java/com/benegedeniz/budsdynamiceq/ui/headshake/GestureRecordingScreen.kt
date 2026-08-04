@@ -37,6 +37,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.window.DialogProperties
 import com.benegedeniz.budsdynamiceq.data.model.GestureAction
+import androidx.compose.ui.res.stringResource
+import com.benegedeniz.budsdynamiceq.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -62,36 +64,36 @@ fun GestureRecordingScreen(viewModel: HeadShakeViewModel) {
             onDismissRequest = { 
                 if (!inTestAndSave) viewModel.dismissConflictWarning() else viewModel.cancelRecording()
             },
-            title = { Text("Similar Gesture Detected") },
+            title = { Text(stringResource(R.string.similar_gesture_detected)) },
             text = { 
                 if (inTestAndSave) {
-                    Text("This gesture looks very similar to '${conflict!!.conflictingGesture?.name}'. Save anyway?")
+                    Text(stringResource(R.string.similar_gesture_save, conflict!!.conflictingGesture?.name ?: ""))
                 } else {
-                    Text("This sample looks very similar to '${conflict!!.conflictingGesture?.name}'. You might want to redo this sample.")
+                    Text(stringResource(R.string.similar_sample_redo, conflict!!.conflictingGesture?.name ?: ""))
                 }
             },
             confirmButton = {
                 if (inTestAndSave) {
                     TextButton(onClick = { viewModel.saveGesture(gestureName, selectedAction, ignoreConflict = true) }) {
-                        Text("Save Anyway")
+                        Text(stringResource(R.string.save_anyway))
                     }
                 } else {
                     TextButton(onClick = { 
                         viewModel.dismissConflictWarning()
                         viewModel.redoLastRecording() 
                     }) {
-                        Text("Redo Sample")
+                        Text(stringResource(R.string.redo_sample))
                     }
                 }
             },
             dismissButton = {
                 if (inTestAndSave) {
                     TextButton(onClick = { viewModel.cancelRecording() }) {
-                        Text("Cancel")
+                        Text(stringResource(R.string.cancel))
                     }
                 } else {
                     TextButton(onClick = { viewModel.dismissConflictWarning() }) {
-                        Text("Keep Sample")
+                        Text(stringResource(R.string.keep_sample))
                     }
                 }
             }
@@ -113,15 +115,15 @@ fun GestureRecordingScreen(viewModel: HeadShakeViewModel) {
                         val editingGesture by viewModel.editingGesture.collectAsState()
                         Text(
                             when {
-                                editingGesture != null -> "Improve Detection"
-                                isRecordingNoise -> "New Noise Profile"
-                                else -> "New Gesture"
+                                editingGesture != null -> stringResource(R.string.recording_improve_detection)
+                                isRecordingNoise -> stringResource(R.string.recording_new_noise_profile)
+                                else -> stringResource(R.string.recording_new_gesture)
                             }
                         ) 
                     },
                     navigationIcon = {
                         IconButton(onClick = { viewModel.cancelRecording() }) {
-                            Icon(Icons.Default.Close, contentDescription = "Cancel")
+                            Icon(Icons.Default.Close, contentDescription = stringResource(R.string.cancel))
                         }
                     },
                     colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
@@ -142,14 +144,12 @@ fun GestureRecordingScreen(viewModel: HeadShakeViewModel) {
                             tint = MaterialTheme.colorScheme.error
                         )
                         Spacer(modifier = Modifier.height(16.dp))
-                        Text(
-                            "Earbuds Disconnected",
+                        Text(stringResource(R.string.earbuds_disconnected),
                             style = MaterialTheme.typography.titleLarge,
                             textAlign = androidx.compose.ui.text.style.TextAlign.Center
                         )
                         Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            "Please connect your Galaxy Buds to record a gesture.",
+                        Text(stringResource(R.string.please_connect_your_galaxy_buds_to_recor),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = androidx.compose.ui.text.style.TextAlign.Center,
@@ -210,8 +210,7 @@ fun SetupStep(
             .padding(start = 24.dp, end = 24.dp, top = 24.dp, bottom = 24.dp)
             .verticalScroll(rememberScrollState())
     ) {
-        Text(
-            "Step 1: Details",
+        Text(stringResource(R.string.step_1_details),
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold
         )
@@ -220,7 +219,7 @@ fun SetupStep(
         OutlinedTextField(
             value = name,
             onValueChange = onNameChange,
-            label = { Text(if (isNoiseProfile) "Noise Profile Name (e.g., Walking)" else "Gesture Name (e.g., Nod Twice)") },
+            label = { Text(if (isNoiseProfile) stringResource(R.string.noise_profile_name_hint) else stringResource(R.string.gesture_name_hint)) },
             shape = RoundedCornerShape(16.dp),
             modifier = Modifier.fillMaxWidth(),
             singleLine = true
@@ -246,14 +245,14 @@ fun SetupStep(
                     Spacer(modifier = Modifier.width(16.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "Global Mute",
+                            text = stringResource(R.string.global_mute),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onTertiaryContainer
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "When this background noise is detected, all gesture detection will be temporarily muted to prevent accidental triggers.",
+                            text = stringResource(R.string.when_this_background_noise_is_detected_a),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.8f)
                         )
@@ -265,22 +264,22 @@ fun SetupStep(
             var showAppSelectionDialog by remember { mutableStateOf(false) }
 
             val actionDisplayName = when (action) {
-                is com.benegedeniz.budsdynamiceq.data.model.FlowAction.SystemAction -> action.action.displayName
+                is com.benegedeniz.budsdynamiceq.data.model.FlowAction.SystemAction -> stringResource(action.action.displayNameRes)
                 is com.benegedeniz.budsdynamiceq.data.model.FlowAction.DelayAction -> "Delay"
-                is com.benegedeniz.budsdynamiceq.data.model.FlowAction.AppAction -> "Start Application"
-                is com.benegedeniz.budsdynamiceq.data.model.FlowAction.VolumeAction -> "Set Volume to ${action.percentage}%"
+                is com.benegedeniz.budsdynamiceq.data.model.FlowAction.AppAction -> stringResource(R.string.action_start_application)
+                is com.benegedeniz.budsdynamiceq.data.model.FlowAction.VolumeAction -> stringResource(R.string.action_set_volume_to, action.percentage)
                 is com.benegedeniz.budsdynamiceq.data.model.FlowAction.ModifyVolumeAction -> {
-                    if (action.increase) "Increase Volume by ${action.percentage}%"
-                    else "Decrease Volume by ${action.percentage}%"
+                    if (action.increase) stringResource(R.string.action_increase_volume_by, action.percentage)
+                    else stringResource(R.string.action_decrease_volume_by, action.percentage)
                 }
-                is com.benegedeniz.budsdynamiceq.data.model.FlowAction.TtsAction -> "Speak Out Loud"
+                is com.benegedeniz.budsdynamiceq.data.model.FlowAction.TtsAction -> stringResource(R.string.action_speak_out_loud)
             }
 
             OutlinedTextField(
                 value = actionDisplayName,
                 onValueChange = {},
                 readOnly = true,
-                label = { Text("Action") },
+                label = { Text(stringResource(R.string.action)) },
                 shape = RoundedCornerShape(16.dp),
                 trailingIcon = { Icon(Icons.Default.ArrowDropDown, contentDescription = null) },
                 modifier = Modifier.fillMaxWidth(),
@@ -301,7 +300,7 @@ fun SetupStep(
                     onClick = { showAppSelectionDialog = true },
                     modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
                 ) {
-                    Text(if (action.packageName.isEmpty()) "Select App" else "Change App (${action.appName})")
+                    Text(if (action.packageName.isEmpty()) stringResource(R.string.select_app_short) else stringResource(R.string.change_app_format, action.appName))
                 }
             }
 
@@ -334,7 +333,7 @@ fun SetupStep(
             
             if (action is com.benegedeniz.budsdynamiceq.data.model.FlowAction.VolumeAction) {
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
-                    Text("${action.percentage}%", modifier = Modifier.width(48.dp))
+                    Text(stringResource(R.string.percentage_format, action.percentage.toString()), modifier = Modifier.width(48.dp))
                     Slider(
                         value = action.percentage / 100f,
                         onValueChange = { onActionChange(com.benegedeniz.budsdynamiceq.data.model.FlowAction.VolumeAction((it * 100).toInt())) },
@@ -348,7 +347,7 @@ fun SetupStep(
                 val focusManager = LocalFocusManager.current
                 
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
-                    Text("By", modifier = Modifier.padding(end = 8.dp))
+                    Text(stringResource(R.string.by), modifier = Modifier.padding(end = 8.dp))
                     OutlinedTextField(
                         value = pctText,
                         onValueChange = { 
@@ -371,7 +370,7 @@ fun SetupStep(
                             },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
                         keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
-                        suffix = { Text("%") }
+                        suffix = { Text(stringResource(R.string.unknown_string)) }
                     )
                 }
             }
@@ -387,14 +386,14 @@ fun SetupStep(
                             ttsText = it 
                             onActionChange(com.benegedeniz.budsdynamiceq.data.model.FlowAction.TtsAction(it, action.asAnnouncement))
                         },
-                        placeholder = { Text("Enter text to speak") },
+                        placeholder = { Text(stringResource(R.string.enter_text_to_speak)) },
                         shape = RoundedCornerShape(16.dp),
                         modifier = Modifier.fillMaxWidth(),
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                         keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() })
                     )
                     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
-                        Text("As Announcement (boost volume)", modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
+                        Text(stringResource(R.string.as_announcement_boost_volume), modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
                         Switch(
                             checked = action.asAnnouncement,
                             onCheckedChange = { 
@@ -432,7 +431,7 @@ fun SetupStep(
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        text = "You can string together multiple actions and custom delays to create an Action Flow by editing this gesture later.",
+                        text = stringResource(R.string.you_can_string_together_multiple_actions),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSecondaryContainer
                     )
@@ -450,7 +449,7 @@ fun SetupStep(
             enabled = name.isNotBlank() && !(action is com.benegedeniz.budsdynamiceq.data.model.FlowAction.AppAction && action.packageName.isEmpty()),
             shape = RoundedCornerShape(28.dp)
         ) {
-            Text("Next Step", fontSize = 16.sp)
+            Text(stringResource(R.string.next_step), fontSize = 16.sp)
         }
     }
 }
@@ -477,9 +476,9 @@ fun RecordingStep(viewModel: HeadShakeViewModel) {
     ) {
         
         Text(
-            text = if (isRecordingNoise) "Step 2: Recording" 
-                   else if (editingGesture != null) "Training Variation (${index + 1}/3)" 
-                   else "Step 2: Recording (${index + 1}/5)",
+            text = if (isRecordingNoise) stringResource(R.string.recording_step2_recording) 
+                   else if (editingGesture != null) stringResource(R.string.recording_training_variation, index + 1) 
+                   else stringResource(R.string.recording_step2_recording_steps, index + 1),
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold
         )
@@ -568,7 +567,7 @@ fun RecordingStep(viewModel: HeadShakeViewModel) {
                 RecordingState.RECORDING -> {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
-                            text = "Perform Gesture!",
+                            text = stringResource(R.string.perform_gesture),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFFFFB300)
@@ -578,7 +577,7 @@ fun RecordingStep(viewModel: HeadShakeViewModel) {
                 RecordingState.CONTINUOUS_RECORDING -> {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
-                            text = "Keep Moving!",
+                            text = stringResource(R.string.keep_moving),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFFFFB300)
@@ -603,18 +602,20 @@ fun RecordingStep(viewModel: HeadShakeViewModel) {
             val isRecordingNoise by viewModel.isRecordingNoise.collectAsState()
             Text(
                 text = when (state) {
-                    RecordingState.RECORDING, RecordingState.CONTINUOUS_RECORDING -> "Keep going!"
-                    RecordingState.SAMPLE_DONE -> if (index == targetCount - 1) "Awesome! Press Finish to proceed." else "Great! Press Next to continue."
-                    else -> "Press Start to begin recording"
+                    RecordingState.RECORDING, RecordingState.CONTINUOUS_RECORDING -> stringResource(R.string.recording_keep_going)
+                    RecordingState.SAMPLE_DONE -> if (index == targetCount - 1) stringResource(R.string.recording_awesome_finish) else stringResource(R.string.recording_great_next)
+                    else -> stringResource(R.string.recording_press_start)
                 },
                 style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center
             )
         } else if (state == RecordingState.COUNTDOWN) {
             Text(
-                text = "Get ready...",
+                text = stringResource(R.string.get_ready),
                 style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center
             )
         }
 
@@ -630,7 +631,8 @@ fun RecordingStep(viewModel: HeadShakeViewModel) {
                     text = consistencyWarning!!,
                     color = MaterialTheme.colorScheme.onErrorContainer,
                     style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(16.dp)
+                    modifier = Modifier.padding(16.dp),
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
                 )
             }
         }
@@ -649,7 +651,7 @@ fun RecordingStep(viewModel: HeadShakeViewModel) {
                     .height(56.dp),
                 shape = RoundedCornerShape(28.dp)
             ) {
-                Text(if (isRecordingNoise) "Start Continuous Recording (30s)" else "Start Recording", fontSize = 16.sp)
+                Text(if (isRecordingNoise) stringResource(R.string.start_continuous_recording) else stringResource(R.string.start_recording), fontSize = 16.sp)
             }
         } else if (state == RecordingState.CONTINUOUS_RECORDING) {
             Button(
@@ -660,7 +662,7 @@ fun RecordingStep(viewModel: HeadShakeViewModel) {
                 shape = RoundedCornerShape(28.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
             ) {
-                Text("Stop & Save", fontSize = 16.sp)
+                Text(stringResource(R.string.stop_save), fontSize = 16.sp)
             }
         } else if (state == RecordingState.SAMPLE_DONE) {
             Row(modifier = Modifier.fillMaxWidth()) {
@@ -671,7 +673,7 @@ fun RecordingStep(viewModel: HeadShakeViewModel) {
                         .height(56.dp),
                     shape = RoundedCornerShape(28.dp)
                 ) {
-                    Text("Redo")
+                    Text(stringResource(R.string.redo))
                 }
                 Spacer(modifier = Modifier.width(16.dp))
                 Button(
@@ -681,7 +683,7 @@ fun RecordingStep(viewModel: HeadShakeViewModel) {
                         .height(56.dp),
                     shape = RoundedCornerShape(28.dp)
                 ) {
-                    Text(if (index == targetCount - 1) "Finish" else "Next", fontSize = 16.sp)
+                    Text(if (index == targetCount - 1) stringResource(R.string.finish_text) else stringResource(R.string.next_text), fontSize = 16.sp)
                 }
             }
         }
@@ -711,7 +713,7 @@ fun TestAndSaveStep(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            if (editingGesture != null) "Step 3: Test & Integrate" else "Step 3: Test & Save",
+            if (editingGesture != null) stringResource(R.string.recording_step3_integrate) else stringResource(R.string.recording_step3_save),
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold
         )
@@ -740,10 +742,11 @@ fun TestAndSaveStep(
                             .padding(16.dp)
                     ) {
                         Text(
-                            testResult!!,
+                            text = "✅ " + stringResource(testResult!!),
                             style = MaterialTheme.typography.headlineMedium,
                             color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
                         )
                     }
                 }
@@ -755,7 +758,7 @@ fun TestAndSaveStep(
                     .fillMaxWidth()
                     .height(56.dp)
             ) {
-                Text("Stop Testing")
+                Text(stringResource(R.string.stop_testing))
             }
         } else {
             Icon(
@@ -766,7 +769,7 @@ fun TestAndSaveStep(
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                "$targetCount/$targetCount samples recorded",
+                stringResource(R.string.recording_samples_recorded, targetCount, targetCount),
                 style = MaterialTheme.typography.titleMedium
             )
             Spacer(modifier = Modifier.height(32.dp))
@@ -778,7 +781,7 @@ fun TestAndSaveStep(
                     .height(56.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
             ) {
-                Text("Test Gesture")
+                Text(stringResource(R.string.test_gesture))
             }
         }
 
@@ -796,7 +799,10 @@ fun TestAndSaveStep(
                 shape = RoundedCornerShape(28.dp),
                 enabled = state != RecordingState.TESTING
             ) {
-                Text(if (editingGesture != null) "Discard" else "Redo All")
+                Text(
+                    text = if (editingGesture != null) stringResource(R.string.discard) else stringResource(R.string.redo_all),
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                )
             }
             Spacer(modifier = Modifier.width(16.dp))
             Button(
@@ -807,7 +813,10 @@ fun TestAndSaveStep(
                 shape = RoundedCornerShape(28.dp),
                 enabled = state != RecordingState.TESTING
             ) {
-                Text(if (editingGesture != null) "Integrate" else "Save Gesture")
+                Text(
+                    text = if (editingGesture != null) stringResource(R.string.integrate) else stringResource(R.string.save_gesture_btn),
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                )
             }
         }
         Spacer(modifier = Modifier.height(24.dp))

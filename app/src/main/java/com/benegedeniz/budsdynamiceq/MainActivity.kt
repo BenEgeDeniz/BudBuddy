@@ -45,8 +45,14 @@ import com.benegedeniz.budsdynamiceq.ui.rules.RulesScreen
 import com.benegedeniz.budsdynamiceq.ui.rules.RulesViewModel
 import com.benegedeniz.budsdynamiceq.ui.setup.SetupScreen
 import com.benegedeniz.budsdynamiceq.ui.theme.BudsDynamicEQTheme
+import androidx.compose.ui.res.stringResource
+import com.benegedeniz.budsdynamiceq.R
 
 class MainActivity : ComponentActivity() {
+
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(com.benegedeniz.budsdynamiceq.util.LanguageUtils.setLocale(newBase))
+    }
 
     private fun hasRequiredPermissions(): Boolean {
         val prefs = getSharedPreferences("BudsPrefs", Context.MODE_PRIVATE)
@@ -251,11 +257,11 @@ class MainActivity : ComponentActivity() {
                         if (showGesturesDisabledDialog) {
                             AlertDialog(
                                 onDismissRequest = { showGesturesDisabledDialog = false },
-                                title = { Text("Gestures Not Supported") },
-                                text = { Text("Head Gestures are currently a Galaxy Buds4 Pro exclusive feature. If you want to explore the feature which is experimental on Buds 3 Pro and unstable, you can change your Buds model in the Home screen to Buds4 Pro in the device options menu.") },
+                                title = { Text(stringResource(R.string.gestures_not_supported)) },
+                                text = { Text(stringResource(R.string.head_gestures_are_currently_a_galaxy_bud)) },
                                 confirmButton = {
                                     TextButton(onClick = { showGesturesDisabledDialog = false }) {
-                                        Text("Got It")
+                                        Text(stringResource(R.string.got_it))
                                     }
                                 },
                                 containerColor = MaterialTheme.colorScheme.surface,
@@ -267,11 +273,11 @@ class MainActivity : ComponentActivity() {
                         if (showNoDeviceDialog) {
                             AlertDialog(
                                 onDismissRequest = { showNoDeviceDialog = false },
-                                title = { Text("No Device Connected") },
-                                text = { Text("Connect the Buds first to access this feature.") },
+                                title = { Text(stringResource(R.string.no_device_connected)) },
+                                text = { Text(stringResource(R.string.connect_the_buds_first_to_access_this_fe)) },
                                 confirmButton = {
                                     TextButton(onClick = { showNoDeviceDialog = false }) {
-                                        Text("Got It")
+                                        Text(stringResource(R.string.got_it))
                                     }
                                 },
                                 containerColor = MaterialTheme.colorScheme.surface,
@@ -334,9 +340,9 @@ fun GlassyBottomNavBar(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     val tabs = listOf(
-                        Triple("Home", Icons.Default.Home, 0),
-                        Triple("Rules", Icons.Default.GraphicEq, 1),
-                        Triple("Gestures", Icons.Default.Sensors, 2)
+                        Triple(stringResource(R.string.tab_home), Icons.Default.Home, 0),
+                        Triple(stringResource(R.string.tab_rules), Icons.Default.GraphicEq, 1),
+                        Triple(stringResource(R.string.tab_gestures), Icons.Default.Sensors, 2)
                     )
 
                     tabs.forEach { (label, icon, index) ->
@@ -399,7 +405,7 @@ fun GlassyBottomNavBar(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Add,
-                            contentDescription = "Add",
+                            contentDescription = stringResource(R.string.add),
                             modifier = Modifier.size(26.dp)
                         )
                     }

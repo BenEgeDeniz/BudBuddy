@@ -1,4 +1,5 @@
 package com.benegedeniz.budsdynamiceq.gesture
+import com.benegedeniz.budsdynamiceq.R
 
 import android.Manifest
 import android.content.Context
@@ -164,7 +165,7 @@ class GestureActionExecutor(
     private fun readNotifications() {
         val service = com.benegedeniz.budsdynamiceq.media.MediaListenerService.instance
         if (service == null) {
-            ttsManager.speak("Notification access is not enabled.")
+            ttsManager.speak(context.getString(R.string.notif_access_disabled))
             return
         }
 
@@ -175,13 +176,13 @@ class GestureActionExecutor(
                 ?.take(3)
 
             if (activeNotifs.isNullOrEmpty()) {
-                ttsManager.speak("No new notifications.")
+                ttsManager.speak(context.getString(R.string.no_new_notifications))
                 return
             }
 
             val pm = context.packageManager
             val sb = java.lang.StringBuilder()
-            sb.append("You have ${activeNotifs.size} notification${if (activeNotifs.size > 1) "s" else ""}. ")
+            sb.append(context.getString(if (activeNotifs.size > 1) R.string.you_have_x_notifications else R.string.you_have_one_notification, activeNotifs.size))
             for (sbn in activeNotifs) {
                 val appName = try {
                     pm.getApplicationLabel(pm.getApplicationInfo(sbn.packageName, 0)).toString()
@@ -191,12 +192,12 @@ class GestureActionExecutor(
                 
                 val title = sbn.notification.extras.getString(android.app.Notification.EXTRA_TITLE) ?: appName
                 val text = sbn.notification.extras.getString(android.app.Notification.EXTRA_TEXT) ?: ""
-                sb.append("From $title: $text. ")
+                sb.append(context.getString(R.string.from_title_text, title, text))
             }
             ttsManager.speak(sb.toString())
         } catch (e: Exception) {
             e.printStackTrace()
-            ttsManager.speak("Could not read notifications.")
+            ttsManager.speak(context.getString(R.string.could_not_read_notifs))
         }
     }
 
@@ -239,7 +240,7 @@ class GestureActionExecutor(
         val placementR = budsController.placementR.value
         if (placementL != com.benegedeniz.budsdynamiceq.data.model.PlacementState.WEARING || 
             placementR != com.benegedeniz.budsdynamiceq.data.model.PlacementState.WEARING) {
-            ttsManager.speak("Please wear both earbuds to test the fit.")
+            ttsManager.speak(context.getString(R.string.please_wear_both_fit))
             return
         }
 
@@ -266,13 +267,13 @@ class GestureActionExecutor(
         val goodR = finalR == com.benegedeniz.budsdynamiceq.data.model.FitTestResult.GOOD
         
         if (goodL && goodR) {
-            ttsManager.speakAndWait("You have got a good fit.")
+            ttsManager.speakAndWait(context.getString(R.string.good_fit))
         } else if (!goodL && !goodR) {
-            ttsManager.speakAndWait("Try adjusting both earbuds for a better fit.")
+            ttsManager.speakAndWait(context.getString(R.string.adjust_both_earbuds))
         } else if (!goodL) {
-            ttsManager.speakAndWait("Try adjusting your left earbud.")
+            ttsManager.speakAndWait(context.getString(R.string.adjust_left_earbud))
         } else {
-            ttsManager.speakAndWait("Try adjusting your right earbud.")
+            ttsManager.speakAndWait(context.getString(R.string.adjust_right_earbud))
         }
         
         budsController.stopFitTest()
@@ -281,11 +282,11 @@ class GestureActionExecutor(
     private suspend fun announceTrack() {
         val metadata = com.benegedeniz.budsdynamiceq.di.ServiceLocator.provideMediaObserver(context).currentMetadata.value
         if (metadata != null && (!metadata.title.isNullOrBlank() || !metadata.artist.isNullOrBlank())) {
-            val title = metadata.title ?: "Unknown Song"
-            val artist = metadata.artist ?: "Unknown Artist"
-            ttsManager.speakAndWait("Playing $title by $artist.", resumeMedia = true, asAnnouncement = false)
+            val title = metadata.title ?: context.getString(R.string.unknown_song)
+            val artist = metadata.artist ?: context.getString(R.string.unknown_artist)
+            ttsManager.speakAndWait(context.getString(R.string.playing_title_by_artist, title, artist), resumeMedia = true, asAnnouncement = false)
         } else {
-            ttsManager.speakAndWait("Nothing is currently playing.", resumeMedia = true, asAnnouncement = false)
+            ttsManager.speakAndWait(context.getString(R.string.nothing_playing), resumeMedia = true, asAnnouncement = false)
         }
     }
 }

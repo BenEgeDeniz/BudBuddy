@@ -1,0 +1,3 @@
+✨ v1.1
+- Added Turkish language support.
+- Minor bug fixes and stability improvements.

@@ -16,6 +16,7 @@ import androidx.compose.material.icons.filled.BluetoothConnected
 import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material.icons.filled.Hearing
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.SwapHoriz
@@ -62,6 +63,8 @@ import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.Headset
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.stringResource
+import com.benegedeniz.budsdynamiceq.R
 
 @Composable
 fun BudsScreen(viewModel: RulesViewModel, onFitTestClick: () -> Unit = {}, onWearStateClick: () -> Unit = {}, onSoundBalanceTestClick: () -> Unit = {}, modifier: Modifier = Modifier) {
@@ -112,6 +115,7 @@ fun BudsScreen(viewModel: RulesViewModel, onFitTestClick: () -> Unit = {}, onWea
     var showDeviceDialog by remember { mutableStateOf(false) }
     var showConnectingDialog by remember { mutableStateOf(false) }
     var showAboutDialog by remember { mutableStateOf(false) }
+    var showLanguageDialog by remember { mutableStateOf(false) }
     var showDeviceMenu by remember { mutableStateOf(false) }
     var showModelDialog by remember { mutableStateOf(false) }
 
@@ -171,9 +175,9 @@ fun BudsScreen(viewModel: RulesViewModel, onFitTestClick: () -> Unit = {}, onWea
                             Column(modifier = Modifier.weight(1f).padding(end = 6.dp)) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Text(
-                                        text = if (isConnected) "Connected" 
-                                               else if (isConnecting) (if (savedDeviceName != null) "Connecting to $savedDeviceName..." else "Connecting...") 
-                                               else "Disconnected",
+                                        text = if (isConnected) stringResource(R.string.buds_connected) 
+                                               else if (isConnecting) (if (savedDeviceName != null) stringResource(R.string.buds_connecting_to, savedDeviceName) else stringResource(R.string.buds_connecting)) 
+                                               else stringResource(R.string.buds_disconnected),
                                         style = MaterialTheme.typography.titleMedium,
                                         fontWeight = FontWeight.SemiBold,
                                         color = if (isConnected) MaterialTheme.colorScheme.onSurface else if (isConnecting) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
@@ -189,7 +193,7 @@ fun BudsScreen(viewModel: RulesViewModel, onFitTestClick: () -> Unit = {}, onWea
                                 
                                 if (isConnected && currentMetadata != null && currentMetadata!!.displayString.isNotBlank()) {
                                     Text(
-                                        text = "Playing: ${currentMetadata!!.displayString}",
+                                        text = stringResource(R.string.buds_playing, currentMetadata!!.displayString),
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         maxLines = 1,
@@ -197,7 +201,7 @@ fun BudsScreen(viewModel: RulesViewModel, onFitTestClick: () -> Unit = {}, onWea
                                     )
                                 } else if (!isConnected && !isConnecting && savedDeviceName != null) {
                                     Text(
-                                        text = "Saved: $savedDeviceName",
+                                        text = stringResource(R.string.buds_saved, savedDeviceName),
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         maxLines = 1,
@@ -214,7 +218,7 @@ fun BudsScreen(viewModel: RulesViewModel, onFitTestClick: () -> Unit = {}, onWea
                                         contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
                                         modifier = Modifier.defaultMinSize(minHeight = 36.dp)
                                     ) {
-                                        Text("Disconnect", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.labelLarge)
+                                        Text(stringResource(R.string.disconnect), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.labelLarge)
                                     }
                                     Box {
                                         IconButton(
@@ -223,7 +227,7 @@ fun BudsScreen(viewModel: RulesViewModel, onFitTestClick: () -> Unit = {}, onWea
                                         ) {
                                             Icon(
                                                 imageVector = Icons.Default.MoreVert,
-                                                contentDescription = "Device Options",
+                                                contentDescription = stringResource(R.string.device_options),
                                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                                             )
                                         }
@@ -232,7 +236,7 @@ fun BudsScreen(viewModel: RulesViewModel, onFitTestClick: () -> Unit = {}, onWea
                                             onDismissRequest = { showDeviceMenu = false }
                                         ) {
                                             DropdownMenuItem(
-                                                text = { Text("Select Another Device") },
+                                                text = { Text(stringResource(R.string.select_another_device)) },
                                                 leadingIcon = {
                                                     Icon(
                                                         imageVector = Icons.Default.Bluetooth,
@@ -248,9 +252,9 @@ fun BudsScreen(viewModel: RulesViewModel, onFitTestClick: () -> Unit = {}, onWea
                                             DropdownMenuItem(
                                                 text = { 
                                                     Column {
-                                                        Text("Change Model")
+                                                        Text(stringResource(R.string.change_model))
                                                         Text(
-                                                            text = if (modelOverride != null) "Override: ${effectiveModel.displayName}" else "Auto: ${effectiveModel.displayName}",
+                                                            text = if (modelOverride != null) stringResource(R.string.buds_override, stringResource(effectiveModel.displayNameRes)) else stringResource(R.string.buds_auto, stringResource(effectiveModel.displayNameRes)),
                                                             style = MaterialTheme.typography.bodySmall,
                                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                                         )
@@ -268,7 +272,7 @@ fun BudsScreen(viewModel: RulesViewModel, onFitTestClick: () -> Unit = {}, onWea
                                                 }
                                             )
                                             DropdownMenuItem(
-                                                text = { Text("Forget Device", color = MaterialTheme.colorScheme.error) },
+                                                text = { Text(stringResource(R.string.forget_device), color = MaterialTheme.colorScheme.error) },
                                                 leadingIcon = {
                                                     Icon(
                                                         imageVector = Icons.Default.Delete,
@@ -292,7 +296,7 @@ fun BudsScreen(viewModel: RulesViewModel, onFitTestClick: () -> Unit = {}, onWea
                                         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
                                         modifier = Modifier.defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
                                     ) {
-                                        Text("Cancel", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.labelLarge)
+                                        Text(stringResource(R.string.cancel), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.labelLarge)
                                     }
                                 } else {
                                     Button(
@@ -314,7 +318,7 @@ fun BudsScreen(viewModel: RulesViewModel, onFitTestClick: () -> Unit = {}, onWea
                                         shape = RoundedCornerShape(16.dp),
                                         modifier = Modifier.defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
                                     ) {
-                                        Text("Connect", style = MaterialTheme.typography.labelLarge)
+                                        Text(stringResource(R.string.connect), style = MaterialTheme.typography.labelLarge)
                                     }
                                 }
                             }
@@ -332,9 +336,9 @@ fun BudsScreen(viewModel: RulesViewModel, onFitTestClick: () -> Unit = {}, onWea
                                 horizontalArrangement = Arrangement.SpaceEvenly,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                BudBatteryInfo("L", batteryL, placementL, chargingL, temperatureL)
-                                BudBatteryInfo("Case", batteryCase, com.benegedeniz.budsdynamiceq.data.model.PlacementState.UNKNOWN, chargingCase, null)
-                                BudBatteryInfo("R", batteryR, placementR, chargingR, temperatureR)
+                                BudBatteryInfo(stringResource(R.string.buds_left), batteryL, placementL, chargingL, temperatureL)
+                                BudBatteryInfo(stringResource(R.string.buds_case), batteryCase, com.benegedeniz.budsdynamiceq.data.model.PlacementState.UNKNOWN, chargingCase, null)
+                                BudBatteryInfo(stringResource(R.string.buds_right), batteryR, placementR, chargingR, temperatureR)
                             }
                         }
                         
@@ -347,7 +351,7 @@ fun BudsScreen(viewModel: RulesViewModel, onFitTestClick: () -> Unit = {}, onWea
                                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
                                 modifier = Modifier.fillMaxWidth()
                             ) {
-                                Text("Allow Notifications (Required)")
+                                Text(stringResource(R.string.allow_notifications_required))
                             }
                         }
                     }
@@ -358,7 +362,7 @@ fun BudsScreen(viewModel: RulesViewModel, onFitTestClick: () -> Unit = {}, onWea
             // Noise Controls Card
             item {
                 Text(
-                    text = "Noise Controls",
+                    text = stringResource(R.string.noise_controls),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(start = 8.dp, bottom = 8.dp)
@@ -429,7 +433,7 @@ fun BudsScreen(viewModel: RulesViewModel, onFitTestClick: () -> Unit = {}, onWea
                                 }
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Text(
-                                    text = mode.displayName,
+                                    text = stringResource(mode.displayNameRes),
                                     style = MaterialTheme.typography.labelMedium,
                                     color = textColor,
                                     maxLines = 1,
@@ -464,7 +468,7 @@ fun BudsScreen(viewModel: RulesViewModel, onFitTestClick: () -> Unit = {}, onWea
                             )
                             Spacer(modifier = Modifier.width(12.dp))
                             Text(
-                                text = "More Settings",
+                                text = stringResource(R.string.more_settings),
                                 style = MaterialTheme.typography.titleSmall,
                                 fontWeight = FontWeight.SemiBold,
                                 color = MaterialTheme.colorScheme.onSurface
@@ -472,7 +476,7 @@ fun BudsScreen(viewModel: RulesViewModel, onFitTestClick: () -> Unit = {}, onWea
                         }
                         Icon(
                             imageVector = if (isMoreSettingsExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                            contentDescription = "Toggle More Settings",
+                            contentDescription = stringResource(R.string.toggle_more_settings),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
@@ -504,7 +508,7 @@ fun BudsScreen(viewModel: RulesViewModel, onFitTestClick: () -> Unit = {}, onWea
                                     )
                                     Spacer(modifier = Modifier.width(12.dp))
                                     Text(
-                                        text = "Noise Control with One Earbud",
+                                        text = stringResource(R.string.noise_control_with_one_earbud),
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = MaterialTheme.colorScheme.onSurface,
                                         softWrap = true
@@ -547,7 +551,7 @@ fun BudsScreen(viewModel: RulesViewModel, onFitTestClick: () -> Unit = {}, onWea
                                     )
                                     Spacer(modifier = Modifier.width(12.dp))
                                     Text(
-                                        text = "Use ambient sound during calls",
+                                        text = stringResource(R.string.use_ambient_sound_during_calls),
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = MaterialTheme.colorScheme.onSurface,
                                         softWrap = true
@@ -591,14 +595,14 @@ fun BudsScreen(viewModel: RulesViewModel, onFitTestClick: () -> Unit = {}, onWea
                                     Spacer(modifier = Modifier.width(12.dp))
                                     Column(modifier = Modifier.weight(1f)) {
                                         Text(
-                                            text = "In-ear detection for calls",
+                                            text = stringResource(R.string.in_ear_detection_for_calls),
                                             style = MaterialTheme.typography.bodyMedium,
                                             color = MaterialTheme.colorScheme.onSurface,
                                             softWrap = true
                                         )
                                         Spacer(modifier = Modifier.height(2.dp))
                                         Text(
-                                            text = "Play calls through earbuds when in ear, speaker when not",
+                                            text = stringResource(R.string.play_calls_through_earbuds_when_in_ear_s),
                                             style = MaterialTheme.typography.bodySmall,
                                             fontSize = 11.sp,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f),
@@ -646,7 +650,7 @@ fun BudsScreen(viewModel: RulesViewModel, onFitTestClick: () -> Unit = {}, onWea
                                     )
                                     Spacer(modifier = Modifier.width(12.dp))
                                     Text(
-                                        text = "Left/Right Sound Balance",
+                                        text = stringResource(R.string.left_right_sound_balance),
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = MaterialTheme.colorScheme.onSurface
                                     )
@@ -693,20 +697,20 @@ fun BudsScreen(viewModel: RulesViewModel, onFitTestClick: () -> Unit = {}, onWea
                                     modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
                                     horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
-                                    Text("L", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    Text(stringResource(R.string.l), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     Text(
                                         text = run {
                                             val current = if (isDraggingBalance) localBalance.toInt() else stereoBalance
                                             when (current) {
-                                                16 -> "Balanced"
-                                                in 0..15 -> "L ${((16 - current) / 16f * 100).toInt()}%"
-                                                else -> "R ${((current - 16) / 16f * 100).toInt()}%"
+                                                16 -> stringResource(R.string.buds_balanced)
+                                                in 0..15 -> stringResource(R.string.buds_battery_l, ((16 - current) / 16f * 100).toInt())
+                                                else -> stringResource(R.string.buds_battery_r, ((current - 16) / 16f * 100).toInt())
                                             }
                                         },
                                         style = MaterialTheme.typography.labelSmall, 
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
-                                    Text("R", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    Text(stringResource(R.string.r), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
                                 
                                 Spacer(modifier = Modifier.height(12.dp))
@@ -721,7 +725,7 @@ fun BudsScreen(viewModel: RulesViewModel, onFitTestClick: () -> Unit = {}, onWea
                                 ) {
                                     Icon(Icons.Default.Hearing, contentDescription = null, modifier = Modifier.size(18.dp))
                                     Spacer(modifier = Modifier.width(8.dp))
-                                    Text("Take Hearing Test", fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                                    Text(stringResource(R.string.take_hearing_test), fontSize = 14.sp, fontWeight = FontWeight.Medium)
                                 }
                             }
                         }
@@ -758,20 +762,20 @@ fun BudsScreen(viewModel: RulesViewModel, onFitTestClick: () -> Unit = {}, onWea
                                 Spacer(modifier = Modifier.width(16.dp))
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
-                                        text = "Conversation Detection",
+                                        text = stringResource(R.string.conversation_detection),
                                         style = MaterialTheme.typography.titleMedium,
                                         color = MaterialTheme.colorScheme.onSurface
                                     )
                                     Spacer(modifier = Modifier.height(4.dp))
                                     Text(
-                                        text = "Automatically switches to Ambient mode when you speak.",
+                                        text = stringResource(R.string.automatically_switches_to_ambient_mode_w),
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                     if (!bothInEar && isConnected) {
                                         Spacer(modifier = Modifier.height(4.dp))
                                         Text(
-                                            text = "Requires both earbuds to be worn",
+                                            text = stringResource(R.string.requires_both_earbuds_to_be_worn),
                                             style = MaterialTheme.typography.labelSmall,
                                             color = MaterialTheme.colorScheme.error
                                         )
@@ -811,13 +815,13 @@ fun BudsScreen(viewModel: RulesViewModel, onFitTestClick: () -> Unit = {}, onWea
                                     Spacer(modifier = Modifier.width(16.dp))
                                     Column {
                                         Text(
-                                            text = "Auto-Pause Media",
+                                            text = stringResource(R.string.auto_pause_media),
                                             style = MaterialTheme.typography.bodyMedium,
                                             color = MaterialTheme.colorScheme.onSurface
                                         )
                                         Spacer(modifier = Modifier.height(2.dp))
                                         Text(
-                                            text = "Pauses media when Ambient mode is triggered.",
+                                            text = stringResource(R.string.pauses_media_when_ambient_mode_is_trigge),
                                             style = MaterialTheme.typography.bodySmall,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
@@ -865,7 +869,7 @@ fun BudsScreen(viewModel: RulesViewModel, onFitTestClick: () -> Unit = {}, onWea
                         Spacer(modifier = Modifier.width(16.dp))
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "Wear State Actions",
+                                text = stringResource(R.string.wear_state_actions),
                                 style = MaterialTheme.typography.titleMedium,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
@@ -907,15 +911,16 @@ fun BudsScreen(viewModel: RulesViewModel, onFitTestClick: () -> Unit = {}, onWea
                         Spacer(modifier = Modifier.width(16.dp))
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "Earbud Fit Test",
+                                text = stringResource(R.string.earbud_fit_test),
                                 style = MaterialTheme.typography.titleMedium,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                             if (!fitTestEnabled && isConnected) {
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
-                                    text = "Requires both earbuds to be worn",
+                                    text = stringResource(R.string.requires_both_earbuds_to_be_worn),
                                     style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.error
                                 )
                             }
                         }
@@ -931,17 +936,73 @@ fun BudsScreen(viewModel: RulesViewModel, onFitTestClick: () -> Unit = {}, onWea
         }
 
         PageHeader(
-            title = "Bud Buddy",
+            title = stringResource(R.string.bud_buddy),
             isScrolled = isScrolled,
             actionIcon = {
-                IconButton(
-                    onClick = { showAboutDialog = true }
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Info,
-                        contentDescription = "About Bud Buddy",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(onClick = { showLanguageDialog = true }) {
+                        Icon(
+                            imageVector = Icons.Default.Language,
+                            contentDescription = stringResource(R.string.language),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    IconButton(
+                        onClick = { showAboutDialog = true }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Info,
+                            contentDescription = stringResource(R.string.about_bud_buddy),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+        )
+    }
+
+    if (showLanguageDialog) {
+        val context = androidx.compose.ui.platform.LocalContext.current
+        val prefs = context.getSharedPreferences("BudsPrefs", android.content.Context.MODE_PRIVATE)
+        var selectedLang by remember { mutableStateOf(prefs.getString("AppLanguage", "system") ?: "system") }
+        val langs = listOf(
+            "system" to stringResource(R.string.system_default),
+            "en" to "English",
+            "tr" to "Türkçe"
+        )
+        AlertDialog(
+            onDismissRequest = { showLanguageDialog = false },
+            title = { Text(stringResource(R.string.language_dil)) },
+            text = {
+                Column {
+                    langs.forEach { (code, name) ->
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth().clickable { selectedLang = code }.padding(vertical = 8.dp)
+                        ) {
+                            androidx.compose.material3.RadioButton(
+                                selected = (selectedLang == code),
+                                onClick = { selectedLang = code }
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(name)
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    prefs.edit().putString("AppLanguage", selectedLang).apply()
+                    showLanguageDialog = false
+                    // Recreate activity to apply locale
+                    (context as? android.app.Activity)?.recreate()
+                }) {
+                    Text(stringResource(R.string.apply))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showLanguageDialog = false }) {
+                    Text(stringResource(R.string.cancel))
                 }
             }
         )
@@ -954,17 +1015,17 @@ fun BudsScreen(viewModel: RulesViewModel, onFitTestClick: () -> Unit = {}, onWea
             containerColor = MaterialTheme.colorScheme.surface,
             onDismissRequest = { showAboutDialog = false },
             title = {
-                Text("About Bud Buddy", style = MaterialTheme.typography.titleLarge)
+                Text(stringResource(R.string.about_bud_buddy), style = MaterialTheme.typography.titleLarge)
             },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     Text(
-                        text = "Bud Buddy is your central hub for managing your earbuds. From here, you can monitor connection status, battery levels, and toggle global features like Music Rules and Gestures (Buds4 Pro only).",
+                        text = stringResource(R.string.bud_buddy_is_your_central_hub_for_managi),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        text = "https://benegedeniz.com",
+                        text = stringResource(R.string.https_benegedeniz_com),
                         style = MaterialTheme.typography.bodyMedium.copy(textDecoration = TextDecoration.Underline),
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.clickable {
@@ -972,7 +1033,7 @@ fun BudsScreen(viewModel: RulesViewModel, onFitTestClick: () -> Unit = {}, onWea
                         }
                     )
                     Text(
-                        text = "ege@benegedeniz.com",
+                        text = stringResource(R.string.ege_benegedeniz_com),
                         style = MaterialTheme.typography.bodyMedium.copy(textDecoration = TextDecoration.Underline),
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.clickable {
@@ -985,12 +1046,12 @@ fun BudsScreen(viewModel: RulesViewModel, onFitTestClick: () -> Unit = {}, onWea
                     Spacer(modifier = Modifier.height(8.dp))
                     
                     Text(
-                        text = "Open Source Licenses",
+                        text = stringResource(R.string.open_source_licenses),
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        text = "github.com/timschneeb/GalaxyBudsClient\nGNU GENERAL PUBLIC LICENSE\n\nThis project was used to get the required bytes to send commands to the Galaxy Buds.",
+                        text = stringResource(R.string.github_com_timschneeb_galaxybudsclient_n),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -998,7 +1059,7 @@ fun BudsScreen(viewModel: RulesViewModel, onFitTestClick: () -> Unit = {}, onWea
             },
             confirmButton = {
                 TextButton(onClick = { showAboutDialog = false }) {
-                    Text("Close")
+                    Text(stringResource(R.string.close))
                 }
             }
         )
@@ -1029,7 +1090,7 @@ fun BudsScreen(viewModel: RulesViewModel, onFitTestClick: () -> Unit = {}, onWea
             } ?: savedDeviceMac
         }
         com.benegedeniz.budsdynamiceq.ui.components.ConnectingDialog(
-            deviceName = savedDeviceName ?: "Galaxy Buds",
+            deviceName = savedDeviceName ?: stringResource(R.string.buds_galaxy_buds_default),
             macAddress = savedDeviceMac,
             isConnected = isConnected,
             onCancel = {
@@ -1052,13 +1113,13 @@ fun BudsScreen(viewModel: RulesViewModel, onFitTestClick: () -> Unit = {}, onWea
             containerColor = MaterialTheme.colorScheme.surface,
             onDismissRequest = { showModelDialog = false },
             title = {
-                Text("Device Model", style = MaterialTheme.typography.titleLarge)
+                Text(stringResource(R.string.device_model), style = MaterialTheme.typography.titleLarge)
             },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     if (connectedModel != com.benegedeniz.budsdynamiceq.bluetooth.BudsModel.UNKNOWN) {
                         Text(
-                            text = "Auto-detected: ${connectedModel.displayName}",
+                            text = stringResource(R.string.buds_auto_detected, stringResource(connectedModel.displayNameRes)),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -1087,12 +1148,12 @@ fun BudsScreen(viewModel: RulesViewModel, onFitTestClick: () -> Unit = {}, onWea
                         Spacer(modifier = Modifier.width(12.dp))
                         Column {
                             Text(
-                                text = "Auto-detect",
+                                text = stringResource(R.string.auto_detect),
                                 style = MaterialTheme.typography.bodyLarge,
                                 fontWeight = FontWeight.SemiBold
                             )
                             Text(
-                                text = "Detect model from firmware version",
+                                text = stringResource(R.string.detect_model_from_firmware_version),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -1127,7 +1188,7 @@ fun BudsScreen(viewModel: RulesViewModel, onFitTestClick: () -> Unit = {}, onWea
                             )
                             Spacer(modifier = Modifier.width(12.dp))
                             Text(
-                                text = model.displayName,
+                                text = stringResource(model.displayNameRes),
                                 style = MaterialTheme.typography.bodyLarge
                             )
                         }
@@ -1136,7 +1197,7 @@ fun BudsScreen(viewModel: RulesViewModel, onFitTestClick: () -> Unit = {}, onWea
             },
             confirmButton = {
                 TextButton(onClick = { showModelDialog = false }) {
-                    Text("Close")
+                    Text(stringResource(R.string.close))
                 }
             }
         )
@@ -1160,7 +1221,7 @@ fun BudBatteryInfo(label: String, battery: Int, placement: com.benegedeniz.budsd
             if (isActuallyCharging) {
                 Icon(
                     imageVector = Icons.Default.Bolt,
-                    contentDescription = "Charging",
+                    contentDescription = stringResource(R.string.charging),
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(16.dp).padding(end = 2.dp)
                 )

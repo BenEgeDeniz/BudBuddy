@@ -39,6 +39,8 @@ import com.benegedeniz.budsdynamiceq.ui.components.bounceClick
 import com.benegedeniz.budsdynamiceq.data.model.FitTestResult
 import com.benegedeniz.budsdynamiceq.data.model.GestureAction
 import com.benegedeniz.budsdynamiceq.data.model.HeadGesture
+import androidx.compose.ui.res.stringResource
+import com.benegedeniz.budsdynamiceq.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -117,7 +119,7 @@ fun HeadShakeScreen(
                     ) {
                         Column {
                             Text(
-                                text = "Gestures",
+                                text = stringResource(R.string.gestures),
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold
                             )
@@ -131,10 +133,10 @@ fun HeadShakeScreen(
                                 )
                                 Spacer(modifier = Modifier.width(6.dp))
                                 Text(
-                                    text = if (!isConnected) "Disconnected" 
-                                           else if (isMissingEarbud && headShakeEnabled) "Disabled (Earbud missing)"
-                                           else if (headShakeEnabled) "Active • ${gestures.filter { !it.isNoiseProfile }.size} gestures" 
-                                           else "Disabled",
+                                    text = if (!isConnected) stringResource(R.string.buds_disconnected) 
+                                           else if (isMissingEarbud && headShakeEnabled) stringResource(R.string.headshake_disabled_missing)
+                                           else if (headShakeEnabled) stringResource(R.string.headshake_active_gestures, gestures.filter { !it.isNoiseProfile }.size) 
+                                           else stringResource(R.string.status_disabled),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
                                 )
@@ -183,8 +185,7 @@ fun HeadShakeScreen(
                                     tint = MaterialTheme.colorScheme.onErrorContainer
                                 )
                                 Spacer(Modifier.width(16.dp))
-                                Text(
-                                    "Gestures is disabled. Spatial Audio (360 Audio) must be disabled in the Samsung Wearable app. The buds cannot stream raw IMU data properly if Samsung's own head tracking is actively hijacking the sensor.",
+                                Text(stringResource(R.string.gestures_is_disabled_spatial_audio_360_a),
                                     color = MaterialTheme.colorScheme.onErrorContainer,
                                     style = MaterialTheme.typography.bodyMedium
                                 )
@@ -198,7 +199,7 @@ fun HeadShakeScreen(
                                     contentColor = MaterialTheme.colorScheme.errorContainer
                                 )
                             ) {
-                                Text("Retry Connection")
+                                Text(stringResource(R.string.retry_connection))
                             }
                         }
                     }
@@ -230,8 +231,7 @@ fun HeadShakeScreen(
                                     tint = MaterialTheme.colorScheme.primary
                                 )
                                 Spacer(modifier = Modifier.width(12.dp))
-                                Text(
-                                    "Movement Cancelling",
+                                Text(stringResource(R.string.movement_cancelling),
                                     style = MaterialTheme.typography.titleSmall,
                                     fontWeight = FontWeight.Bold
                                 )
@@ -240,13 +240,13 @@ fun HeadShakeScreen(
                                 IconButton(onClick = { showMcIntro = true }) {
                                     Icon(
                                         imageVector = Icons.Default.Info,
-                                        contentDescription = "About Movement Cancelling",
+                                        contentDescription = stringResource(R.string.about_movement_cancelling),
                                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
                                 Icon(
                                     imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                                    contentDescription = "Open Movement Cancelling"
+                                    contentDescription = stringResource(R.string.open_movement_cancelling)
                                 )
                             }
                         }
@@ -283,15 +283,14 @@ fun HeadShakeScreen(
                                         tint = MaterialTheme.colorScheme.primary
                                     )
                                     Spacer(modifier = Modifier.width(12.dp))
-                                    Text(
-                                        "Settings",
+                                    Text(stringResource(R.string.settings),
                                         style = MaterialTheme.typography.titleMedium,
                                         fontWeight = FontWeight.Bold
                                     )
                                 }
                                 Icon(
                                     imageVector = if (settingsExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                                    contentDescription = if (settingsExpanded) "Collapse Settings" else "Expand Settings"
+                                    contentDescription = if (settingsExpanded) stringResource(R.string.desc_collapse_settings) else stringResource(R.string.desc_expand_settings)
                                 )
                             }
                             
@@ -305,8 +304,7 @@ fun HeadShakeScreen(
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
                                     Spacer(Modifier.height(8.dp))
-                            Text(
-                                "Live Preview",
+                            Text(stringResource(R.string.live_preview),
                                 style = MaterialTheme.typography.labelMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -327,8 +325,7 @@ fun HeadShakeScreen(
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text(
-                                    "Require Both Earbuds", 
+                                Text(stringResource(R.string.require_both_earbuds), 
                                     style = MaterialTheme.typography.bodySmall, 
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -375,7 +372,7 @@ fun HeadShakeScreen(
                             Icon(androidx.compose.material.icons.Icons.Default.SensorsOff, contentDescription = null, tint = MaterialTheme.colorScheme.error)
                             Spacer(modifier = Modifier.width(12.dp))
                             Text(
-                                text = "Gestures muted due to movement: ${lastDetectedGesture?.name}",
+                                text = stringResource(R.string.headshake_muted_movement, lastDetectedGesture?.name ?: ""),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onErrorContainer,
                                 fontWeight = FontWeight.Bold
@@ -402,15 +399,15 @@ fun HeadShakeScreen(
                             tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
                         )
                         Spacer(modifier = Modifier.height(16.dp))
-                        Text(
-                            "No gestures yet.",
+                        Text(stringResource(R.string.no_gestures_yet),
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            style = MaterialTheme.typography.titleMedium
+                            style = MaterialTheme.typography.titleMedium,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
                         )
-                        Text(
-                            "Tap + to create your first head gesture.",
+                        Text(stringResource(R.string.tap_to_create_your_first_head_gesture),
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
                         )
                     }
                 }
@@ -447,15 +444,15 @@ fun HeadShakeScreen(
         }
 
         com.benegedeniz.budsdynamiceq.ui.components.PageHeader(
-            title = "Gestures",
+            title = stringResource(R.string.gestures),
             isScrolled = isScrolled,
             actionIcon = {
                 Row {
                     IconButton(onClick = { showInfoDialog = true }) {
-                        Icon(Icons.Default.Info, contentDescription = "About Gestures", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Icon(Icons.Default.Info, contentDescription = stringResource(R.string.about_gestures), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     IconButton(onClick = { showVisualizer = true }) {
-                        Icon(Icons.Default.QueryStats, contentDescription = "Data Stream Visualizer")
+                        Icon(Icons.Default.QueryStats, contentDescription = stringResource(R.string.data_stream_visualizer))
                     }
                 }
             }
@@ -626,14 +623,14 @@ fun GestureCard(
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = if (gesture.actions.size > 1) "${gesture.actions.size} Steps" else {
+                        text = if (gesture.actions.size > 1) stringResource(R.string.headshake_steps, gesture.actions.size) else {
                             when(val action = gesture.actions.firstOrNull()) {
-                                is com.benegedeniz.budsdynamiceq.data.model.FlowAction.SystemAction -> action.action.displayName
-                                is com.benegedeniz.budsdynamiceq.data.model.FlowAction.AppAction -> if (action.appName.isNotBlank() && action.appName != "Select App") action.appName else "Start Application"
+                                is com.benegedeniz.budsdynamiceq.data.model.FlowAction.SystemAction -> stringResource(action.action.displayNameRes)
+                                is com.benegedeniz.budsdynamiceq.data.model.FlowAction.AppAction -> if (action.appName.isNotBlank() && action.appName != "Select App") action.appName else stringResource(R.string.action_start_application)
                                 is com.benegedeniz.budsdynamiceq.data.model.FlowAction.DelayAction -> "Delay"
-                                is com.benegedeniz.budsdynamiceq.data.model.FlowAction.VolumeAction -> "Set Volume to ${action.percentage}%"
-                                is com.benegedeniz.budsdynamiceq.data.model.FlowAction.ModifyVolumeAction -> if (action.increase) "Increase Vol by ${action.percentage}%" else "Decrease Vol by ${action.percentage}%"
-                                is com.benegedeniz.budsdynamiceq.data.model.FlowAction.TtsAction -> "Speak out loud"
+                                is com.benegedeniz.budsdynamiceq.data.model.FlowAction.VolumeAction -> stringResource(R.string.action_set_volume_to, action.percentage)
+                                is com.benegedeniz.budsdynamiceq.data.model.FlowAction.ModifyVolumeAction -> if (action.increase) stringResource(R.string.action_increase_vol, action.percentage) else stringResource(R.string.action_decrease_vol, action.percentage)
+                                is com.benegedeniz.budsdynamiceq.data.model.FlowAction.TtsAction -> stringResource(R.string.action_speak_out_loud)
                                 else -> "No Action"
                             }
                         },
@@ -649,32 +646,32 @@ fun GestureCard(
                     shape = RoundedCornerShape(28.dp),
                     containerColor = MaterialTheme.colorScheme.surface,
                     onDismissRequest = { showDeleteConfirm = false },
-                    title = { Text("Delete Gesture") },
-                    text = { Text("Are you sure you want to delete '${gesture.name}'?") },
+                    title = { Text(stringResource(R.string.delete_gesture)) },
+                    text = { Text(stringResource(R.string.delete_confirm, gesture.name)) },
                     confirmButton = {
                         TextButton(onClick = {
                             showDeleteConfirm = false
                             onDelete()
                         }) {
-                            Text("Delete", color = MaterialTheme.colorScheme.error)
+                            Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error)
                         }
                     },
                     dismissButton = {
                         TextButton(onClick = { showDeleteConfirm = false }) {
-                            Text("Cancel")
+                            Text(stringResource(R.string.cancel))
                         }
                     }
                 )
             }
 
             IconButton(onClick = onEditFlow) {
-                Icon(Icons.Default.Edit, contentDescription = "Edit Flow", tint = MaterialTheme.colorScheme.primary)
+                Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.edit_flow), tint = MaterialTheme.colorScheme.primary)
             }
             IconButton(onClick = onImprove, enabled = canImprove) {
-                Icon(Icons.AutoMirrored.Filled.TrendingUp, contentDescription = "Improve Detection", tint = if (canImprove) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
+                Icon(Icons.AutoMirrored.Filled.TrendingUp, contentDescription = stringResource(R.string.improve_detection), tint = if (canImprove) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
             }
             IconButton(onClick = { showDeleteConfirm = true }) {
-                Icon(Icons.Default.DeleteOutline, contentDescription = "Delete", tint = MaterialTheme.colorScheme.error)
+                Icon(Icons.Default.DeleteOutline, contentDescription = stringResource(R.string.delete), tint = MaterialTheme.colorScheme.error)
             }
             Switch(
                 checked = gesture.enabled,
@@ -702,24 +699,24 @@ fun IMUVisualizerDialog(
         shape = RoundedCornerShape(28.dp),
         containerColor = MaterialTheme.colorScheme.surface,
         onDismissRequest = onDismiss,
-        title = { Text("IMU Data Stream") },
+        title = { Text(stringResource(R.string.imu_data_stream)) },
         text = {
             Column {
                 val s = sample
                 if (s == null) {
-                    Text("Waiting for data... Make sure you are connected and have Gestures enabled.")
+                    Text(stringResource(R.string.waiting_for_data_make_sure_you_are_conne))
                 } else {
-                    Text("Quaternion:", fontWeight = FontWeight.Bold)
-                    Text("X: ${String.format("%.4f", s.x)}")
-                    Text("Y: ${String.format("%.4f", s.y)}")
-                    Text("Z: ${String.format("%.4f", s.z)}")
-                    Text("W: ${String.format("%.4f", s.w)}")
+                    Text(stringResource(R.string.quaternion), fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.x_format, String.format("%.4f", s.x)))
+                    Text(stringResource(R.string.y_format, String.format("%.4f", s.y)))
+                    Text(stringResource(R.string.z_format, String.format("%.4f", s.z)))
+                    Text(stringResource(R.string.w_format, String.format("%.4f", s.w)))
                 }
             }
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text("Close")
+                Text(stringResource(R.string.close))
             }
         }
     )
@@ -791,7 +788,7 @@ fun LivePreviewSection(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Debug Info",
+                    text = stringResource(R.string.debug_info),
                     style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold
@@ -806,22 +803,22 @@ fun LivePreviewSection(
             androidx.compose.animation.AnimatedVisibility(visible = debugExpanded) {
                 Column(modifier = Modifier.padding(top = 8.dp)) {
             Text(
-                text = "Active Sensor: ${activeImuSide.name}",
+                text = stringResource(R.string.headshake_active_sensor, activeImuSide.name),
                 style = MaterialTheme.typography.titleSmall,
                 color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.Bold
             )
             Text(
-                text = "Reason: $activeImuReason",
+                text = stringResource(R.string.headshake_reason, activeImuReason),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = if (invertPitch) {
-                    "Pitch: INVERTED (Left earbud IMU is physically rotated 180°)"
+                    stringResource(R.string.headshake_pitch_inverted)
                 } else {
-                    "Pitch: NORMAL (Right earbud is the baseline reference)"
+                    stringResource(R.string.headshake_pitch_normal)
                 },
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -870,7 +867,7 @@ fun LivePreviewSection(
                             color = MaterialTheme.colorScheme.onErrorContainer
                         )
                         Text(
-                            text = "Gestures muted",
+                            text = stringResource(R.string.gestures_muted),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.7f)
                         )
@@ -934,21 +931,21 @@ fun GesturesIntroDialog(onDismiss: () -> Unit) {
                             }
                             Spacer(modifier = Modifier.height(32.dp))
                             Text(
-                                text = "Hands-free Control",
+                                text = stringResource(R.string.hands_free_control),
                                 style = MaterialTheme.typography.headlineMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onBackground
                             )
                             Spacer(modifier = Modifier.height(16.dp))
                             Text(
-                                text = "Gestures lets you trigger custom action flows simply by moving your head. You can record one-off gestures (like a quick nod) to control your media, noise cancellation, calls, and more.",
+                                text = stringResource(R.string.gestures_lets_you_trigger_custom_action_),
                                 style = MaterialTheme.typography.bodyLarge,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 textAlign = androidx.compose.ui.text.style.TextAlign.Center
                             )
                             Spacer(modifier = Modifier.height(16.dp))
                             Text(
-                                text = "You can also record continuous movements (like walking) as a 'Movement Cancelling Profile' to mute gestures and prevent accidental triggers while on the move.",
+                                text = stringResource(R.string.you_can_also_record_continuous_movements),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 textAlign = androidx.compose.ui.text.style.TextAlign.Center
@@ -958,15 +955,13 @@ fun GesturesIntroDialog(onDismiss: () -> Unit) {
                                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)
                             ) {
                                 Column(modifier = Modifier.padding(16.dp)) {
-                                    Text(
-                                        "⚠️ Spatial Audio Warning",
+                                    Text(stringResource(R.string.spatial_audio_warning),
                                         style = MaterialTheme.typography.titleSmall,
                                         fontWeight = FontWeight.Bold,
                                         color = MaterialTheme.colorScheme.onErrorContainer
                                     )
                                     Spacer(modifier = Modifier.height(4.dp))
-                                    Text(
-                                        "Spatial Audio (360 Audio) must be disabled in the Samsung Wearable app. The buds cannot stream raw IMU data properly if Samsung's own head tracking is actively hijacking the sensor.",
+                                    Text(stringResource(R.string.spatial_audio_360_audio_must_be_disabled),
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onErrorContainer
                                     )
@@ -990,21 +985,21 @@ fun GesturesIntroDialog(onDismiss: () -> Unit) {
                             }
                             Spacer(modifier = Modifier.height(32.dp))
                             Text(
-                                text = "Need Recalibration?",
+                                text = stringResource(R.string.need_recalibration),
                                 style = MaterialTheme.typography.headlineMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onBackground
                             )
                             Spacer(modifier = Modifier.height(16.dp))
                             Text(
-                                text = "Due to a known issue with the earbuds' sensor reporting, the gesture pitch (up/down axis) might invert randomly after putting them in.",
+                                text = stringResource(R.string.due_to_a_known_issue_with_the_earbuds_se),
                                 style = MaterialTheme.typography.bodyLarge,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 textAlign = androidx.compose.ui.text.style.TextAlign.Center
                             )
                             Spacer(modifier = Modifier.height(16.dp))
                             Text(
-                                text = "If your gestures stop working correctly or seem upside down, simply take one earbud out of your ear and put it back in to recalibrate the sensors.",
+                                text = stringResource(R.string.if_your_gestures_stop_working_correctly_),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 textAlign = androidx.compose.ui.text.style.TextAlign.Center
@@ -1051,7 +1046,7 @@ fun GesturesIntroDialog(onDismiss: () -> Unit) {
                         contentPadding = PaddingValues(horizontal = 24.dp, vertical = 12.dp)
                     ) {
                         Text(
-                            text = if (pagerState.currentPage < 1) "Next" else "Got it",
+                            text = if (pagerState.currentPage < 1) stringResource(R.string.btn_next) else stringResource(R.string.btn_got_it),
                             fontWeight = FontWeight.Bold,
                             fontSize = 16.sp
                         )

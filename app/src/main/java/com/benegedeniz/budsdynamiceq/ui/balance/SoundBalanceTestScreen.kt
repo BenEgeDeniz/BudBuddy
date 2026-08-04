@@ -41,6 +41,8 @@ import com.benegedeniz.budsdynamiceq.ui.components.PageHeader
 import com.benegedeniz.budsdynamiceq.ui.components.bounceClick
 import com.benegedeniz.budsdynamiceq.ui.rules.RulesViewModel
 import kotlinx.coroutines.delay
+import androidx.compose.ui.res.stringResource
+import com.benegedeniz.budsdynamiceq.R
 
 enum class TestPhase {
     INTRO, LEFT_EAR, RIGHT_EAR, RESULT
@@ -48,6 +50,7 @@ enum class TestPhase {
 
 @Composable
 fun SoundBalanceTestScreen(viewModel: RulesViewModel, onBack: () -> Unit, modifier: Modifier = Modifier) {
+    androidx.activity.compose.BackHandler { onBack() }
     val context = LocalContext.current
     val haptic = LocalHapticFeedback.current
     
@@ -66,7 +69,7 @@ fun SoundBalanceTestScreen(viewModel: RulesViewModel, onBack: () -> Unit, modifi
     
     LaunchedEffect(placementL, placementR) {
         if (placementL != PlacementState.WEARING || placementR != PlacementState.WEARING) {
-            Toast.makeText(context, "Earbud removed, test aborted.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, context.getString(R.string.earbud_removed_aborted), Toast.LENGTH_SHORT).show()
             onBack()
         }
     }
@@ -91,7 +94,7 @@ fun SoundBalanceTestScreen(viewModel: RulesViewModel, onBack: () -> Unit, modifi
     Scaffold(
         topBar = {
             PageHeader(
-                title = "Sound Balance Test",
+                title = stringResource(R.string.sound_balance_test),
                 isScrolled = false,
                 actionIcon = {
                     IconButton(
@@ -101,7 +104,7 @@ fun SoundBalanceTestScreen(viewModel: RulesViewModel, onBack: () -> Unit, modifi
                         },
                         modifier = Modifier.bounceClick()
                     ) {
-                        Icon(Icons.Default.Close, contentDescription = "Close")
+                        Icon(Icons.Default.Close, contentDescription = stringResource(R.string.close))
                     }
                 }
             )
@@ -137,8 +140,8 @@ fun SoundBalanceTestScreen(viewModel: RulesViewModel, onBack: () -> Unit, modifi
                     }
                     TestPhase.LEFT_EAR -> {
                         EarTestPhase(
-                            title = "Left Ear Test",
-                            description = "Press and hold the button. A tone will play and gradually get quieter.\n\nRelease your finger the exact moment you can no longer hear the tone.",
+                            title = stringResource(R.string.left_ear_test),
+                            description = stringResource(R.string.press_and_hold_the_button_a_tone_will_pl),
                             currentGain = currentGain,
                             testManager = testManager,
                             isLeftEar = true,
@@ -152,8 +155,8 @@ fun SoundBalanceTestScreen(viewModel: RulesViewModel, onBack: () -> Unit, modifi
                     }
                     TestPhase.RIGHT_EAR -> {
                         EarTestPhase(
-                            title = "Right Ear Test",
-                            description = "Now testing your right ear.\n\nPress and hold the button. Release your finger the exact moment you can no longer hear the tone.",
+                            title = stringResource(R.string.right_ear_test),
+                            description = stringResource(R.string.now_testing_your_right_ear_n_npress_and_),
                             currentGain = currentGain,
                             testManager = testManager,
                             isLeftEar = false,
@@ -214,7 +217,7 @@ private fun IntroPhase(onStart: () -> Unit) {
                     modifier = Modifier.size(48.dp).padding(bottom = 12.dp)
                 )
                 Text(
-                    text = "Find your perfect balance",
+                    text = stringResource(R.string.find_your_perfect_balance),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface,
@@ -222,7 +225,7 @@ private fun IntroPhase(onStart: () -> Unit) {
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "This test will determine the optimal Left/Right sound balance tailored specifically for your ears.",
+                    text = stringResource(R.string.this_test_will_determine_the_optimal_lef),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center
@@ -246,7 +249,7 @@ private fun IntroPhase(onStart: () -> Unit) {
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(
-                    text = "Your media will be paused and system volume will be temporarily maximized for accuracy.",
+                    text = stringResource(R.string.your_media_will_be_paused_and_system_vol),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSecondaryContainer
                 )
@@ -269,7 +272,7 @@ private fun IntroPhase(onStart: () -> Unit) {
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(
-                    text = "Sensory Warning: This test plays a continuous 1000Hz tone. Users with sensory processing differences or autism should proceed with caution.",
+                    text = stringResource(R.string.sensory_warning_this_test_plays_a_contin),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onErrorContainer
                 )
@@ -292,7 +295,7 @@ private fun IntroPhase(onStart: () -> Unit) {
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(
-                    text = "Please go to a quiet environment. Active Noise Canceling (ANC) will be temporarily turned on during the test.",
+                    text = stringResource(R.string.please_go_to_a_quiet_environment_active_),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onTertiaryContainer
                 )
@@ -315,7 +318,7 @@ private fun IntroPhase(onStart: () -> Unit) {
             if (isStarting) {
                 CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary, strokeWidth = 2.dp)
             } else {
-                Text("Start Test", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                Text(stringResource(R.string.start_test), fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
             }
         }
     }
@@ -380,7 +383,7 @@ private fun EarTestPhase(
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
                 ) {
                     Text(
-                        text = "Release when silent",
+                        text = stringResource(R.string.release_when_silent),
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
                         fontWeight = FontWeight.Bold,
                         style = MaterialTheme.typography.bodyLarge,
@@ -427,7 +430,7 @@ private fun EarTestPhase(
                 exit = androidx.compose.animation.fadeOut()
             ) {
                 Text(
-                    text = "Hold to hear tone",
+                    text = stringResource(R.string.hold_to_hear_tone),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontWeight = FontWeight.Bold,
                     style = MaterialTheme.typography.bodyLarge,
@@ -456,9 +459,9 @@ private fun ResultPhase(
     val recommendedBalance = (16 - (diff * 16)).toInt().coerceIn(0, 32)
     
     val balanceLabel = when (recommendedBalance) {
-        16 -> "Perfectly Balanced"
-        in 0..15 -> "Shifted Left ${((16 - recommendedBalance) / 16f * 100).toInt()}%"
-        else -> "Shifted Right ${((recommendedBalance - 16) / 16f * 100).toInt()}%"
+        16 -> stringResource(R.string.balance_perfectly_balanced)
+        in 0..15 -> stringResource(R.string.balance_shifted_left, ((16 - recommendedBalance) / 16f * 100).toInt())
+        else -> stringResource(R.string.balance_shifted_right, ((recommendedBalance - 16) / 16f * 100).toInt())
     }
 
     Column(
@@ -474,7 +477,7 @@ private fun ResultPhase(
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
-            text = "Test Complete",
+            text = stringResource(R.string.test_complete),
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface
@@ -492,7 +495,7 @@ private fun ResultPhase(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "Recommended Balance",
+                    text = stringResource(R.string.recommended_balance),
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -513,7 +516,7 @@ private fun ResultPhase(
             modifier = Modifier.fillMaxWidth().height(56.dp).bounceClick(),
             shape = RoundedCornerShape(16.dp)
         ) {
-            Text("Apply Balance", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+            Text(stringResource(R.string.apply_balance), fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
         }
         
         Spacer(modifier = Modifier.height(16.dp))
@@ -525,7 +528,7 @@ private fun ResultPhase(
         ) {
             Icon(Icons.Default.Refresh, contentDescription = null)
             Spacer(modifier = Modifier.width(8.dp))
-            Text("Retake Test", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+            Text(stringResource(R.string.retake_test), fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
         }
     }
 }

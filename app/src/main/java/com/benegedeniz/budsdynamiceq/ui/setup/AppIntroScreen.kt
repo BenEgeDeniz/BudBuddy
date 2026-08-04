@@ -22,6 +22,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
+import androidx.compose.ui.res.stringResource
+import com.benegedeniz.budsdynamiceq.R
 
 data class IntroStep(
     val icon: ImageVector,
@@ -36,29 +38,29 @@ fun AppIntroScreen(onIntroFinished: () -> Unit) {
     val steps = listOf(
         IntroStep(
             icon = Icons.Default.AutoAwesome,
-            title = "Welcome to Bud Buddy",
-            description = "Unleash the full potential of your Galaxy Buds with powerful automation and hands-free control."
+            title = stringResource(R.string.welcome_to_bud_buddy),
+            description = stringResource(R.string.unleash_the_full_potential_of_your_galax)
         ),
         IntroStep(
             icon = Icons.Default.GraphicEq,
-            title = "Dynamic EQ",
-            description = "Automatically switch equalizer presets and noise control modes based on the currently playing song's genre, artist, or title."
+            title = stringResource(R.string.dynamic_eq),
+            description = stringResource(R.string.automatically_switch_equalizer_presets_a)
         ),
         IntroStep(
             icon = Icons.Default.Accessibility,
-            title = "Hands-free Control",
-            description = "Control your media, answer calls, or change noise profiles just by nodding or shaking your head."
+            title = stringResource(R.string.hands_free_control),
+            description = stringResource(R.string.control_your_media_answer_calls_or_chang)
         ),
         IntroStep(
             icon = Icons.Default.Info,
-            title = "Galaxy Wearable Replacement",
-            description = "This app functions as a replacement for the Galaxy Wearable app for your Buds. For the best possible experience and to prevent sensor conflicts, we strongly recommend disabling or uninstalling \"Galaxy Wearable\" and its related plugins from your device settings.",
+            title = stringResource(R.string.galaxy_wearable_replacement),
+            description = stringResource(R.string.this_app_functions_as_a_replacement_for_),
             isWarning = true
         ),
         IntroStep(
             icon = Icons.Default.CheckCircle,
-            title = "You're all set",
-            description = "Enjoy your newly supercharged Galaxy Buds!"
+            title = stringResource(R.string.you_re_all_set),
+            description = stringResource(R.string.enjoy_your_newly_supercharged_galaxy_bud)
         )
     )
 
@@ -178,7 +180,7 @@ fun AppIntroScreen(onIntroFinished: () -> Unit) {
                     contentPadding = PaddingValues(horizontal = 24.dp, vertical = 12.dp)
                 ) {
                     Text(
-                        text = if (pagerState.currentPage < steps.size - 1) "Next" else "Get Started",
+                        text = if (pagerState.currentPage < steps.size - 1) stringResource(R.string.btn_next) else stringResource(R.string.btn_get_started),
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp
                     )

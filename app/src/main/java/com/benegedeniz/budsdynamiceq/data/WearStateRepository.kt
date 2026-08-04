@@ -43,11 +43,11 @@ class WearStateRepository(private val context: Context) {
         val newList = list.toMutableList()
         var changed = false
         if (newList.none { it.trigger == com.benegedeniz.budsdynamiceq.data.model.WearStateTrigger.EARBUD_REMOVED }) {
-            newList.add(WearStateAction(id = "default_removed", name = "Earbud Removed", trigger = com.benegedeniz.budsdynamiceq.data.model.WearStateTrigger.EARBUD_REMOVED, actions = emptyList(), enabled = false))
+            newList.add(WearStateAction(id = "default_removed", name = context.getString(com.benegedeniz.budsdynamiceq.R.string.trigger_earbud_removed), trigger = com.benegedeniz.budsdynamiceq.data.model.WearStateTrigger.EARBUD_REMOVED, actions = emptyList(), enabled = false))
             changed = true
         }
         if (newList.none { it.trigger == com.benegedeniz.budsdynamiceq.data.model.WearStateTrigger.BOTH_WEARING }) {
-            newList.add(WearStateAction(id = "default_wearing", name = "Both Earbuds Worn", trigger = com.benegedeniz.budsdynamiceq.data.model.WearStateTrigger.BOTH_WEARING, actions = emptyList(), enabled = false))
+            newList.add(WearStateAction(id = "default_wearing", name = context.getString(com.benegedeniz.budsdynamiceq.R.string.trigger_both_worn), trigger = com.benegedeniz.budsdynamiceq.data.model.WearStateTrigger.BOTH_WEARING, actions = emptyList(), enabled = false))
             changed = true
         }
         

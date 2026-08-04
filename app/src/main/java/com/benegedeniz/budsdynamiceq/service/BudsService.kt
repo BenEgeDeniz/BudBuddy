@@ -45,6 +45,10 @@ import androidx.glance.appwidget.updateAll
 
 class BudsService : Service() {
 
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(com.benegedeniz.budsdynamiceq.util.LanguageUtils.setLocale(newBase))
+    }
+
     companion object {
         private const val TAG = "BudsService"
     }
@@ -96,7 +100,7 @@ class BudsService : Service() {
         createNotificationChannel()
         startForeground(1, buildNotification(
             titleText = "Initializing...", 
-            ruleNcText = "Waiting for connection...", 
+            ruleNcText = getString(R.string.waiting_for_connection), 
             hardwareNcText = "", 
             lBatteryText = "", 
             rBatteryText = "", 
@@ -306,12 +310,12 @@ class BudsService : Service() {
                         if (hardwareVx > 0.55f) {
                             Log.i(TAG, "Auto-detected LEFT earbud as primary IMU from baseline vx=\$hardwareVx")
                             activeImu = ImuSide.LEFT
-                            budsController.setActiveImuSide(activeImu, "Auto-detected LEFT earbud as primary IMU")
+                            budsController.setActiveImuSide(activeImu, getString(R.string.auto_detected_left_imu))
                             smoothedZ = hardwareVx
                         } else if (hardwareVx < -0.55f) {
                             Log.i(TAG, "Auto-detected RIGHT earbud as primary IMU from baseline vx=\$hardwareVx")
                             activeImu = ImuSide.RIGHT
-                            budsController.setActiveImuSide(activeImu, "Auto-detected RIGHT earbud as primary IMU")
+                            budsController.setActiveImuSide(activeImu, getString(R.string.auto_detected_right_imu))
                             smoothedZ = hardwareVx
                         }
                     } else if (!isHandoffInProgress && prevLWearing && prevRWearing && !isImuForced) {
@@ -327,13 +331,13 @@ class BudsService : Service() {
                             if (activeImu == ImuSide.RIGHT && hardwareVx > 0f) {
                                 Log.w(TAG, "Hardware spontaneous IMU hijack to LEFT detected! (dot = \$dot). Correcting.")
                                 activeImu = ImuSide.LEFT
-                                budsController.setActiveImuSide(activeImu, "Hardware spontaneous IMU hijack detected")
+                                budsController.setActiveImuSide(activeImu, getString(R.string.hardware_imu_hijack))
                                 expectedPitchSignFlip = true
                                 longTermVx = hardwareVx // Reset to prevent self-healing from fighting the correction
                             } else if (activeImu == ImuSide.LEFT && hardwareVx < 0f) {
                                 Log.w(TAG, "Hardware spontaneous IMU hijack to RIGHT detected! (dot = \$dot). Correcting.")
                                 activeImu = ImuSide.RIGHT
-                                budsController.setActiveImuSide(activeImu, "Hardware spontaneous IMU hijack detected")
+                                budsController.setActiveImuSide(activeImu, getString(R.string.hardware_imu_hijack))
                                 expectedPitchSignFlip = true
                                 longTermVx = hardwareVx // Reset to prevent self-healing from fighting the correction
                             }
@@ -343,11 +347,11 @@ class BudsService : Service() {
                         if (activeImu == ImuSide.RIGHT && longTermVx > 0.1f) {
                             Log.w(TAG, "Self-healing auto-corrected IMU side to LEFT from longTermVx=\$longTermVx")
                             activeImu = ImuSide.LEFT
-                            budsController.setActiveImuSide(activeImu, "Self-healing auto-corrected IMU side")
+                            budsController.setActiveImuSide(activeImu, getString(R.string.self_healing_imu))
                         } else if (activeImu == ImuSide.LEFT && longTermVx < -0.1f) {
                             Log.w(TAG, "Self-healing auto-corrected IMU side to RIGHT from longTermVx=\$longTermVx")
                             activeImu = ImuSide.RIGHT
-                            budsController.setActiveImuSide(activeImu, "Self-healing auto-corrected IMU side")
+                            budsController.setActiveImuSide(activeImu, getString(R.string.self_healing_imu))
                         }
                     }
                     
@@ -357,12 +361,12 @@ class BudsService : Service() {
                         Log.w(TAG, "Instant auto-correction to LEFT from hardwareVx=\$hardwareVx")
                         activeImu = ImuSide.LEFT
                         isImuForced = false
-                        budsController.setActiveImuSide(activeImu, "Self-healing auto-corrected IMU side")
+                        budsController.setActiveImuSide(activeImu, getString(R.string.self_healing_imu))
                     } else if (activeImu == ImuSide.LEFT && hardwareVx < -0.3f && isImuForced == false) {
                         Log.w(TAG, "Instant auto-correction to RIGHT from hardwareVx=\$hardwareVx")
                         activeImu = ImuSide.RIGHT
                         isImuForced = false
-                        budsController.setActiveImuSide(activeImu, "Self-healing auto-corrected IMU side")
+                        budsController.setActiveImuSide(activeImu, getString(R.string.self_healing_imu))
                     }
                     
                     lastRawSample = sample
@@ -420,7 +424,7 @@ class BudsService : Service() {
 
                 if (lWearing && !rWearing) {
                     isImuForced = true
-                    budsController.setActiveImuSide(ImuSide.LEFT, "Only left earbud is worn")
+                    budsController.setActiveImuSide(ImuSide.LEFT, getString(R.string.only_left_earbud_worn))
                     if (activeImu != ImuSide.LEFT) {
                         activeImu = ImuSide.LEFT
                         expectedPitchSignFlip = true
@@ -430,7 +434,7 @@ class BudsService : Service() {
                     isHandoffInProgress = false
                 } else if (rWearing && !lWearing) {
                     isImuForced = true
-                    budsController.setActiveImuSide(ImuSide.RIGHT, "Only right earbud is worn")
+                    budsController.setActiveImuSide(ImuSide.RIGHT, getString(R.string.only_right_earbud_worn))
                     if (activeImu != ImuSide.RIGHT) {
                         activeImu = ImuSide.RIGHT
                         expectedPitchSignFlip = true
@@ -447,10 +451,10 @@ class BudsService : Service() {
                             // Defer activeImu selection to the spatial data flow heuristic!
                         }
                         ImuSide.RIGHT -> {
-                            budsController.setActiveImuSide(ImuSide.RIGHT, "Both worn. Relying on IMU heuristics.")
+                            budsController.setActiveImuSide(ImuSide.RIGHT, getString(R.string.both_worn_heuristics))
                         }
                         ImuSide.LEFT -> {
-                            budsController.setActiveImuSide(ImuSide.LEFT, "Both worn. Relying on IMU heuristics.")
+                            budsController.setActiveImuSide(ImuSide.LEFT, getString(R.string.both_worn_heuristics))
                         }
                     }
                 } else {
@@ -477,9 +481,9 @@ class BudsService : Service() {
             gestureDetector.detectedGesture.collect { gesture ->
                 try {
                     if (gestureDetector.isTrainingMode) return@collect
-                    transientNotification.value = "Gesture Detected" to "\"${gesture.name}\" → Flow sequence"
+                    transientNotification.value = getString(R.string.service_gesture_detected) to getString(R.string.service_flow_sequence, gesture.name)
                     actionExecutor.execute(gesture.actions, gesture.playChime)
-                    transientNotification.value = "Gesture Detected" to "\"${gesture.name}\" → Flow complete"
+                    transientNotification.value = getString(R.string.service_gesture_detected) to getString(R.string.service_flow_complete, gesture.name)
                     delay(1000)
                     transientNotification.value = null
                 } catch (e: Exception) {
@@ -494,7 +498,7 @@ class BudsService : Service() {
             noiseDetector.noiseDetected.collect { noiseProfile ->
                 try {
                     if (gestureDetector.isTrainingMode) return@collect
-                    transientNotification.value = "Movement Cancelled" to "Filtering noise: \"${noiseProfile.name}\""
+                    transientNotification.value = getString(R.string.service_movement_cancelled) to getString(R.string.service_filtering_noise, noiseProfile.name)
                     delay(1000)
                     transientNotification.value = null
                 } catch (e: Exception) {
@@ -613,7 +617,7 @@ class BudsService : Service() {
                     wasConnected = false
                     updateNotification(
                         titleText = "Disconnected", 
-                        ruleNcText = "Waiting for Buds...", 
+                        ruleNcText = getString(R.string.waiting_for_buds), 
                         hardwareNcText = "", 
                         lBatteryText = "", 
                         rBatteryText = "", 
@@ -662,8 +666,8 @@ class BudsService : Service() {
                     }
                     lastSongWithDefault = null
                     
-                    activeRuleTitle = "Active Rule: ${matchingRule.keyword}"
-                    activeRuleText = "Settings: ${eqToSend?.displayName ?: "None"} | ${ncToSend?.displayName ?: "None"}"
+                    activeRuleTitle = getString(R.string.active_rule, matchingRule.keyword)
+                    activeRuleText = getString(R.string.settings_format, eqToSend?.let { getString(it.displayNameRes) } ?: getString(R.string.none), ncToSend?.let { getString(it.displayNameRes) } ?: getString(R.string.none))
                 } else {
                     val justDroppedOut = budsController.lastMatchedRule.value != null
                     budsController.setLastMatchedRule(null)
@@ -679,16 +683,16 @@ class BudsService : Service() {
                         lastAppliedManualNc = manualNc
                     }
                     
-                    activeRuleTitle = "Default Settings"
-                    activeRuleText = "Settings: ${manualEq?.displayName ?: "None"} | ${manualNc?.displayName ?: "None"}"
+                    activeRuleTitle = getString(R.string.default_settings)
+                    activeRuleText = getString(R.string.settings_format, manualEq?.let { getString(it.displayNameRes) } ?: getString(R.string.none), manualNc?.let { getString(it.displayNameRes) } ?: getString(R.string.none))
                 }
                 
                 val lText = "${state.deviceState.bL}%"
                 val rText = "${state.deviceState.bR}%"
                 
                 val wearingOne = (isLWorn && !isRWorn) || (isRWorn && !isLWorn)
-                val toggleText = if (wearingOne && !state.deviceState.oneEarbudEnabled) "Toggle Off / Ambient" else "Toggle ANC / Ambient"
-                val hardwareNcText = "Active NC: ${state.deviceState.activeNc?.displayName ?: "Unknown"}"
+                val toggleText = if (wearingOne && !state.deviceState.oneEarbudEnabled) getString(R.string.toggle_off_ambient) else getString(R.string.toggle_anc_ambient)
+                val hardwareNcText = getString(R.string.active_nc_format, state.deviceState.activeNc?.let { getString(it.displayNameRes) } ?: getString(R.string.unknown))
 
                 if (state.transient != null) {
                     updateNotification(
@@ -727,7 +731,7 @@ class BudsService : Service() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 "buds_service_channel",
-                "Bud Buddy Service",
+                getString(R.string.app_name_service),
                 NotificationManager.IMPORTANCE_LOW
             )
             val manager = getSystemService(NotificationManager::class.java)
@@ -787,8 +791,8 @@ class BudsService : Service() {
             setOnClickPendingIntent(R.id.notification_toggle_button, togglePendingIntent)
         }
 
-        val collapsedTitle = if (isConnected) "Bud Buddy Connected" else "Bud Buddy Disconnected"
-        val collapsedText = "Expand for more"
+        val collapsedTitle = if (isConnected) getString(R.string.connected) else getString(R.string.disconnected)
+        val collapsedText = getString(R.string.expand_for_more)
 
         return NotificationCompat.Builder(this, "buds_service_channel")
             .setSmallIcon(R.mipmap.ic_launcher) 

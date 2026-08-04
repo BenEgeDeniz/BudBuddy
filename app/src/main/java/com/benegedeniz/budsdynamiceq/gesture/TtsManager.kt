@@ -29,9 +29,25 @@ class TtsManager(private val context: Context) : TextToSpeech.OnInitListener {
         tts = TextToSpeech(context.applicationContext, this)
     }
 
+    private fun updateLanguage() {
+        val prefs = context.getSharedPreferences("BudsPrefs", Context.MODE_PRIVATE)
+        val lang = prefs.getString("AppLanguage", "system") ?: "system"
+        val locale = if (lang == "system") {
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+                android.content.res.Resources.getSystem().configuration.locales.get(0)
+            } else {
+                @Suppress("DEPRECATION")
+                android.content.res.Resources.getSystem().configuration.locale
+            }
+        } else {
+            java.util.Locale(lang)
+        }
+        tts?.language = locale
+    }
+
     override fun onInit(status: Int) {
         if (status == TextToSpeech.SUCCESS) {
-            tts?.language = Locale.getDefault()
+            updateLanguage()
 
             tts?.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
                 override fun onStart(utteranceId: String?) {}
@@ -105,6 +121,7 @@ class TtsManager(private val context: Context) : TextToSpeech.OnInitListener {
 
     fun speak(text: String, resumeMedia: Boolean = true, asAnnouncement: Boolean = true) {
         if (!isReady) return
+        updateLanguage()
 
         speakJob?.cancel()
         speakJob = scope.launch {
@@ -134,6 +151,7 @@ class TtsManager(private val context: Context) : TextToSpeech.OnInitListener {
     
     suspend fun speakAndWait(text: String, resumeMedia: Boolean = true, asAnnouncement: Boolean = true) {
         if (!isReady) return
+        updateLanguage()
         
         suspendCancellableCoroutine { continuation ->
             speakJob?.cancel()

@@ -1,0 +1,3 @@
+✨ v1.1
+- Türkçe dil desteği eklendi.
+- Küçük hata düzeltmeleri yapıldı.

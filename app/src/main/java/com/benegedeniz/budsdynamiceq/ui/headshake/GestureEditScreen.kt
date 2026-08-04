@@ -35,6 +35,8 @@ import org.burnoutcrew.reorderable.reorderable
 import com.benegedeniz.budsdynamiceq.data.model.FlowAction
 import com.benegedeniz.budsdynamiceq.data.model.GestureAction
 import com.benegedeniz.budsdynamiceq.data.model.HeadGesture
+import androidx.compose.ui.res.stringResource
+import com.benegedeniz.budsdynamiceq.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -95,7 +97,7 @@ fun GestureEditScreen(
                             onClick = onDismiss,
                             modifier = Modifier.weight(1f)
                         ) {
-                            Text("Cancel")
+                            Text(stringResource(R.string.cancel), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
                         }
                         
                         VerticalDivider(
@@ -108,7 +110,7 @@ fun GestureEditScreen(
                             modifier = Modifier.weight(1f),
                             enabled = name.isNotBlank() && actionWrappers.isNotEmpty()
                         ) {
-                            Text("Save Changes")
+                            Text(stringResource(R.string.save_changes), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
                         }
                     }
                 }
@@ -122,7 +124,7 @@ fun GestureEditScreen(
             ) {
                 Spacer(modifier = Modifier.height(24.dp))
                 Text(
-                    text = "Edit Gesture",
+                    text = stringResource(R.string.edit_gesture),
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold
                 )
@@ -131,7 +133,7 @@ fun GestureEditScreen(
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
-                    label = { Text("Gesture Name") },
+                    label = { Text(stringResource(R.string.gesture_name)) },
                     shape = RoundedCornerShape(16.dp),
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
@@ -144,7 +146,7 @@ fun GestureEditScreen(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        text = "Play Tone on Recognition",
+                        text = stringResource(R.string.play_tone_on_recognition),
                         style = MaterialTheme.typography.bodyLarge
                     )
                     val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
@@ -159,7 +161,7 @@ fun GestureEditScreen(
                 
                 Spacer(modifier = Modifier.height(24.dp))
                 Text(
-                    text = "Action Flow",
+                    text = stringResource(R.string.action_flow),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
@@ -209,7 +211,7 @@ fun GestureEditScreen(
                         
                         if (hasFitTest) {
                             Text(
-                                text = "Fit Test is an exclusive action. No other actions or delays can be added to this flow.",
+                                text = stringResource(R.string.fit_test_is_an_exclusive_action_no_other),
                                 color = MaterialTheme.colorScheme.error,
                                 style = MaterialTheme.typography.bodySmall,
                                 modifier = Modifier.padding(bottom = 8.dp)
@@ -229,7 +231,7 @@ fun GestureEditScreen(
                             ) {
                                 Icon(Icons.Default.Add, contentDescription = null)
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Text("Action")
+                                Text(stringResource(R.string.action))
                             }
                             OutlinedButton(
                                 onClick = {
@@ -240,7 +242,7 @@ fun GestureEditScreen(
                             ) {
                                 Icon(Icons.Default.Add, contentDescription = null)
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Text("Delay")
+                                Text(stringResource(R.string.delay))
                             }
                         }
                     }
@@ -273,7 +275,7 @@ fun FlowActionItem(
         ) {
             Icon(
                 imageVector = Icons.Default.DragHandle,
-                contentDescription = "Drag to reorder",
+                contentDescription = stringResource(R.string.drag_to_reorder),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = dragModifier.padding(end = 12.dp)
             )
@@ -284,7 +286,7 @@ fun FlowActionItem(
                     Column(modifier = Modifier.weight(1f)) {
                         Box(modifier = Modifier.fillMaxWidth()) {
                             OutlinedTextField(
-                                value = action.action.displayName,
+                                value = stringResource(action.action.displayNameRes),
                                 onValueChange = {},
                                 readOnly = true,
                                 shape = RoundedCornerShape(16.dp),
@@ -312,12 +314,12 @@ fun FlowActionItem(
                             ) {
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
-                                        text = "Force action",
+                                        text = stringResource(R.string.force_action),
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = MaterialTheme.colorScheme.onSurface
                                     )
                                     Text(
-                                        text = "Enabling this will forcefully do the action no matter what and won't respect intent.",
+                                        text = stringResource(R.string.enabling_this_will_forcefully_do_the_act),
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
@@ -360,7 +362,7 @@ fun FlowActionItem(
                     
                     Column(modifier = Modifier.weight(1f)) {
                         OutlinedTextField(
-                            value = "Start Application",
+                            value = stringResource(R.string.action_start_application),
                             onValueChange = {},
                             readOnly = true,
                             shape = RoundedCornerShape(16.dp),
@@ -382,7 +384,7 @@ fun FlowActionItem(
                             onClick = { showAppSelectionDialog = true },
                             modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
                         ) {
-                            Text(if (action.packageName.isEmpty()) "Select App" else "Change App (${action.appName})")
+                            Text(if (action.packageName.isEmpty()) stringResource(R.string.select_app_short) else stringResource(R.string.change_app_format, action.appName))
                         }
                     }
 
@@ -419,7 +421,7 @@ fun FlowActionItem(
                 is FlowAction.DelayAction -> {
                     var delayText by remember(action.ms) { mutableStateOf(action.ms.toString()) }
                     val focusManager = LocalFocusManager.current
-                    Text("Delay for", modifier = Modifier.padding(end = 8.dp))
+                    Text(stringResource(R.string.delay_for), modifier = Modifier.padding(end = 8.dp))
                     OutlinedTextField(
                         value = delayText,
                         onValueChange = { 
@@ -442,7 +444,7 @@ fun FlowActionItem(
                             },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
                         keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
-                        suffix = { Text("ms") }
+                        suffix = { Text(stringResource(R.string.ms)) }
                     )
                 }
                 is FlowAction.VolumeAction -> {
@@ -467,7 +469,7 @@ fun FlowActionItem(
                                 }
                         )
                         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
-                            Text("${action.percentage}%", modifier = Modifier.width(48.dp))
+                            Text(stringResource(R.string.percentage_format, action.percentage.toString()), modifier = Modifier.width(48.dp))
                             Slider(
                                 value = action.percentage / 100f,
                                 onValueChange = { onUpdate(FlowAction.VolumeAction((it * 100).toInt())) },
@@ -501,7 +503,7 @@ fun FlowActionItem(
                     
                     Column(modifier = Modifier.weight(1f)) {
                         OutlinedTextField(
-                            value = if (action.increase) "Increase Volume" else "Decrease Volume",
+                            value = if (action.increase) stringResource(R.string.action_increase_volume) else stringResource(R.string.action_decrease_volume),
                             onValueChange = {},
                             readOnly = true,
                             shape = RoundedCornerShape(16.dp),
@@ -519,7 +521,7 @@ fun FlowActionItem(
                                 }
                         )
                         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
-                            Text("By", modifier = Modifier.padding(end = 8.dp))
+                            Text(stringResource(R.string.by), modifier = Modifier.padding(end = 8.dp))
                             OutlinedTextField(
                                 value = pctText,
                                 onValueChange = { 
@@ -542,7 +544,7 @@ fun FlowActionItem(
                                     },
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
                                 keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
-                                suffix = { Text("%") }
+                                suffix = { Text(stringResource(R.string.unknown_string)) }
                             )
                         }
                     }
@@ -576,7 +578,7 @@ fun FlowActionItem(
                     
                     Column(modifier = Modifier.weight(1f)) {
                         OutlinedTextField(
-                            value = "Speak Out Loud",
+                            value = stringResource(R.string.action_speak_out_loud),
                             onValueChange = {},
                             readOnly = true,
                             shape = RoundedCornerShape(16.dp),
@@ -599,7 +601,7 @@ fun FlowActionItem(
                                 ttsText = it 
                                 onUpdate(FlowAction.TtsAction(it, action.asAnnouncement))
                             },
-                            placeholder = { Text("Enter text to speak") },
+                            placeholder = { Text(stringResource(R.string.enter_text_to_speak)) },
                             shape = RoundedCornerShape(16.dp),
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -608,7 +610,7 @@ fun FlowActionItem(
                             keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() })
                         )
                         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
-                            Text("As Announcement (boost volume)", modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
+                            Text(stringResource(R.string.as_announcement_boost_volume), modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
                             Switch(
                                 checked = action.asAnnouncement,
                                 onCheckedChange = { 
@@ -643,7 +645,7 @@ fun FlowActionItem(
             }
             
             IconButton(onClick = onRemove) {
-                Icon(Icons.Default.Delete, contentDescription = "Remove", tint = MaterialTheme.colorScheme.error)
+                Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.remove), tint = MaterialTheme.colorScheme.error)
             }
         }
     }

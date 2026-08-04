@@ -29,6 +29,8 @@ import androidx.compose.ui.unit.sp
 import com.benegedeniz.budsdynamiceq.data.model.HeadGesture
 import com.benegedeniz.budsdynamiceq.di.ServiceLocator
 import kotlinx.coroutines.launch
+import androidx.compose.ui.res.stringResource
+import com.benegedeniz.budsdynamiceq.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -56,10 +58,10 @@ fun MovementCancellingScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Movement Cancelling", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)) },
+                title = { Text(stringResource(R.string.movement_cancelling), style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -79,14 +81,12 @@ fun MovementCancellingScreen(
                         tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
                     )
                     Spacer(Modifier.height(16.dp))
-                    Text(
-                        "No noise profiles yet.",
+                    Text(stringResource(R.string.no_noise_profiles_yet),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         style = MaterialTheme.typography.titleMedium,
                         textAlign = androidx.compose.ui.text.style.TextAlign.Center
                     )
-                    Text(
-                        "Tap + to record background movements as noise profiles.",
+                    Text(stringResource(R.string.tap_to_record_background_movements_as_no),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                         textAlign = androidx.compose.ui.text.style.TextAlign.Center
@@ -164,7 +164,7 @@ fun NoiseProfileCard(
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = if (profile.enabled) "Mutes gestures when detected" else "Profile disabled",
+                    text = if (profile.enabled) stringResource(R.string.movement_mutes_gestures) else stringResource(R.string.movement_profile_disabled),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.primary
                 )
@@ -176,26 +176,26 @@ fun NoiseProfileCard(
                     shape = RoundedCornerShape(28.dp),
                     containerColor = MaterialTheme.colorScheme.surface,
                     onDismissRequest = { showDeleteConfirm = false },
-                    title = { Text("Delete Noise Profile") },
-                    text = { Text("Are you sure you want to delete '${profile.name}'?") },
+                    title = { Text(stringResource(R.string.delete_noise_profile)) },
+                    text = { Text(stringResource(R.string.delete_confirm, profile.name)) },
                     confirmButton = {
                         TextButton(onClick = {
                             showDeleteConfirm = false
                             onDelete()
                         }) {
-                            Text("Delete", color = MaterialTheme.colorScheme.error)
+                            Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error)
                         }
                     },
                     dismissButton = {
                         TextButton(onClick = { showDeleteConfirm = false }) {
-                            Text("Cancel")
+                            Text(stringResource(R.string.cancel))
                         }
                     }
                 )
             }
 
             IconButton(onClick = { showDeleteConfirm = true }) {
-                Icon(Icons.Default.DeleteOutline, contentDescription = "Delete", tint = MaterialTheme.colorScheme.error)
+                Icon(Icons.Default.DeleteOutline, contentDescription = stringResource(R.string.delete), tint = MaterialTheme.colorScheme.error)
             }
             val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
             Switch(
@@ -220,18 +220,13 @@ fun MovementCancellingIntroDialog(onDismiss: () -> Unit) {
     val steps = listOf(
         com.benegedeniz.budsdynamiceq.ui.setup.IntroStep(
             icon = Icons.Default.SensorsOff,
-            title = "Movement Cancelling",
-            description = "Movement Cancelling detects background physical movements like walking or riding a bus, and temporarily mutes gesture detection to prevent accidental triggers."
-        ),
-        com.benegedeniz.budsdynamiceq.ui.setup.IntroStep(
-            icon = Icons.Default.Add,
-            title = "How to setup",
-            description = "Tap the + floating action button on the main Gestures page and select 'Movement Cancelling Profile'. The engine will sample your repetitive background activity while you move."
+            title = stringResource(R.string.movement_cancelling),
+            description = stringResource(R.string.movement_cancelling_detects_background_p)
         ),
         com.benegedeniz.budsdynamiceq.ui.setup.IntroStep(
             icon = Icons.Default.Shield,
-            title = "Prevent Accidental Triggers",
-            description = "Once recorded, the profile runs continuously to prevent false positives for your actual gestures when you are moving."
+            title = stringResource(R.string.prevent_accidental_triggers),
+            description = stringResource(R.string.once_recorded_the_profile_runs_continuou)
         )
     )
 
@@ -345,7 +340,7 @@ fun MovementCancellingIntroDialog(onDismiss: () -> Unit) {
                         contentPadding = PaddingValues(horizontal = 24.dp, vertical = 12.dp)
                     ) {
                         Text(
-                            text = if (pagerState.currentPage < steps.size - 1) "Next" else "Got it",
+                            text = if (pagerState.currentPage < steps.size - 1) stringResource(R.string.btn_next) else stringResource(R.string.btn_got_it),
                             fontWeight = FontWeight.Bold,
                             fontSize = 16.sp
                         )

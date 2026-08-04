@@ -52,6 +52,7 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -77,6 +78,8 @@ import com.benegedeniz.budsdynamiceq.media.GenreFetchState
 import com.benegedeniz.budsdynamiceq.ui.components.SearchBarInput
 import com.benegedeniz.budsdynamiceq.ui.components.bounceClick
 import com.benegedeniz.budsdynamiceq.service.BudsService
+import androidx.compose.ui.res.stringResource
+import com.benegedeniz.budsdynamiceq.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -138,16 +141,16 @@ fun RulesScreen(viewModel: RulesViewModel, modifier: Modifier = Modifier) {
                                 .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
                                 .padding(16.dp)
                         ) {
-                            val activeRuleStr = lastMatchedRule?.keyword ?: "Default"
-                            val appliedEq = if (lastMatchedRule?.preset == EqPreset.DEFAULT || lastMatchedRule == null) manualPreset?.displayName ?: "None" else lastMatchedRule?.preset?.displayName ?: "None"
-                            val appliedNc = if (lastMatchedRule?.noiseControl == NoiseControlMode.DEFAULT || lastMatchedRule == null) manualNoiseControl?.displayName ?: "None" else lastMatchedRule?.noiseControl?.displayName ?: "None"
+                            val activeRuleStr = lastMatchedRule?.keyword ?: stringResource(R.string.eq_default)
+                            val appliedEq = if (lastMatchedRule?.preset == EqPreset.DEFAULT || lastMatchedRule == null) manualPreset?.let { stringResource(it.displayNameRes) } ?: stringResource(R.string.none) else lastMatchedRule?.preset?.let { stringResource(it.displayNameRes) } ?: stringResource(R.string.none)
+                            val appliedNc = if (lastMatchedRule?.noiseControl == NoiseControlMode.DEFAULT || lastMatchedRule == null) manualNoiseControl?.let { stringResource(it.displayNameRes) } ?: stringResource(R.string.none) else lastMatchedRule?.noiseControl?.let { stringResource(it.displayNameRes) } ?: stringResource(R.string.none)
 
                             Column {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Icon(Icons.Default.MusicNote, contentDescription = null, modifier = Modifier.size(18.dp), tint = MaterialTheme.colorScheme.primary)
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Text(
-                                        text = "Active Rule: $activeRuleStr", 
+                                        text = stringResource(R.string.rules_active_rule, activeRuleStr), 
                                         style = MaterialTheme.typography.titleMedium, 
                                         color = MaterialTheme.colorScheme.onSurface,
                                         maxLines = 1,
@@ -157,12 +160,12 @@ fun RulesScreen(viewModel: RulesViewModel, modifier: Modifier = Modifier) {
                                 Spacer(modifier = Modifier.height(12.dp))
                                 Row(modifier = Modifier.fillMaxWidth()) {
                                     Column(modifier = Modifier.weight(1f)) {
-                                        Text(text = "Equalizer", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                        Text(text = stringResource(R.string.equalizer_text), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                         Spacer(modifier = Modifier.height(2.dp))
                                         Text(text = appliedEq, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
                                     }
                                     Column(modifier = Modifier.weight(1f)) {
-                                        Text(text = "Noise Control", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                        Text(text = stringResource(R.string.noise_control_text), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                         Spacer(modifier = Modifier.height(2.dp))
                                         Text(text = appliedNc, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
                                     }
@@ -174,7 +177,7 @@ fun RulesScreen(viewModel: RulesViewModel, modifier: Modifier = Modifier) {
                 
                 item {
                     Text(
-                        text = "Global Defaults",
+                        text = stringResource(R.string.global_defaults),
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(start = 8.dp, bottom = 8.dp, top = 24.dp)
@@ -201,7 +204,7 @@ fun RulesScreen(viewModel: RulesViewModel, modifier: Modifier = Modifier) {
                                     ) {
                                         Icon(Icons.Default.GraphicEq, contentDescription = null, modifier = Modifier.size(18.dp))
                                         Spacer(modifier = Modifier.width(8.dp))
-                                        Text(manualPreset?.displayName ?: "Preset", maxLines = 1)
+                                        Text(manualPreset?.let { stringResource(it.displayNameRes) } ?: stringResource(R.string.preset), maxLines = 1)
                                     }
                                     DropdownMenu(
                                         expanded = expanded, 
@@ -210,7 +213,7 @@ fun RulesScreen(viewModel: RulesViewModel, modifier: Modifier = Modifier) {
                                     ) {
                                         EqPreset.entries.filter { it != EqPreset.DEFAULT }.forEach { preset ->
                                             DropdownMenuItem(
-                                                text = { Text(preset.displayName) },
+                                                text = { Text(stringResource(preset.displayNameRes)) },
                                                 onClick = {
                                                     viewModel.setManualPreset(preset)
                                                     expanded = false
@@ -232,7 +235,7 @@ fun RulesScreen(viewModel: RulesViewModel, modifier: Modifier = Modifier) {
                                     ) {
                                         Icon(Icons.Default.Hearing, contentDescription = null, modifier = Modifier.size(18.dp))
                                         Spacer(modifier = Modifier.width(8.dp))
-                                        Text(manualNoiseControl?.displayName ?: "NC Mode", maxLines = 1)
+                                        Text(manualNoiseControl?.let { stringResource(it.displayNameRes) } ?: stringResource(R.string.nc_mode), maxLines = 1)
                                     }
                                     DropdownMenu(
                                         expanded = ncExpanded, 
@@ -241,7 +244,7 @@ fun RulesScreen(viewModel: RulesViewModel, modifier: Modifier = Modifier) {
                                     ) {
                                         NoiseControlMode.entries.filter { it != NoiseControlMode.DEFAULT }.forEach { ncMode ->
                                             DropdownMenuItem(
-                                                text = { Text(ncMode.displayName) },
+                                                text = { Text(stringResource(ncMode.displayNameRes)) },
                                                 onClick = {
                                                     viewModel.setManualNoiseControl(ncMode)
                                                     ncExpanded = false
@@ -259,7 +262,7 @@ fun RulesScreen(viewModel: RulesViewModel, modifier: Modifier = Modifier) {
                     SearchBarInput(
                         query = searchQuery,
                         onQueryChange = { searchQuery = it },
-                        placeholderText = "Search rules...",
+                        placeholderText = stringResource(R.string.search_rules),
                         modifier = Modifier.padding(bottom = 12.dp)
                     )
                 }
@@ -282,12 +285,12 @@ fun RulesScreen(viewModel: RulesViewModel, modifier: Modifier = Modifier) {
                             )
                             Spacer(modifier = Modifier.height(16.dp))
                             Text(
-                                text = "No rules yet.",
+                                text = stringResource(R.string.no_rules_yet),
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 style = MaterialTheme.typography.titleMedium
                             )
                             Text(
-                                text = "Tap + to create your first music rule.",
+                                text = stringResource(R.string.tap_to_create_your_first_music_rule),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                                 textAlign = androidx.compose.ui.text.style.TextAlign.Center
@@ -325,13 +328,13 @@ fun RulesScreen(viewModel: RulesViewModel, modifier: Modifier = Modifier) {
             }
 
             com.benegedeniz.budsdynamiceq.ui.components.PageHeader(
-                title = "Music Rules",
+                title = stringResource(R.string.music_rules),
                 isScrolled = isScrolled,
                 actionIcon = {
                     IconButton(onClick = { showInfoDialog = true }) {
                         Icon(
                             imageVector = Icons.Default.Info,
-                            contentDescription = "About Music Rules",
+                            contentDescription = stringResource(R.string.about_music_rules),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
@@ -367,17 +370,16 @@ fun RulesScreen(viewModel: RulesViewModel, modifier: Modifier = Modifier) {
             containerColor = MaterialTheme.colorScheme.surface,
             onDismissRequest = { showInfoDialog = false },
             title = {
-                Text("About Music Rules", style = MaterialTheme.typography.titleLarge)
+                Text(stringResource(R.string.about_music_rules), style = MaterialTheme.typography.titleLarge)
             },
             text = {
-                Text(
-                    "Music Rules automatically adjust your earbuds' EQ and Noise Control settings based on what song or media is currently playing. Create rules with keywords, and whenever that keyword matches the track title or artist, your presets are applied automatically.",
+                Text(stringResource(R.string.music_rules_automatically_adjust_your_ea),
                     style = MaterialTheme.typography.bodyMedium
                 )
             },
             confirmButton = {
                 TextButton(onClick = { showInfoDialog = false }) {
-                    Text("Got it")
+                    Text(stringResource(R.string.got_it_alt))
                 }
             }
         )
@@ -439,7 +441,7 @@ fun RuleItem(
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "${rule.preset.displayName}  •  ${rule.noiseControl.displayName}",
+                        text = "${stringResource(rule.preset.displayNameRes)}  •  ${stringResource(rule.noiseControl.displayNameRes)}",
                         style = MaterialTheme.typography.bodyMedium,
                         color = subtitleColor
                     )
@@ -470,16 +472,16 @@ fun RuleItem(
             ) {
                 Icon(
                     imageVector = Icons.Default.DragHandle, 
-                    contentDescription = "Drag to reorder", 
+                    contentDescription = stringResource(R.string.drag_to_reorder), 
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = dragModifier.padding(8.dp)
                 )
                 Spacer(modifier = Modifier.weight(1f))
                 IconButton(onClick = onEdit) {
-                    Icon(Icons.Default.Edit, contentDescription = "Edit", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.edit), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 IconButton(onClick = onDelete) {
-                    Icon(Icons.Default.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.error)
+                    Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.delete), tint = MaterialTheme.colorScheme.error)
                 }
             }
         }
@@ -530,11 +532,11 @@ fun RuleEditScreen(
             topBar = {
                 androidx.compose.material3.CenterAlignedTopAppBar(
                     title = { 
-                        Text(if (initialRule == null) "Add Music Rule" else "Edit Music Rule") 
+                        Text(if (initialRule == null) stringResource(R.string.add_music_rule) else stringResource(R.string.edit_music_rule)) 
                     },
                     navigationIcon = {
                         IconButton(onClick = onDismiss) {
-                            Icon(Icons.Default.Close, contentDescription = "Close")
+                            Icon(Icons.Default.Close, contentDescription = stringResource(R.string.close))
                         }
                     },
                     colors = androidx.compose.material3.TopAppBarDefaults.centerAlignedTopAppBarColors(
@@ -564,7 +566,7 @@ fun RuleEditScreen(
                             modifier = Modifier.fillMaxWidth().height(56.dp),
                             shape = RoundedCornerShape(28.dp)
                         ) {
-                            Text("Save Rule", fontSize = 16.sp)
+                            Text(stringResource(R.string.save_rule), fontSize = 16.sp)
                         }
                     }
                 }
@@ -589,7 +591,7 @@ fun RuleEditScreen(
                             genreSelected = false
                         }
                     },
-                    label = { Text(if (isBadgeSelected) "Keyword (auto-generated)" else "Keyword (case-insensitive)") },
+                    label = { Text(if (isBadgeSelected) stringResource(R.string.keyword_auto) else stringResource(R.string.keyword_case)) },
                     singleLine = true,
                     shape = RoundedCornerShape(16.dp),
                     modifier = Modifier.fillMaxWidth(),
@@ -601,7 +603,7 @@ fun RuleEditScreen(
                                 artistSelected = false
                                 genreSelected = false
                             }) {
-                                Icon(Icons.Default.Clear, contentDescription = "Clear")
+                                Icon(Icons.Default.Clear, contentDescription = stringResource(R.string.clear))
                             }
                         }
                     }
@@ -617,13 +619,13 @@ fun RuleEditScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         if (isMatch) {
-                            Icon(Icons.Default.CheckCircle, contentDescription = "Matches", tint = com.benegedeniz.budsdynamiceq.ui.theme.StatusActiveGreen, modifier = Modifier.size(16.dp))
+                            Icon(Icons.Default.CheckCircle, contentDescription = stringResource(R.string.matches), tint = com.benegedeniz.budsdynamiceq.ui.theme.StatusActiveGreen, modifier = Modifier.size(16.dp))
                             Spacer(modifier = Modifier.width(4.dp))
-                            Text("Matches current song", color = com.benegedeniz.budsdynamiceq.ui.theme.StatusActiveGreen, style = MaterialTheme.typography.bodySmall)
+                            Text(stringResource(R.string.matches_current_song), color = com.benegedeniz.budsdynamiceq.ui.theme.StatusActiveGreen, style = MaterialTheme.typography.bodySmall)
                         } else {
-                            Icon(Icons.Default.Cancel, contentDescription = "No match", tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(16.dp))
+                            Icon(Icons.Default.Cancel, contentDescription = stringResource(R.string.no_match), tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(16.dp))
                             Spacer(modifier = Modifier.width(4.dp))
-                            Text("Does not match current song", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                            Text(stringResource(R.string.does_not_match_current_song), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
                         }
                     }
                 }
@@ -638,14 +640,14 @@ fun RuleEditScreen(
                 ) {
                     Column {
                         Text(
-                            text = "Current Media",
+                            text = stringResource(R.string.current_media),
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.Bold
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "Tap badges to build your rule.",
+                            text = stringResource(R.string.tap_badges_to_build_your_rule),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -663,7 +665,7 @@ fun RuleEditScreen(
                                         titleSelected = !titleSelected
                                         updateKeywordFromBadges()
                                     },
-                                    label = { Text("Title: $title") }
+                                    label = { Text(stringResource(R.string.title_format, title)) }
                                 )
                             }
                             currentMetadata?.artist?.takeIf { it.isNotBlank() }?.let { artist ->
@@ -673,7 +675,7 @@ fun RuleEditScreen(
                                         artistSelected = !artistSelected
                                         updateKeywordFromBadges()
                                     },
-                                    label = { Text("Artist: $artist") }
+                                    label = { Text(stringResource(R.string.artist_format, artist)) }
                                 )
                             }
                             when (currentMetadata?.genreFetchState) {
@@ -681,7 +683,7 @@ fun RuleEditScreen(
                                     FilterChip(
                                         selected = false,
                                         onClick = { },
-                                        label = { Text("Fetching Genre...") },
+                                        label = { Text(stringResource(R.string.fetching_genre)) },
                                         trailingIcon = { CircularProgressIndicator(modifier = Modifier.size(16.dp)) }
                                     )
                                 }
@@ -693,7 +695,7 @@ fun RuleEditScreen(
                                                 genreSelected = !genreSelected
                                                 updateKeywordFromBadges()
                                             },
-                                            label = { Text("Genre: $genre") }
+                                            label = { Text(stringResource(R.string.genre_format, genre)) }
                                         )
                                     }
                                 }
@@ -722,10 +724,10 @@ fun RuleEditScreen(
                             modifier = Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(Icons.AutoMirrored.Filled.QueueMusic, contentDescription = "History", tint = MaterialTheme.colorScheme.primary)
+                            Icon(Icons.AutoMirrored.Filled.QueueMusic, contentDescription = stringResource(R.string.history), tint = MaterialTheme.colorScheme.primary)
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = "Recently Played",
+                                text = stringResource(R.string.recently_played),
                                 style = MaterialTheme.typography.titleMedium,
                                 color = MaterialTheme.colorScheme.primary,
                                 fontWeight = FontWeight.Bold,
@@ -733,7 +735,7 @@ fun RuleEditScreen(
                             )
                             Icon(
                                 imageVector = if (historyExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                                contentDescription = "Expand/Collapse",
+                                contentDescription = stringResource(R.string.expand_collapse),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
@@ -765,8 +767,8 @@ fun RuleEditScreen(
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         Column {
-                                            Text(text = song.title ?: "Unknown Title", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
-                                            Text(text = song.artist ?: "Unknown Artist", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                            Text(text = song.title ?: stringResource(R.string.unknown_title), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
+                                            Text(text = song.artist ?: stringResource(R.string.unknown_artist), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                         }
                                     }
                                 }
@@ -778,7 +780,7 @@ fun RuleEditScreen(
 
                 // Presets Dropdowns
                 Text(
-                    text = "Action",
+                    text = stringResource(R.string.action),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold
@@ -795,10 +797,10 @@ fun RuleEditScreen(
                         modifier = Modifier.weight(1f)
                     ) {
                         OutlinedTextField(
-                            value = selectedPreset.displayName,
+                            value = stringResource(selectedPreset.displayNameRes),
                             onValueChange = {},
                             readOnly = true,
-                            label = { Text("Equalizer") },
+                            label = { Text(stringResource(R.string.equalizer)) },
                             shape = RoundedCornerShape(16.dp),
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                             modifier = Modifier
@@ -812,7 +814,7 @@ fun RuleEditScreen(
                         ) {
                             EqPreset.entries.forEach { preset ->
                                 DropdownMenuItem(
-                                    text = { Text(preset.displayName) },
+                                    text = { Text(stringResource(preset.displayNameRes)) },
                                     onClick = {
                                         selectedPreset = preset
                                         expanded = false
@@ -828,10 +830,10 @@ fun RuleEditScreen(
                         modifier = Modifier.weight(1f)
                     ) {
                         OutlinedTextField(
-                            value = selectedNc.displayName,
+                            value = stringResource(selectedNc.displayNameRes),
                             onValueChange = {},
                             readOnly = true,
-                            label = { Text("Noise Control") },
+                            label = { Text(stringResource(R.string.noise_control)) },
                             shape = RoundedCornerShape(16.dp),
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = ncExpanded) },
                             modifier = Modifier
@@ -845,7 +847,7 @@ fun RuleEditScreen(
                         ) {
                             NoiseControlMode.entries.forEach { ncMode ->
                                 DropdownMenuItem(
-                                    text = { Text(ncMode.displayName) },
+                                    text = { Text(stringResource(ncMode.displayNameRes)) },
                                     onClick = {
                                         selectedNc = ncMode
                                         ncExpanded = false

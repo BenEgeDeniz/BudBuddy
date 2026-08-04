@@ -35,9 +35,12 @@ import com.benegedeniz.budsdynamiceq.ui.headshake.Head3DCanvas
 import com.benegedeniz.budsdynamiceq.ui.rules.RulesViewModel
 import com.benegedeniz.budsdynamiceq.ui.theme.StatusActiveGreen
 import com.benegedeniz.budsdynamiceq.ui.theme.StatusErrorRed
+import androidx.compose.ui.res.stringResource
+import com.benegedeniz.budsdynamiceq.R
 
 @Composable
 fun FitTestScreen(viewModel: RulesViewModel, onBack: () -> Unit, modifier: Modifier = Modifier) {
+    androidx.activity.compose.BackHandler { onBack() }
     val placementL by viewModel.placementL.collectAsState()
     val placementR by viewModel.placementR.collectAsState()
     val fitTestResultL by viewModel.fitTestResultL.collectAsState()
@@ -79,7 +82,7 @@ fun FitTestScreen(viewModel: RulesViewModel, onBack: () -> Unit, modifier: Modif
     Scaffold(
         topBar = {
             PageHeader(
-                title = "Earbud Fit Test",
+                title = stringResource(R.string.earbud_fit_test),
                 isScrolled = scrollState.value > 10,
                 actionIcon = {
                     IconButton(
@@ -89,7 +92,7 @@ fun FitTestScreen(viewModel: RulesViewModel, onBack: () -> Unit, modifier: Modif
                         },
                         modifier = Modifier.bounceClick()
                     ) {
-                        Icon(Icons.Default.Close, contentDescription = "Close")
+                        Icon(Icons.Default.Close, contentDescription = stringResource(R.string.close))
                     }
                 }
             )
@@ -122,7 +125,7 @@ fun FitTestScreen(viewModel: RulesViewModel, onBack: () -> Unit, modifier: Modif
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        text = "Check if your earbuds provide a proper seal for optimal sound quality, deep bass, and active noise cancellation.",
+                        text = stringResource(R.string.check_if_your_earbuds_provide_a_proper_s),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -176,7 +179,7 @@ fun FitTestScreen(viewModel: RulesViewModel, onBack: () -> Unit, modifier: Modif
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 EarbudStatusCard(
-                    title = "Left Earbud",
+                    title = stringResource(R.string.left_earbud),
                     inEar = lInEar,
                     fitResult = fitTestResultL,
                     isTesting = isTesting,
@@ -185,7 +188,7 @@ fun FitTestScreen(viewModel: RulesViewModel, onBack: () -> Unit, modifier: Modif
                 )
 
                 EarbudStatusCard(
-                    title = "Right Earbud",
+                    title = stringResource(R.string.right_earbud),
                     inEar = rInEar,
                     fitResult = fitTestResultR,
                     isTesting = isTesting,
@@ -221,9 +224,9 @@ fun FitTestScreen(viewModel: RulesViewModel, onBack: () -> Unit, modifier: Modif
                     Spacer(modifier = Modifier.width(10.dp))
                     Text(
                         text = if (!bothInEar) {
-                            "Please insert both earbuds into your ears to start the fit test."
+                            stringResource(R.string.fittest_insert_both)
                         } else {
-                            "Try gently twisting each earbud until the tip feels snug and comfortable."
+                            stringResource(R.string.fittest_try_twisting)
                         },
                         style = MaterialTheme.typography.bodySmall,
                         color = if (!bothInEar) StatusErrorRed else MaterialTheme.colorScheme.onSurfaceVariant
@@ -272,12 +275,12 @@ fun FitTestScreen(viewModel: RulesViewModel, onBack: () -> Unit, modifier: Modif
                     )
                     Spacer(modifier = Modifier.width(10.dp))
                     Text(
-                        text = "Stop Test",
+                        text = stringResource(R.string.stop_test),
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                     )
                 } else {
                     Text(
-                        text = "Start Fit Test",
+                        text = stringResource(R.string.start_fit_test),
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                     )
                 }
@@ -369,7 +372,7 @@ private fun EarbudStatusCard(
 
                     Text(
                         text = when {
-                            !inEar -> "Not In Ear"
+                            !inEar -> stringResource(R.string.fittest_not_in_ear)
                             isTesting -> "Testing..."
                             else -> getResultText(fitResult)
                         },
@@ -383,11 +386,12 @@ private fun EarbudStatusCard(
     }
 }
 
+@androidx.compose.runtime.Composable
 private fun getResultText(result: FitTestResult): String {
     return when (result) {
-        FitTestResult.GOOD -> "Good Fit"
-        FitTestResult.BAD -> "Poor Fit"
-        FitTestResult.TEST_FAILED -> "Test Failed"
+        FitTestResult.GOOD -> stringResource(R.string.fittest_good_fit)
+        FitTestResult.BAD -> stringResource(R.string.fittest_poor_fit)
+        FitTestResult.TEST_FAILED -> stringResource(R.string.fittest_test_failed)
         FitTestResult.UNKNOWN -> "Ready"
     }
 }

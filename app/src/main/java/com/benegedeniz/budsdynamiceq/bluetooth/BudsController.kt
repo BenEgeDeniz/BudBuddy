@@ -1,4 +1,5 @@
 package com.benegedeniz.budsdynamiceq.bluetooth
+import com.benegedeniz.budsdynamiceq.R
 
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
@@ -35,10 +36,10 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.util.UUID
 
-enum class BudsModel(val displayName: String) {
-    BUDS_3_PRO("Galaxy Buds3 Pro"),
-    BUDS_4_PRO("Galaxy Buds4 Pro"),
-    UNKNOWN("Galaxy Buds (Unknown)")
+enum class BudsModel(@androidx.annotation.StringRes val displayNameRes: Int) {
+    BUDS_3_PRO(R.string.model_buds_3_pro),
+    BUDS_4_PRO(R.string.model_buds_4_pro),
+    UNKNOWN(R.string.model_buds_unknown)
 }
 
 class BudsController(private val context: Context) {
@@ -483,7 +484,7 @@ class BudsController(private val context: Context) {
                                         _connectedModel.value = detected
                                         val mac = _savedDeviceMac.value ?: ""
                                         prefs.edit().putString("detected_model_$mac", detected.name).apply()
-                                        Log.i(TAG, "Auto-detected model: ${detected.displayName} (prefix: $prefix)")
+                                        Log.i(TAG, "Auto-detected model: ${context.getString(detected.displayNameRes)} (prefix: $prefix)")
                                     }
                                 }
                                 

@@ -21,6 +21,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.res.stringResource
+import com.benegedeniz.budsdynamiceq.R
 
 @Composable
 fun ConnectingDialog(
@@ -119,14 +121,14 @@ fun ConnectingDialog(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Connecting...",
+                            text = stringResource(R.string.connecting_97),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.primary
                         )
                     } else {
                         Text(
-                            text = "Connected",
+                            text = stringResource(R.string.connected),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.primary
@@ -166,7 +168,7 @@ fun ConnectingDialog(
                         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.4f))
                     ) {
                         Text(
-                            text = "Connect to Another Device",
+                            text = stringResource(R.string.connect_to_another_device),
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurface
                         )
@@ -180,7 +182,7 @@ fun ConnectingDialog(
                         shape = RoundedCornerShape(14.dp)
                     ) {
                         Text(
-                            text = "Cancel",
+                            text = stringResource(R.string.cancel),
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.error
                         )
@@ -192,7 +194,7 @@ fun ConnectingDialog(
                         shape = RoundedCornerShape(14.dp)
                     ) {
                         Text(
-                            text = "Done",
+                            text = stringResource(R.string.done),
                             style = MaterialTheme.typography.labelLarge
                         )
                     }

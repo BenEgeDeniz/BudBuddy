@@ -34,6 +34,8 @@ import com.benegedeniz.budsdynamiceq.ui.components.PageHeader
 import com.benegedeniz.budsdynamiceq.ui.components.bounceClick
 import com.benegedeniz.budsdynamiceq.ui.theme.StatusActiveGreen
 import com.benegedeniz.budsdynamiceq.ui.theme.StatusErrorRed
+import androidx.compose.ui.res.stringResource
+import com.benegedeniz.budsdynamiceq.R
 
 @Composable
 fun WearStateScreen(
@@ -41,6 +43,7 @@ fun WearStateScreen(
     onBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    androidx.activity.compose.BackHandler { onBack() }
     val haptic = LocalHapticFeedback.current
     val actions by viewModel.wearStateActions.collectAsState()
     val isConnected by viewModel.isConnected.collectAsState()
@@ -66,7 +69,7 @@ fun WearStateScreen(
     Scaffold(
         topBar = {
             PageHeader(
-                title = "Wear Actions",
+                title = stringResource(R.string.wear_actions),
                 isScrolled = scrollState.value > 10,
                 actionIcon = {
                     IconButton(
@@ -76,7 +79,7 @@ fun WearStateScreen(
                         },
                         modifier = Modifier.bounceClick()
                     ) {
-                        Icon(Icons.Default.Close, contentDescription = "Close")
+                        Icon(Icons.Default.Close, contentDescription = stringResource(R.string.close))
                     }
                 }
             )
@@ -126,14 +129,19 @@ fun WearStateActionCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {
+                    val displayName = when (action.id) {
+                        "default_removed" -> stringResource(R.string.trigger_earbud_removed)
+                        "default_wearing" -> stringResource(R.string.trigger_both_worn)
+                        else -> action.name.ifBlank { stringResource(R.string.wearstate_unnamed_action) }
+                    }
                     Text(
-                        text = action.name.ifBlank { "Unnamed Action" },
+                        text = displayName,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold
                     )
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
-                        text = "Trigger: ${action.trigger.displayName}",
+                        text = stringResource(action.trigger.displayNameRes),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -151,7 +159,7 @@ fun WearStateActionCard(
                 Spacer(modifier = Modifier.width(8.dp))
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                    contentDescription = "Edit Action",
+                    contentDescription = stringResource(R.string.edit_action),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
@@ -159,13 +167,14 @@ fun WearStateActionCard(
     }
 }
 
+@androidx.compose.runtime.Composable
 fun FlowAction.getDisplayName(): String {
     return when (this) {
-        is FlowAction.SystemAction -> this.action.displayName
-        is FlowAction.DelayAction -> "Delay ${this.ms}ms"
-        is FlowAction.AppAction -> "Open ${this.appName}"
-        is FlowAction.VolumeAction -> "Set Volume ${this.percentage}%"
-        is FlowAction.ModifyVolumeAction -> if (this.increase) "Increase Volume ${this.percentage}%" else "Decrease Volume ${this.percentage}%"
-        is FlowAction.TtsAction -> "Say: ${this.text}"
+        is FlowAction.SystemAction -> stringResource(this.action.displayNameRes)
+        is FlowAction.DelayAction -> stringResource(R.string.action_delay_ms, this.ms)
+        is FlowAction.AppAction -> stringResource(R.string.action_open_app, this.appName)
+        is FlowAction.VolumeAction -> stringResource(R.string.action_set_volume_pct, this.percentage)
+        is FlowAction.ModifyVolumeAction -> if (this.increase) stringResource(R.string.action_increase_volume_pct, this.percentage) else stringResource(R.string.action_decrease_volume_pct, this.percentage)
+        is FlowAction.TtsAction -> stringResource(R.string.action_say_text, this.text)
     }
 }

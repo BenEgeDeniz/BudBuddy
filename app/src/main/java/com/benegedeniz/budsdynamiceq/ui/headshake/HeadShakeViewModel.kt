@@ -1,4 +1,5 @@
 package com.benegedeniz.budsdynamiceq.ui.headshake
+import com.benegedeniz.budsdynamiceq.R
 
 import android.app.Application
 import android.content.Context
@@ -341,7 +342,7 @@ class HeadShakeViewModel(application: Application) : AndroidViewModel(applicatio
             if (templates.isEmpty()) {
                 // Not enough movement, just return to ready state with a warning
                 _recordingState.value = RecordingState.READY_FOR_SAMPLE
-                consistencyWarning.value = "No significant movement detected. Please make larger movements or record for longer."
+                consistencyWarning.value = getApplication<Application>().getString(R.string.no_significant_movement_detected)
                 return@launch
             }
             
@@ -417,7 +418,7 @@ class HeadShakeViewModel(application: Application) : AndroidViewModel(applicatio
                 val refDur = templates[prevIndex].last().timestampMs - templates[prevIndex].first().timestampMs
                 val dist = DtwEngine.computeDtw(refFeatures, newFeatures, refDur, newDur)
                 if (dist > 0.75f) {
-                    consistencyWarning.value = "⚠️ This gesture looks different from your previous recording. Consider re-recording it."
+                    consistencyWarning.value = getApplication<Application>().getString(R.string.gesture_looks_different)
                 } else {
                     consistencyWarning.value = null
                 }
@@ -465,7 +466,7 @@ class HeadShakeViewModel(application: Application) : AndroidViewModel(applicatio
         consistencyWarning.value = null
     }
 
-    val testResult = MutableStateFlow<String?>(null)
+    val testResult = MutableStateFlow<Int?>(null)
 
     fun testGesture() {
         _recordingState.value = RecordingState.TESTING
@@ -493,7 +494,7 @@ class HeadShakeViewModel(application: Application) : AndroidViewModel(applicatio
             val matchJob = launch {
                 detector.detectedGesture.collect { match ->
                     if (match.name == "Temp") {
-                        testResult.value = "✅ Detected!"
+                        testResult.value = R.string.detected
                         delay(2000)
                         testResult.value = null
                     }

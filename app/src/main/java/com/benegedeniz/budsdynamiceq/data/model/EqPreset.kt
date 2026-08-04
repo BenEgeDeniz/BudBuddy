@@ -1,12 +1,15 @@
 package com.benegedeniz.budsdynamiceq.data.model
 
-enum class EqPreset(val displayName: String, val payloadByte: Byte) {
-    DEFAULT("Default", -2),
-    IGNORE("Don't Change", -1),
-    NORMAL("Balanced", 0x00),
-    BASS_BOOST("Bass boost", 0x01),
-    SOFT("Smooth", 0x02),
-    DYNAMIC("Dynamic", 0x03),
-    CLEAR("Clear", 0x04),
-    TREBLE_BOOST("Treble boost", 0x05);
+import androidx.annotation.StringRes
+import com.benegedeniz.budsdynamiceq.R
+
+enum class EqPreset(@StringRes val displayNameRes: Int, val payloadByte: Byte) {
+    DEFAULT(R.string.eq_default, -2),
+    IGNORE(R.string.eq_ignore, -1),
+    NORMAL(R.string.eq_normal, 0x00),
+    BASS_BOOST(R.string.eq_bass_boost, 0x01),
+    SOFT(R.string.eq_soft, 0x02),
+    DYNAMIC(R.string.eq_dynamic, 0x03),
+    CLEAR(R.string.eq_clear, 0x04),
+    TREBLE_BOOST(R.string.eq_treble_boost, 0x05);
 }

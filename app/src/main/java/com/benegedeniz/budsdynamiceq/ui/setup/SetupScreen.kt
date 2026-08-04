@@ -28,6 +28,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import android.content.Intent
 import android.provider.Settings
+import androidx.compose.ui.res.stringResource
+import com.benegedeniz.budsdynamiceq.R
 
 @Composable
 fun SetupScreen(onPermissionsGranted: () -> Unit) {
@@ -102,12 +104,12 @@ fun SetupScreen(onPermissionsGranted: () -> Unit) {
             ) {
                 Column {
                     Text(
-                        text = "Welcome to",
+                        text = stringResource(R.string.welcome_to),
                         style = MaterialTheme.typography.titleLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
-                        text = "Bud Buddy",
+                        text = stringResource(R.string.bud_buddy),
                         style = MaterialTheme.typography.headlineLarge,
                         color = MaterialTheme.colorScheme.onBackground
                     )
@@ -136,7 +138,7 @@ fun SetupScreen(onPermissionsGranted: () -> Unit) {
                             )
                             Spacer(modifier = Modifier.width(16.dp))
                             Text(
-                                text = "Supported Earbuds",
+                                text = stringResource(R.string.supported_earbuds),
                                 style = MaterialTheme.typography.titleLarge,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
@@ -144,8 +146,8 @@ fun SetupScreen(onPermissionsGranted: () -> Unit) {
                         Spacer(modifier = Modifier.height(16.dp))
                         
                         val earbuds = listOf(
-                            Pair("Galaxy Buds 4 Pro", "Gestures supported"),
-                            Pair("Galaxy Buds 3 Pro", "Gestures not supported")
+                            Pair("Galaxy Buds 4 Pro", stringResource(R.string.setup_gestures_supported)),
+                            Pair("Galaxy Buds 3 Pro", stringResource(R.string.setup_gestures_not_supported))
                         )
                         
                         earbuds.forEach { (bud, subtext) ->
@@ -153,7 +155,7 @@ fun SetupScreen(onPermissionsGranted: () -> Unit) {
                                 verticalAlignment = Alignment.CenterVertically,
                                 modifier = Modifier.padding(vertical = 4.dp)
                             ) {
-                                val isPartial = subtext == "Gestures not supported"
+                                val isPartial = subtext == stringResource(R.string.setup_gestures_not_supported)
                                 Icon(
                                     imageVector = Icons.Default.CheckCircle,
                                     contentDescription = null,
@@ -168,7 +170,7 @@ fun SetupScreen(onPermissionsGranted: () -> Unit) {
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                     
-                                    val subtextColor = if (subtext == "Gestures not supported") MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                                    val subtextColor = if (subtext == stringResource(R.string.setup_gestures_not_supported)) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                                     Text(
                                         text = subtext,
                                         style = MaterialTheme.typography.bodySmall,
@@ -180,7 +182,7 @@ fun SetupScreen(onPermissionsGranted: () -> Unit) {
                         
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
-                            text = "Have a different model? You are welcome to try, though we are actively working to add official support for other models soon.",
+                            text = stringResource(R.string.have_a_different_model_you_are_welcome_t),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
                         )
@@ -197,13 +199,13 @@ fun SetupScreen(onPermissionsGranted: () -> Unit) {
                 ) {
                     Column(modifier = Modifier.padding(24.dp)) {
                         Text(
-                            text = "Permissions Required",
+                            text = stringResource(R.string.permissions_required),
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.primary
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "Bud Buddy needs Bluetooth access to connect to your earbuds and Notification access to run the background service reliably.",
+                            text = stringResource(R.string.bud_buddy_needs_bluetooth_access_to_conn),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -216,7 +218,7 @@ fun SetupScreen(onPermissionsGranted: () -> Unit) {
                                     .height(56.dp),
                                 shape = RoundedCornerShape(28.dp)
                             ) {
-                                Text("Grant System Permissions", style = MaterialTheme.typography.titleMedium)
+                                Text(stringResource(R.string.grant_system_permissions), style = MaterialTheme.typography.titleMedium)
                             }
                         } else if (!notificationPermGranted) {
                             Button(
@@ -226,7 +228,7 @@ fun SetupScreen(onPermissionsGranted: () -> Unit) {
                                     .height(56.dp),
                                 shape = RoundedCornerShape(28.dp)
                             ) {
-                                Text("Grant Notification Access", style = MaterialTheme.typography.titleMedium)
+                                Text(stringResource(R.string.grant_notification_access), style = MaterialTheme.typography.titleMedium)
                             }
                         }
                     }
