@@ -39,6 +39,8 @@ import com.benegedeniz.budsdynamiceq.ui.buds.BudsScreen
 import com.benegedeniz.budsdynamiceq.ui.headshake.HeadShakeScreen
 import com.benegedeniz.budsdynamiceq.ui.headshake.HeadShakeViewModel
 import com.benegedeniz.budsdynamiceq.ui.fittest.FitTestScreen
+import com.benegedeniz.budsdynamiceq.ui.wearstate.WearStateScreen
+import com.benegedeniz.budsdynamiceq.ui.wearstate.WearStateViewModel
 import com.benegedeniz.budsdynamiceq.ui.rules.RulesScreen
 import com.benegedeniz.budsdynamiceq.ui.rules.RulesViewModel
 import com.benegedeniz.budsdynamiceq.ui.setup.SetupScreen
@@ -114,6 +116,8 @@ class MainActivity : ComponentActivity() {
                     } else {
                         var selectedTab by androidx.compose.runtime.saveable.rememberSaveable { mutableIntStateOf(0) }
                         var showFitTest by remember { mutableStateOf(false) }
+                        var showWearState by remember { mutableStateOf(false) }
+                        var showSoundBalanceTest by remember { mutableStateOf(false) }
                         var showGesturesDisabledDialog by remember { mutableStateOf(false) }
                         var showNoDeviceDialog by remember { mutableStateOf(false) }
                         
@@ -122,8 +126,9 @@ class MainActivity : ComponentActivity() {
                             color = MaterialTheme.colorScheme.background
                         ) {
                             val headShakeViewModel: HeadShakeViewModel = viewModel()
-                        val rulesViewModel: RulesViewModel = viewModel()
-                        Box(modifier = Modifier.fillMaxSize()) {
+                            val wearStateViewModel: WearStateViewModel = viewModel()
+                            val rulesViewModel: RulesViewModel = viewModel()
+                            Box(modifier = Modifier.fillMaxSize()) {
                             androidx.compose.animation.AnimatedContent(
                             targetState = selectedTab,
                             transitionSpec = {
@@ -143,9 +148,9 @@ class MainActivity : ComponentActivity() {
                             when (targetTab) {
                                 0 -> {
                                     androidx.compose.animation.AnimatedContent(
-                                        targetState = showFitTest,
+                                        targetState = Triple(showFitTest, showWearState, showSoundBalanceTest),
                                         transitionSpec = {
-                                            if (targetState) {
+                                            if (targetState.first || targetState.second || targetState.third) {
                                                 (androidx.compose.animation.slideInVertically(animationSpec = androidx.compose.animation.core.tween(300)) { height -> height } + androidx.compose.animation.fadeIn(animationSpec = androidx.compose.animation.core.tween(300))).togetherWith(
                                                     androidx.compose.animation.slideOutVertically(animationSpec = androidx.compose.animation.core.tween(300)) { height -> -height / 3 } + androidx.compose.animation.fadeOut(animationSpec = androidx.compose.animation.core.tween(300))
                                                 )
@@ -155,18 +160,32 @@ class MainActivity : ComponentActivity() {
                                                 )
                                             }
                                         },
-                                        label = "FitTestTransition"
-                                    ) { isFitTestOpen ->
+                                        label = "HomeTransition"
+                                    ) { (isFitTestOpen, isWearStateOpen, isSoundBalanceTestOpen) ->
                                         if (isFitTestOpen) {
                                             FitTestScreen(
                                                 viewModel = rulesViewModel,
                                                 onBack = { showFitTest = false },
                                                 modifier = Modifier.fillMaxSize()
                                             )
+                                        } else if (isWearStateOpen) {
+                                            WearStateScreen(
+                                                viewModel = wearStateViewModel,
+                                                onBack = { showWearState = false },
+                                                modifier = Modifier.fillMaxSize()
+                                            )
+                                        } else if (isSoundBalanceTestOpen) {
+                                            com.benegedeniz.budsdynamiceq.ui.balance.SoundBalanceTestScreen(
+                                                viewModel = rulesViewModel,
+                                                onBack = { showSoundBalanceTest = false },
+                                                modifier = Modifier.fillMaxSize()
+                                            )
                                         } else {
                                             BudsScreen(
                                                 viewModel = rulesViewModel,
                                                 onFitTestClick = { showFitTest = true },
+                                                onWearStateClick = { showWearState = true },
+                                                onSoundBalanceTestClick = { showSoundBalanceTest = true },
                                                 modifier = Modifier.fillMaxSize()
                                             )
                                         }
@@ -182,7 +201,7 @@ class MainActivity : ComponentActivity() {
                         }
                         
                         androidx.compose.animation.AnimatedVisibility(
-                            visible = !showFitTest,
+                            visible = !showFitTest && !showWearState && !showSoundBalanceTest,
                             modifier = Modifier.align(androidx.compose.ui.Alignment.BottomCenter).fillMaxWidth(),
                             enter = androidx.compose.animation.slideInVertically(initialOffsetY = { it }),
                             exit = androidx.compose.animation.slideOutVertically(targetOffsetY = { it })
@@ -316,7 +335,7 @@ fun GlassyBottomNavBar(
                 ) {
                     val tabs = listOf(
                         Triple("Home", Icons.Default.Home, 0),
-                        Triple("Music Rules", Icons.Default.GraphicEq, 1),
+                        Triple("Rules", Icons.Default.GraphicEq, 1),
                         Triple("Gestures", Icons.Default.Sensors, 2)
                     )
 

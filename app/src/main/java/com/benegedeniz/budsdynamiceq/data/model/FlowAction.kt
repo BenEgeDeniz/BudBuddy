@@ -7,7 +7,10 @@ import com.benegedeniz.budsdynamiceq.data.model.NoiseControlMode
 @Serializable
 sealed class FlowAction {
     @Serializable
-    data class SystemAction(val action: GestureAction) : FlowAction()
+    data class SystemAction(
+        val action: GestureAction,
+        val respectManualIntent: Boolean = true
+    ) : FlowAction()
     
     @Serializable
     data class DelayAction(val ms: Long = 100L) : FlowAction()

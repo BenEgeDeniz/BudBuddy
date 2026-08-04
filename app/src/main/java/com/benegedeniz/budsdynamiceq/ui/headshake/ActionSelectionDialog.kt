@@ -12,6 +12,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -31,6 +32,8 @@ import com.benegedeniz.budsdynamiceq.ui.components.SearchBarInput
 @Composable
 fun ActionSelectionDialog(
     hasExistingActions: Boolean = false,
+    forbiddenActions: List<GestureAction> = emptyList(),
+    allowFitTestWithOtherActions: Boolean = false,
     onDismissRequest: () -> Unit,
     onActionSelected: (GestureAction) -> Unit
 ) {
@@ -64,16 +67,20 @@ fun ActionSelectionDialog(
                 listOf(GestureAction.FIT_TEST),
                 listOf(GestureAction.NO_ACTION)
             )
-        )
+        ).map { group ->
+            group.first to group.second.map { row ->
+                row.filter { it !in forbiddenActions }
+            }.filter { it.isNotEmpty() }
+        }.filter { it.second.isNotEmpty() }
     }
 
-    val filteredActions = remember(searchQuery) {
+    val filteredActions = remember(searchQuery, forbiddenActions) {
         if (searchQuery.isBlank()) {
             emptyList()
         } else {
             GestureAction.entries.filter { 
-                it.displayName.contains(searchQuery, ignoreCase = true) || 
-                it.group.contains(searchQuery, ignoreCase = true) 
+                it !in forbiddenActions && (it.displayName.contains(searchQuery, ignoreCase = true) || 
+                it.group.contains(searchQuery, ignoreCase = true))
             }
         }
     }
@@ -135,6 +142,7 @@ fun ActionSelectionDialog(
                                     ActionItem(
                                         action = rowActions[0], 
                                         hasExistingActions = hasExistingActions,
+                                        allowFitTestWithOtherActions = allowFitTestWithOtherActions,
                                         modifier = Modifier.weight(1f)
                                     ) {
                                         onActionSelected(rowActions[0])
@@ -143,6 +151,7 @@ fun ActionSelectionDialog(
                                         ActionItem(
                                             action = rowActions[1], 
                                             hasExistingActions = hasExistingActions,
+                                            allowFitTestWithOtherActions = allowFitTestWithOtherActions,
                                             modifier = Modifier.weight(1f)
                                         ) {
                                             onActionSelected(rowActions[1])
@@ -177,9 +186,15 @@ fun ActionSelectionDialog(
 }
 
 @Composable
-fun ActionItem(action: GestureAction, hasExistingActions: Boolean = false, modifier: Modifier = Modifier, onClick: () -> Unit) {
+fun ActionItem(
+    action: GestureAction, 
+    hasExistingActions: Boolean = false, 
+    allowFitTestWithOtherActions: Boolean = false,
+    modifier: Modifier = Modifier, 
+    onClick: () -> Unit
+) {
     val context = androidx.compose.ui.platform.LocalContext.current
-    val isDisabledFitTest = action == GestureAction.FIT_TEST && hasExistingActions
+    val isDisabledFitTest = action == GestureAction.FIT_TEST && hasExistingActions && !allowFitTestWithOtherActions
     
     Card(
         modifier = modifier
@@ -203,14 +218,14 @@ fun ActionItem(action: GestureAction, hasExistingActions: Boolean = false, modif
                 GestureAction.PLAY_PAUSE -> Icons.Default.PlayArrow
                 GestureAction.PLAY -> Icons.Default.PlayArrow
                 GestureAction.PAUSE -> Icons.Default.Pause
-                GestureAction.SET_VOLUME -> Icons.Default.VolumeUp
-                GestureAction.MODIFY_VOLUME_INCREASE -> Icons.Default.VolumeUp
-                GestureAction.MODIFY_VOLUME_DECREASE -> Icons.Default.VolumeDown
+                GestureAction.SET_VOLUME -> Icons.AutoMirrored.Filled.VolumeUp
+                GestureAction.MODIFY_VOLUME_INCREASE -> Icons.AutoMirrored.Filled.VolumeUp
+                GestureAction.MODIFY_VOLUME_DECREASE -> Icons.AutoMirrored.Filled.VolumeDown
                 GestureAction.NEXT_TRACK -> Icons.Default.SkipNext
                 GestureAction.PREVIOUS_TRACK -> Icons.Default.SkipPrevious
                 GestureAction.ANNOUNCE_TRACK -> Icons.Default.MusicNote
                 GestureAction.NC_TOGGLE -> Icons.Default.Hearing
-                GestureAction.NC_ACTIVE -> Icons.Default.VolumeOff
+                GestureAction.NC_ACTIVE -> Icons.AutoMirrored.Filled.VolumeOff
                 GestureAction.NC_OFF -> Icons.Default.Close
                 GestureAction.NC_TRANSPARENT -> Icons.Default.Hearing
                 GestureAction.NC_ADAPTIVE -> Icons.Default.AutoAwesome

@@ -44,9 +44,9 @@ class GestureActionExecutor(
                     }
                     
                     when (flowAction.action) {
-                        GestureAction.PLAY_PAUSE -> sendMediaKey(KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE)
-                        GestureAction.PLAY -> sendMediaKey(KeyEvent.KEYCODE_MEDIA_PLAY)
-                        GestureAction.PAUSE -> sendMediaKey(KeyEvent.KEYCODE_MEDIA_PAUSE)
+                        GestureAction.PLAY_PAUSE -> triggerToggle(flowAction.respectManualIntent)
+                        GestureAction.PLAY -> triggerPlay(flowAction.respectManualIntent)
+                        GestureAction.PAUSE -> triggerPause(flowAction.respectManualIntent)
                         GestureAction.NEXT_TRACK -> sendMediaKey(KeyEvent.KEYCODE_MEDIA_NEXT)
                         GestureAction.PREVIOUS_TRACK -> sendMediaKey(KeyEvent.KEYCODE_MEDIA_PREVIOUS)
                         GestureAction.ANNOUNCE_TRACK -> announceTrack()
@@ -200,12 +200,32 @@ class GestureActionExecutor(
         }
     }
 
-    fun triggerPlay() {
+    fun triggerPlay(respectManualIntent: Boolean = false) {
+        val mediaObserver = com.benegedeniz.budsdynamiceq.di.ServiceLocator.provideMediaObserver(context)
+        if (respectManualIntent && mediaObserver.isManualPause()) {
+            return
+        }
+        mediaObserver.notifyAutomationTriggeredPlay()
         sendMediaKey(KeyEvent.KEYCODE_MEDIA_PLAY)
     }
 
-    fun triggerPause() {
+    fun triggerPause(respectManualIntent: Boolean = false) {
+        val mediaObserver = com.benegedeniz.budsdynamiceq.di.ServiceLocator.provideMediaObserver(context)
+        mediaObserver.notifyAutomationTriggeredPause()
         sendMediaKey(KeyEvent.KEYCODE_MEDIA_PAUSE)
+    }
+    
+    fun triggerToggle(respectManualIntent: Boolean = false) {
+        val mediaObserver = com.benegedeniz.budsdynamiceq.di.ServiceLocator.provideMediaObserver(context)
+        if (respectManualIntent && mediaObserver.isManualPause()) {
+            return
+        }
+        if (mediaObserver.isCurrentlyPlaying()) {
+            mediaObserver.notifyAutomationTriggeredPause()
+        } else {
+            mediaObserver.notifyAutomationTriggeredPlay()
+        }
+        sendMediaKey(KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE)
     }
 
     private fun sendMediaKey(keyCode: Int) {

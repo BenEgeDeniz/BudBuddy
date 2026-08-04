@@ -68,8 +68,7 @@ fun PageHeader(
         // Title Bubble
         Box(
             modifier = Modifier
-                .clip(CircleShape)
-                .background(backgroundColor)
+                .background(backgroundColor, CircleShape)
                 .padding(horizontal = titlePaddingH, vertical = titlePaddingV)
         ) {
             Text(
@@ -84,8 +83,7 @@ fun PageHeader(
         if (actionIcon != null) {
             Box(
                 modifier = Modifier
-                    .clip(CircleShape)
-                    .background(backgroundColor)
+                    .background(backgroundColor, CircleShape)
             ) {
                 actionIcon()
             }

@@ -41,6 +41,33 @@ class MediaObserver(private val context: Context) {
 
     private val mediaSessionManager = context.getSystemService(Context.MEDIA_SESSION_SERVICE) as MediaSessionManager
 
+    enum class PlaybackIntent {
+        MANUAL_PLAY, MANUAL_PAUSE, AUTOMATION_PLAY, AUTOMATION_PAUSE, UNKNOWN
+    }
+
+    private var currentIntent = PlaybackIntent.UNKNOWN
+    private var pendingAutomationPlay = false
+    private var pendingAutomationPause = false
+
+    fun notifyAutomationTriggeredPlay() {
+        pendingAutomationPlay = true
+        pendingAutomationPause = false
+    }
+
+    fun notifyAutomationTriggeredPause() {
+        pendingAutomationPause = true
+        pendingAutomationPlay = false
+    }
+
+    fun isManualPause(): Boolean {
+        return currentIntent == PlaybackIntent.MANUAL_PAUSE
+    }
+
+    fun isCurrentlyPlaying(): Boolean {
+        val controllers = mediaSessionManager.getActiveSessions(ComponentName(context, MediaListenerService::class.java))
+        return controllers.any { it.playbackState?.state == android.media.session.PlaybackState.STATE_PLAYING }
+    }
+
     private val _currentMetadata = MutableStateFlow<SongMetadata?>(null)
     val currentMetadata: StateFlow<SongMetadata?> = _currentMetadata.asStateFlow()
 
@@ -113,10 +140,29 @@ class MediaObserver(private val context: Context) {
                         }
                     }
 
+                    private var lastKnownState: Int? = null
+
                     override fun onPlaybackStateChanged(state: android.media.session.PlaybackState?) {
                         super.onPlaybackStateChanged(state)
-                        if (state?.state == android.media.session.PlaybackState.STATE_PLAYING) {
+                        val currentState = state?.state
+                        if (currentState == lastKnownState) return
+                        lastKnownState = currentState
+                        
+                        if (currentState == android.media.session.PlaybackState.STATE_PLAYING) {
+                            if (pendingAutomationPlay) {
+                                currentIntent = PlaybackIntent.AUTOMATION_PLAY
+                                pendingAutomationPlay = false
+                            } else {
+                                currentIntent = PlaybackIntent.MANUAL_PLAY
+                            }
                             updateTitleFromMetadata(controller.metadata)
+                        } else if (currentState == android.media.session.PlaybackState.STATE_PAUSED || currentState == android.media.session.PlaybackState.STATE_STOPPED) {
+                            if (pendingAutomationPause) {
+                                currentIntent = PlaybackIntent.AUTOMATION_PAUSE
+                                pendingAutomationPause = false
+                            } else {
+                                currentIntent = PlaybackIntent.MANUAL_PAUSE
+                            }
                         }
                     }
                 }

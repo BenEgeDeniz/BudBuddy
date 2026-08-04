@@ -257,6 +257,7 @@ fun FlowActionItem(
     hasExistingActions: Boolean,
     modifier: Modifier = Modifier,
     dragModifier: Modifier = Modifier,
+    allowRespectManualIntent: Boolean = false,
     onRemove: () -> Unit,
     onUpdate: (FlowAction) -> Unit
 ) {
@@ -280,25 +281,54 @@ fun FlowActionItem(
                 is FlowAction.SystemAction -> {
                     var showActionDialog by remember { mutableStateOf(false) }
                     
-                    Box(modifier = Modifier.weight(1f)) {
-                        OutlinedTextField(
-                            value = action.action.displayName,
-                            onValueChange = {},
-                            readOnly = true,
-                            shape = RoundedCornerShape(16.dp),
-                            trailingIcon = { Icon(Icons.Default.ArrowDropDown, contentDescription = null) },
-                            modifier = Modifier.fillMaxWidth(),
-                            interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
-                                .also { interactionSource ->
-                                    LaunchedEffect(interactionSource) {
-                                        interactionSource.interactions.collect {
-                                            if (it is androidx.compose.foundation.interaction.PressInteraction.Release) {
-                                                showActionDialog = true
+                    Column(modifier = Modifier.weight(1f)) {
+                        Box(modifier = Modifier.fillMaxWidth()) {
+                            OutlinedTextField(
+                                value = action.action.displayName,
+                                onValueChange = {},
+                                readOnly = true,
+                                shape = RoundedCornerShape(16.dp),
+                                trailingIcon = { Icon(Icons.Default.ArrowDropDown, contentDescription = null) },
+                                modifier = Modifier.fillMaxWidth(),
+                                interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+                                    .also { interactionSource ->
+                                        LaunchedEffect(interactionSource) {
+                                            interactionSource.interactions.collect {
+                                                if (it is androidx.compose.foundation.interaction.PressInteraction.Release) {
+                                                    showActionDialog = true
+                                                }
                                             }
                                         }
                                     }
+                            )
+                        }
+
+                        if (allowRespectManualIntent && action.action in listOf(GestureAction.PLAY, GestureAction.PAUSE, GestureAction.PLAY_PAUSE)) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 12.dp)
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = "Force action",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                    Text(
+                                        text = "Enabling this will forcefully do the action no matter what and won't respect intent.",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
                                 }
-                        )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Switch(
+                                    checked = !action.respectManualIntent,
+                                    onCheckedChange = { onUpdate(action.copy(respectManualIntent = !it)) }
+                                )
+                            }
+                        }
                     }
 
                     if (showActionDialog) {

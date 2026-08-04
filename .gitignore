@@ -20,3 +20,5 @@ local.properties
 # Ignore compiled app build outputs
 /app/release/
 /app/build/
+
+/GalaxyBudsClient

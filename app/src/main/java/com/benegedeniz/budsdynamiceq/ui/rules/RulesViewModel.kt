@@ -60,6 +60,7 @@ class RulesViewModel(application: Application) : AndroidViewModel(application) {
     val oneEarbudNoiseControlEnabled: StateFlow<Boolean> = budsController.oneEarbudNoiseControlEnabled
     val useAmbientSoundDuringCalls: StateFlow<Boolean> = budsController.useAmbientSoundDuringCalls
     val inEarDetectionForCalls: StateFlow<Boolean> = budsController.inEarDetectionForCalls
+    val stereoBalance: StateFlow<Int> = budsController.stereoBalance
     val fitTestResultL: StateFlow<FitTestResult> = budsController.fitTestResultL
     val fitTestResultR: StateFlow<FitTestResult> = budsController.fitTestResultR
     
@@ -202,6 +203,10 @@ class RulesViewModel(application: Application) : AndroidViewModel(application) {
 
     fun setInEarDetectionForCalls(enabled: Boolean) {
         budsController.setInEarDetectionForCalls(enabled)
+    }
+
+    fun setStereoBalance(value: Int) {
+        budsController.setStereoBalance(value)
     }
 
     fun setPauseMediaOnConversation(enabled: Boolean) {

@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.Hearing
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.RecordVoiceOver
@@ -58,10 +59,12 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.material.icons.filled.PhoneCallback
 import androidx.compose.material.icons.filled.PhoneInTalk
 import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material.icons.filled.Headset
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.ui.text.font.FontWeight
 
 @Composable
-fun BudsScreen(viewModel: RulesViewModel, onFitTestClick: () -> Unit = {}, modifier: Modifier = Modifier) {
+fun BudsScreen(viewModel: RulesViewModel, onFitTestClick: () -> Unit = {}, onWearStateClick: () -> Unit = {}, onSoundBalanceTestClick: () -> Unit = {}, modifier: Modifier = Modifier) {
     val currentMetadata by viewModel.currentMetadata.collectAsState()
     val isConnected by viewModel.isConnected.collectAsState()
     val isConnecting by viewModel.isConnecting.collectAsState()
@@ -73,6 +76,7 @@ fun BudsScreen(viewModel: RulesViewModel, onFitTestClick: () -> Unit = {}, modif
     val oneEarbudNoiseControlEnabled by viewModel.oneEarbudNoiseControlEnabled.collectAsState()
     val useAmbientSoundDuringCalls by viewModel.useAmbientSoundDuringCalls.collectAsState()
     val inEarDetectionForCalls by viewModel.inEarDetectionForCalls.collectAsState()
+    val stereoBalance by viewModel.stereoBalance.collectAsState()
     val pauseMediaOnConversation by viewModel.pauseMediaOnConversationEnabled.collectAsState()
     val pairedDevices by viewModel.pairedDevices.collectAsState()
     val savedDeviceMac by viewModel.savedDeviceMac.collectAsState()
@@ -612,6 +616,114 @@ fun BudsScreen(viewModel: RulesViewModel, onFitTestClick: () -> Unit = {}, modif
                                     modifier = Modifier.scale(0.85f)
                                 )
                             }
+                            
+                            HorizontalDivider(
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 2.dp),
+                                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                            )
+                            
+                            // 4. Left/Right Sound Balance
+                            var isDraggingBalance by remember { mutableStateOf(false) }
+                            var localBalance by remember(stereoBalance) { mutableFloatStateOf(stereoBalance.toFloat()) }
+                            var lastSentBalanceTime by remember { mutableLongStateOf(0L) }
+                            var lastHapticValue by remember { mutableIntStateOf(stereoBalance) }
+                            
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 6.dp)
+                                    .alpha(if (isConnected) 1f else 0.5f)
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth().padding(bottom = 0.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.SwapHoriz,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(12.dp))
+                                    Text(
+                                        text = "Left/Right Sound Balance",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
+                                
+                                Slider(
+                                    value = if (isDraggingBalance) localBalance else stereoBalance.toFloat(),
+                                    onValueChange = { newValue ->
+                                        isDraggingBalance = true
+                                        val snapped = if (newValue in 15f..17f) {
+                                            16f
+                                        } else {
+                                            newValue
+                                        }
+                                        
+                                        val newInt = snapped.toInt()
+                                        if (newInt != lastHapticValue) {
+                                            if (newInt == 16) {
+                                                haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                                            } else {
+                                                haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
+                                            }
+                                            lastHapticValue = newInt
+                                        }
+                                        
+                                        localBalance = snapped
+                                        
+                                        val currentTime = System.currentTimeMillis()
+                                        if (currentTime - lastSentBalanceTime > 300) {
+                                            viewModel.setStereoBalance(newInt)
+                                            lastSentBalanceTime = currentTime
+                                        }
+                                    },
+                                    onValueChangeFinished = {
+                                        isDraggingBalance = false
+                                        viewModel.setStereoBalance(localBalance.toInt())
+                                    },
+                                    valueRange = 0f..32f,
+                                    enabled = isConnected,
+                                    modifier = Modifier.padding(horizontal = 8.dp)
+                                )
+                                
+                                Row(
+                                    modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text("L", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    Text(
+                                        text = run {
+                                            val current = if (isDraggingBalance) localBalance.toInt() else stereoBalance
+                                            when (current) {
+                                                16 -> "Balanced"
+                                                in 0..15 -> "L ${((16 - current) / 16f * 100).toInt()}%"
+                                                else -> "R ${((current - 16) / 16f * 100).toInt()}%"
+                                            }
+                                        },
+                                        style = MaterialTheme.typography.labelSmall, 
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    Text("R", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                }
+                                
+                                Spacer(modifier = Modifier.height(12.dp))
+                                
+                                val bothInEar = isConnected && placementL == com.benegedeniz.budsdynamiceq.data.model.PlacementState.WEARING && placementR == com.benegedeniz.budsdynamiceq.data.model.PlacementState.WEARING
+                                
+                                OutlinedButton(
+                                    onClick = onSoundBalanceTestClick,
+                                    enabled = bothInEar,
+                                    modifier = Modifier.fillMaxWidth().height(42.dp).bounceClick(enabled = bothInEar),
+                                    shape = RoundedCornerShape(12.dp)
+                                ) {
+                                    Icon(Icons.Default.Hearing, contentDescription = null, modifier = Modifier.size(18.dp))
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text("Take Hearing Test", fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                                }
+                            }
                         }
                     }
                 }
@@ -728,6 +840,47 @@ fun BudsScreen(viewModel: RulesViewModel, onFitTestClick: () -> Unit = {}, modif
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
+            // Wear State Actions Button
+            item {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .bounceClick(enabled = isConnected) { onWearStateClick() },
+                    shape = RoundedCornerShape(24.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(24.dp)
+                            .alpha(if (isConnected) 1f else 0.5f),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Headset,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Wear State Actions",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
             // Fit Test Button
             item {
                 val fitTestEnabled = isConnected && placementL == com.benegedeniz.budsdynamiceq.data.model.PlacementState.WEARING && placementR == com.benegedeniz.budsdynamiceq.data.model.PlacementState.WEARING
@@ -763,10 +916,15 @@ fun BudsScreen(viewModel: RulesViewModel, onFitTestClick: () -> Unit = {}, modif
                                 Text(
                                     text = "Requires both earbuds to be worn",
                                     style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.error
                                 )
                             }
                         }
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(24.dp)
+                        )
                     }
                 }
             }

@@ -10,6 +10,7 @@ import com.benegedeniz.budsdynamiceq.media.MediaObserver
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import com.benegedeniz.budsdynamiceq.data.WearStateRepository
 
 object ServiceLocator {
     
@@ -24,6 +25,9 @@ object ServiceLocator {
 
     @Volatile
     private var gestureRepository: GestureRepository? = null
+
+    @Volatile
+    private var wearStateRepository: WearStateRepository? = null
 
     @Volatile
     private var gestureDetector: GestureDetector? = null
@@ -54,6 +58,12 @@ object ServiceLocator {
     fun provideGestureRepository(context: Context): GestureRepository {
         return gestureRepository ?: synchronized(this) {
             gestureRepository ?: GestureRepository(context.applicationContext).also { gestureRepository = it }
+        }
+    }
+
+    fun provideWearStateRepository(context: Context): WearStateRepository {
+        return wearStateRepository ?: synchronized(this) {
+            wearStateRepository ?: WearStateRepository(context.applicationContext).also { wearStateRepository = it }
         }
     }
 

@@ -73,6 +73,11 @@ class BudsController(private val context: Context) {
         packetQueue.trySend(packet)
     }
 
+    private fun disableHardwareAutoPause() {
+        // payload = 0x00 disables the built-in pause behavior
+        sendSppPacket(SppPacketEncoder.MSG_ID_PAUSE_MEDIA_WHEN_ONE_BUD_REMOVED, byteArrayOf(0))
+    }
+
     private var socket: BluetoothSocket? = null
     private var connectionJob: Job? = null
     private val scope = CoroutineScope(Dispatchers.IO)
@@ -206,6 +211,9 @@ class BudsController(private val context: Context) {
     private val _inEarDetectionForCalls = MutableStateFlow(true)
     val inEarDetectionForCalls: StateFlow<Boolean> = _inEarDetectionForCalls.asStateFlow()
 
+    private val _stereoBalance = MutableStateFlow(16) // Default to center
+    val stereoBalance: StateFlow<Int> = _stereoBalance.asStateFlow()
+
     private var keepAliveJob: Job? = null
 
     private val _lastMatchedRule = MutableStateFlow<EqRule?>(null)
@@ -314,6 +322,9 @@ class BudsController(private val context: Context) {
 
                     // Immediately poll debug info upon connection to determine model and temperature
                     packetQueue.trySend(SppPacketEncoder.buildPacket(0x26.toByte(), byteArrayOf()))
+
+                    // Disable hardware-level auto-pause so Wear State Actions work correctly
+                    disableHardwareAutoPause()
 
                     // Keep connection alive, listen for incoming packets
                     val buffer = ByteArray(4096)
@@ -433,6 +444,21 @@ class BudsController(private val context: Context) {
                                 }
                                 if (payloadSize > 34) {
                                     _inEarDetectionForCalls.value = payload[34].toInt() == 0
+                                }
+                                
+                                var hearingEnhancementIndex = -1
+                                if (payloadSize == 62) {
+                                    hearingEnhancementIndex = 25
+                                } else if (payloadSize == 64 || payloadSize == 44) {
+                                    hearingEnhancementIndex = 22
+                                } else if (payloadSize == 41 || payloadSize == 37) {
+                                    hearingEnhancementIndex = 25
+                                } else if (payloadSize >= 44) {
+                                    hearingEnhancementIndex = 25
+                                }
+                                
+                                if (hearingEnhancementIndex != -1 && payloadSize > hearingEnhancementIndex) {
+                                    _stereoBalance.value = payload[hearingEnhancementIndex].toInt() and 0xFF
                                 }
                             } else if (msgId == 0x26.toByte()) { // DEBUG_GET_ALL_DATA
                                 // swLength offset calculation based on VersionDataToString from GalaxyBudsClient
@@ -681,18 +707,22 @@ class BudsController(private val context: Context) {
     }
 
     fun setInEarDetectionForCalls(enabled: Boolean) {
-        if (!_isConnected.value) return
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                // Call path control uses 0 = Enabled, 1 = Disabled
-                val byteValue = if (enabled) 0.toByte() else 1.toByte()
-                val encoded = SppPacketEncoder.buildPacket(SppPacketEncoder.MSG_ID_SET_CALL_PATH_CONTROL, byteArrayOf(byteValue))
-                packetQueue.trySend(encoded)
-                _inEarDetectionForCalls.value = enabled
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
+        _inEarDetectionForCalls.value = enabled
+        val packet = SppPacketEncoder.buildPacket(
+            SppPacketEncoder.MSG_ID_SET_CALL_PATH_CONTROL,
+            byteArrayOf(if (enabled) 0x00 else 0x01)
+        )
+        packetQueue.trySend(packet)
+    }
+
+    fun setStereoBalance(value: Int) {
+        val clamped = value.coerceIn(0, 32)
+        _stereoBalance.value = clamped
+        val packet = SppPacketEncoder.buildPacket(
+            SppPacketEncoder.MSG_ID_HEARING_ENHANCEMENTS,
+            byteArrayOf(clamped.toByte())
+        )
+        packetQueue.trySend(packet)
     }
 
     fun applyEqPreset(preset: EqPreset) {
