@@ -1,8 +1,8 @@
 <?xml version="1.0" ?>
 <resources>
     <string name="app_name">Bud Buddy</string>
-    <string name="gestures_not_supported">Hareketler Desteklenmiyor</string>
-    <string name="head_gestures_are_currently_a_galaxy_bud">Kafa Hareketleri şu anda Galaxy Buds4 Pro\'ya özel bir özelliktir. Buds 3 Pro\'da deneysel olan bu özelliği denemek isterseniz, Ana ekrandaki cihaz seçeneklerinden modelinizi Buds4 Pro yapabilirsiniz.</string>
+    <string name="gestures_not_supported">Jestler Desteklenmiyor</string>
+    <string name="head_gestures_are_currently_a_galaxy_bud">Kafa Jestleri şu anda Galaxy Buds4 Pro\'ya özel bir özelliktir. Buds 3 Pro\'da deneysel olan bu özelliği denemek isterseniz, Ana ekrandaki cihaz seçeneklerinden modelinizi Buds4 Pro yapabilirsiniz.</string>
     <string name="got_it">Anladım</string>
     <string name="no_device_connected">Cihaz Bağlı Değil</string>
     <string name="connect_the_buds_first_to_access_this_fe">Bu özelliğe erişmek için önce kulaklıkları bağlayın.</string>
@@ -21,7 +21,7 @@
     <string name="delete">Sil</string>
     <string name="cancel">İptal</string>
     <string name="imu_data_stream">IMU Veri Akışı</string>
-    <string name="waiting_for_data_make_sure_you_are_conne">Veri bekleniyor... Bağlı olduğunuzdan ve Hareketlerin açık olduğundan emin olun.</string>
+    <string name="waiting_for_data_make_sure_you_are_conne">Veri bekleniyor... Bağlı olduğunuzdan ve Jestlerin açık olduğundan emin olun.</string>
     <string name="quaternion">Kuaterniyon:</string>
     <string name="close">Kapat</string>
     <string name="similar_gesture_detected">Benzer Hareket Algılandı</string>
@@ -131,7 +131,7 @@
     <string name="this_app_functions_as_a_replacement_for_">Bu uygulama Galaxy Wearable yerine geçer. En iyi deneyim ve sensör çakışmalarını önlemek için Galaxy Wearable uygulamasını devre dışı bırakmanızı öneririz.</string>
     <string name="you_re_all_set">Her şey hazır</string>
     <string name="enjoy_your_newly_supercharged_galaxy_bud">Güçlendirilmiş Galaxy Buds\'ınızın tadını çıkarın!</string>
-    <string name="gestures_is_disabled_spatial_audio_360_a">Hareketler kapalı. Samsung Wearable uygulamasında 360 Ses kapatılmalıdır. Sensör meşgulse kulaklıklar IMU verisini aktaramaz.</string>
+    <string name="gestures_is_disabled_spatial_audio_360_a">Jestler kapalı. Samsung Wearable uygulamasında 360 Ses kapatılmalıdır. Sensör meşgulse kulaklıklar IMU verisini aktaramaz.</string>
     <string name="settings">Ayarlar</string>
     <string name="live_preview">Canlı Önizleme</string>
     <string name="require_both_earbuds">Çift Kulaklık Gerekli</string>
@@ -139,20 +139,20 @@
     <string name="tap_to_create_your_first_head_gesture">İlk baş hareketinizi oluşturmak için +\'ya dokunun.</string>
     <string name="spatial_audio_warning">⚠️ 360 Ses Uyarısı</string>
     <string name="spatial_audio_360_audio_must_be_disabled">Samsung Wearable uygulamasında 360 Ses kapatılmalıdır. Samsung\'un kafa takibi özelliği sensörü meşgul ederse kulaklıklar IMU verisini aktaramaz.</string>
-    <string name="gestures">Hareketler</string>
+    <string name="gestures">Jestler</string>
     <string name="about_movement_cancelling">Hareket Filtresi Hakkında</string>
     <string name="open_movement_cancelling">Hareket Filtresini Aç</string>
-    <string name="about_gestures">Hareketler Hakkında</string>
+    <string name="about_gestures">Jestler Hakkında</string>
     <string name="data_stream_visualizer">Veri Akışı Görselleştirici</string>
     <string name="edit_flow">Akışı Düzenle</string>
     <string name="improve_detection">Algılamayı Geliştir</string>
     <string name="debug_info">Hata Ayıklama Bilgisi</string>
-    <string name="gestures_muted">Hareketler duraklatıldı</string>
-    <string name="gestures_lets_you_trigger_custom_action_">Hareketler, başınızı hareket ettirerek özel eylemler tetiklemenizi sağlar. Medya, gürültü kontrolü ve aramaları yönetmek için hareketler kaydedebilirsiniz.</string>
-    <string name="you_can_also_record_continuous_movements">Hareket halindeyken yanlış tetiklemeleri önlemek için yürüme gibi sürekli hareketleri \'Hareket Filtresi\' olarak kaydedebilirsiniz.</string>
+    <string name="gestures_muted">Jestler duraklatıldı</string>
+    <string name="gestures_lets_you_trigger_custom_action_">Jestler, başınızı hareket ettirerek özel eylemler tetiklemenizi sağlar. Medya, gürültü kontrolü ve aramaları yönetmek için Jestler kaydedebilirsiniz.</string>
+    <string name="you_can_also_record_continuous_movements">Hareket halindeyken yanlış tetiklemeleri önlemek için yürüme gibi sürekli Jestleri \'Hareket Filtresi\' olarak kaydedebilirsiniz.</string>
     <string name="need_recalibration">Kalibrasyon Gerekiyor mu?</string>
     <string name="due_to_a_known_issue_with_the_earbuds_se">Kulaklık sensörlerindeki bilinen bir sorun nedeniyle, takıldıktan sonra hareket yönü (yukarı/aşağı) tersine dönebilir.</string>
-    <string name="if_your_gestures_stop_working_correctly_">Hareketleriniz düzgün çalışmazsa veya ters algılanırsa, sensörleri yeniden kalibre etmek için bir kulaklığı çıkarıp tekrar takın.</string>
+    <string name="if_your_gestures_stop_working_correctly_">Jestleriniz düzgün çalışmazsa veya ters algılanırsa, sensörleri yeniden kalibre etmek için bir kulaklığı çıkarıp tekrar takın.</string>
     <string name="earbuds_disconnected">Kulaklık Bağlantısı Kesildi</string>
     <string name="please_connect_your_galaxy_buds_to_recor">Hareket kaydetmek için lütfen Galaxy Buds\'ı bağlayın.</string>
     <string name="step_1_details">Adım 1: Detaylar</string>
@@ -170,9 +170,9 @@
     <string name="enabling_this_will_forcefully_do_the_act">Bu seçenek etkinleştirildiğinde eylem her koşulda zorla çalıştırılır.</string>
     <string name="remove">Kaldır</string>
     <string name="no_noise_profiles_yet">Henüz hareket profili yok.</string>
-    <string name="tap_to_record_background_movements_as_no">Arka plan hareketlerini kaydetmek için +\'ya dokunun.</string>
+    <string name="tap_to_record_background_movements_as_no">Arka plan Jestlerini kaydetmek için +\'ya dokunun.</string>
     <string name="back">Geri</string>
-    <string name="movement_cancelling_detects_background_p">Hareket Filtresi, yürüme veya ulaşım gibi hareketleri algılar ve yanlış tetiklemeleri önlemek için jestleri geçici olarak durdurur.</string>
+    <string name="movement_cancelling_detects_background_p">Hareket Filtresi, yürüme veya ulaşım gibi Jestleri algılar ve yanlış tetiklemeleri önlemek için jestleri geçici olarak durdurur.</string>
     <string name="prevent_accidental_triggers">Yanlış Tetiklemeleri Önle</string>
     <string name="once_recorded_the_profile_runs_continuou">Profil kaydedildikten sonra, hareket halindeyken yanlış tetiklemeleri önlemek için sürekli çalışır.</string>
     <string name="search">Ara</string>
@@ -332,8 +332,8 @@
     <string name="model_buds_3_pro">Galaxy Buds3 Pro</string>
     <string name="model_buds_4_pro">Galaxy Buds4 Pro</string>
     <string name="model_buds_unknown">Galaxy Buds (Bilinmiyor)</string>
-    <string name="setup_gestures_supported">Hareketler destekleniyor</string>
-    <string name="setup_gestures_not_supported">Hareketler desteklenmiyor</string>
+    <string name="setup_gestures_supported">Jestler destekleniyor</string>
+    <string name="setup_gestures_not_supported">Jestler desteklenmiyor</string>
     <string name="btn_next">İleri</string>
     <string name="btn_get_started">Başlayın</string>
     <string name="btn_got_it">Anladım</string>
@@ -372,7 +372,7 @@
     <string name="action_decrease_volume">Sesi Azalt</string>
     <string name="search_actions">Eylemlerde ara...</string>
     <string name="search_apps">Uygulamalarda ara...</string>
-    <string name="movement_mutes_gestures">Algılandığında hareketleri durdurur</string>
+    <string name="movement_mutes_gestures">Algılandığında Jestleri durdurur</string>
     <string name="movement_profile_disabled">Profil kapalı</string>
     <string name="buds_connecting_to">%1$s cihazına bağlanıyor...</string>
     <string name="buds_connecting">Bağlanıyor...</string>
@@ -393,6 +393,7 @@
     <string name="fittest_test_failed">Test Başarısız</string>
     <string name="fittest_ready">Hazır</string>
     <string name="fittest_testing">Bekleyin...</string>
+    <string name="app_version">Uygulama Sürümü</string>
     <string name="wearstate_edit_flow">Akışı Düzenle: %1$s</string>
     <string name="wearstate_unnamed_action">İsimsiz Eylem</string>
     <string name="action_delay_ms">%1$d ms Bekle</string>
@@ -415,7 +416,7 @@
     <string name="search_rules">Kurallarda ara...</string>
     <string name="tab_home">Ana Sayfa</string>
     <string name="tab_rules">Kurallar</string>
-    <string name="tab_gestures">Hareketler</string>
+    <string name="tab_gestures">Jestler</string>
     <string name="buds_case">Kutu</string>
     <string name="buds_left">Sol</string>
     <string name="buds_right">Sağ</string>

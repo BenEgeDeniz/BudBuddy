@@ -393,6 +393,7 @@
     <string name="fittest_test_failed">Test Failed</string>
     <string name="fittest_ready">Ready</string>
     <string name="fittest_testing">Testing...</string>
+    <string name="app_version">App Version</string>
     <string name="wearstate_edit_flow">Edit Flow: %1$s</string>
     <string name="wearstate_unnamed_action">Unnamed Action</string>
     <string name="action_delay_ms">Delay %1$dms</string>

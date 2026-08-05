@@ -29,6 +29,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.ui.draw.scale
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material3.*
@@ -67,7 +68,14 @@ import androidx.compose.ui.res.stringResource
 import com.benegedeniz.budsdynamiceq.R
 
 @Composable
-fun BudsScreen(viewModel: RulesViewModel, onFitTestClick: () -> Unit = {}, onWearStateClick: () -> Unit = {}, onSoundBalanceTestClick: () -> Unit = {}, modifier: Modifier = Modifier) {
+fun BudsScreen(
+    viewModel: RulesViewModel,
+    onFitTestClick: () -> Unit = {},
+    onWearStateClick: () -> Unit = {},
+    onSoundBalanceTestClick: () -> Unit = {},
+    onSettingsClick: () -> Unit = {},
+    modifier: Modifier = Modifier
+) {
     val currentMetadata by viewModel.currentMetadata.collectAsState()
     val isConnected by viewModel.isConnected.collectAsState()
     val isConnecting by viewModel.isConnecting.collectAsState()
@@ -114,8 +122,6 @@ fun BudsScreen(viewModel: RulesViewModel, onFitTestClick: () -> Unit = {}, onWea
 
     var showDeviceDialog by remember { mutableStateOf(false) }
     var showConnectingDialog by remember { mutableStateOf(false) }
-    var showAboutDialog by remember { mutableStateOf(false) }
-    var showLanguageDialog by remember { mutableStateOf(false) }
     var showDeviceMenu by remember { mutableStateOf(false) }
     var showModelDialog by remember { mutableStateOf(false) }
 
@@ -943,127 +949,18 @@ fun BudsScreen(viewModel: RulesViewModel, onFitTestClick: () -> Unit = {}, onWea
             title = stringResource(R.string.bud_buddy),
             isScrolled = isScrolled,
             actionIcon = {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = { showLanguageDialog = true }) {
-                        Icon(
-                            imageVector = Icons.Default.Language,
-                            contentDescription = stringResource(R.string.language),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    IconButton(
-                        onClick = { showAboutDialog = true }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Info,
-                            contentDescription = stringResource(R.string.about_bud_buddy),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-            }
-        )
-    }
-
-    if (showLanguageDialog) {
-        val context = androidx.compose.ui.platform.LocalContext.current
-        val prefs = context.getSharedPreferences("BudsPrefs", android.content.Context.MODE_PRIVATE)
-        var selectedLang by remember { mutableStateOf(prefs.getString("AppLanguage", "system") ?: "system") }
-        val langs = listOf(
-            "system" to stringResource(R.string.system_default),
-            "en" to "English",
-            "tr" to "Türkçe"
-        )
-        AlertDialog(
-            onDismissRequest = { showLanguageDialog = false },
-            title = { Text(stringResource(R.string.language_dil)) },
-            text = {
-                Column {
-                    langs.forEach { (code, name) ->
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.fillMaxWidth().clickable { selectedLang = code }.padding(vertical = 8.dp)
-                        ) {
-                            androidx.compose.material3.RadioButton(
-                                selected = (selectedLang == code),
-                                onClick = { selectedLang = code }
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(name)
-                        }
-                    }
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    prefs.edit().putString("AppLanguage", selectedLang).apply()
-                    showLanguageDialog = false
-                    // Recreate activity to apply locale
-                    (context as? android.app.Activity)?.recreate()
-                }) {
-                    Text(stringResource(R.string.apply))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showLanguageDialog = false }) {
-                    Text(stringResource(R.string.cancel))
-                }
-            }
-        )
-    }
-
-    if (showAboutDialog) {
-        val uriHandler = LocalUriHandler.current
-        AlertDialog(
-            shape = RoundedCornerShape(28.dp),
-            containerColor = MaterialTheme.colorScheme.surface,
-            onDismissRequest = { showAboutDialog = false },
-            title = {
-                Text(stringResource(R.string.about_bud_buddy), style = MaterialTheme.typography.titleLarge)
-            },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    Text(
-                        text = stringResource(R.string.bud_buddy_is_your_central_hub_for_managi),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface
+                IconButton(
+                    onClick = {
+                        haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
+                        onSettingsClick()
+                    },
+                    modifier = Modifier.bounceClick()
+                ) {
+                    Icon(
+                        imageVector = androidx.compose.material.icons.Icons.Default.Settings,
+                        contentDescription = stringResource(R.string.settings),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    Text(
-                        text = stringResource(R.string.https_benegedeniz_com),
-                        style = MaterialTheme.typography.bodyMedium.copy(textDecoration = TextDecoration.Underline),
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.clickable {
-                            uriHandler.openUri("https://benegedeniz.com")
-                        }
-                    )
-                    Text(
-                        text = stringResource(R.string.ege_benegedeniz_com),
-                        style = MaterialTheme.typography.bodyMedium.copy(textDecoration = TextDecoration.Underline),
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.clickable {
-                            uriHandler.openUri("mailto:ege@benegedeniz.com")
-                        }
-                    )
-                    
-                    Spacer(modifier = Modifier.height(8.dp))
-                    HorizontalDivider()
-                    Spacer(modifier = Modifier.height(8.dp))
-                    
-                    Text(
-                        text = stringResource(R.string.open_source_licenses),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = stringResource(R.string.github_com_timschneeb_galaxybudsclient_n),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = { showAboutDialog = false }) {
-                    Text(stringResource(R.string.close))
                 }
             }
         )
