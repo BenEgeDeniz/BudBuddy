@@ -11,6 +11,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import com.benegedeniz.budsdynamiceq.data.WearStateRepository
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 object ServiceLocator {
     
@@ -36,6 +39,28 @@ object ServiceLocator {
     private var noiseDetector: NoiseDetector? = null
 
     private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
+    // Shared settings flows — written by ViewModel, read by BudsService.
+    // Using a shared singleton eliminates the fragile SharedPreferences listener bridge.
+    private val _headShakeEnabled = MutableStateFlow(false)
+    val headShakeEnabled: StateFlow<Boolean> = _headShakeEnabled.asStateFlow()
+
+    private val _requireBothEarbuds = MutableStateFlow(false)
+    val requireBothEarbuds: StateFlow<Boolean> = _requireBothEarbuds.asStateFlow()
+
+    fun initFromPrefs(context: Context) {
+        val prefs = context.getSharedPreferences("BudsPrefs", Context.MODE_PRIVATE)
+        _headShakeEnabled.value = prefs.getBoolean("head_shake_enabled", false)
+        _requireBothEarbuds.value = prefs.getBoolean("require_both_earbuds", false)
+    }
+
+    fun setHeadShakeEnabled(enabled: Boolean) {
+        _headShakeEnabled.value = enabled
+    }
+
+    fun setRequireBothEarbuds(enabled: Boolean) {
+        _requireBothEarbuds.value = enabled
+    }
 
     fun provideBudsController(context: Context): BudsController {
         return budsController ?: synchronized(this) {

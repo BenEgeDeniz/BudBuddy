@@ -139,15 +139,14 @@ class BudsService : Service() {
             budsController.setManualNoiseControl(NoiseControlMode.IGNORE)
         }
 
-        val headShakeEnabledFlow = MutableStateFlow(prefs.getBoolean("head_shake_enabled", false))
-        val requireBothEarbudsFlow = MutableStateFlow(prefs.getBoolean("require_both_earbuds", false))
+        // Seed the shared flows from saved prefs, then observe them directly.
+        // This eliminates the fragile SharedPreferences listener approach.
+        ServiceLocator.initFromPrefs(this)
+        val headShakeEnabledFlow = ServiceLocator.headShakeEnabled
+        val requireBothEarbudsFlow = ServiceLocator.requireBothEarbuds
         val pauseMediaOnConversationFlow = MutableStateFlow(prefs.getBoolean("pause_media_on_conversation", false))
         prefsListener = SharedPreferences.OnSharedPreferenceChangeListener { sharedPreferences, key ->
-            if (key == "head_shake_enabled") {
-                headShakeEnabledFlow.value = sharedPreferences.getBoolean("head_shake_enabled", false)
-            } else if (key == "require_both_earbuds") {
-                requireBothEarbudsFlow.value = sharedPreferences.getBoolean("require_both_earbuds", false)
-            } else if (key == "pause_media_on_conversation") {
+            if (key == "pause_media_on_conversation") {
                 pauseMediaOnConversationFlow.value = sharedPreferences.getBoolean("pause_media_on_conversation", false)
             }
         }
@@ -162,7 +161,13 @@ class BudsService : Service() {
                 budsController.placementR,
                 requireBothEarbudsFlow
             ) { pL, pR, requireBoth ->
-                if (requireBoth) {
+                val unknownL = pL == com.benegedeniz.budsdynamiceq.data.model.PlacementState.UNKNOWN
+                val unknownR = pR == com.benegedeniz.budsdynamiceq.data.model.PlacementState.UNKNOWN
+                // If placement hasn't been determined yet (right after connection), assume wearing
+                // so we don't prematurely kill the IMU stream before the first status packet arrives.
+                if (unknownL && unknownR) {
+                    true
+                } else if (requireBoth) {
                     pL == com.benegedeniz.budsdynamiceq.data.model.PlacementState.WEARING && pR == com.benegedeniz.budsdynamiceq.data.model.PlacementState.WEARING
                 } else {
                     pL == com.benegedeniz.budsdynamiceq.data.model.PlacementState.WEARING || pR == com.benegedeniz.budsdynamiceq.data.model.PlacementState.WEARING

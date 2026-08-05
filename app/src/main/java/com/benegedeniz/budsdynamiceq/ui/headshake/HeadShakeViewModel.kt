@@ -68,6 +68,7 @@ class HeadShakeViewModel(application: Application) : AndroidViewModel(applicatio
     fun toggleRequireBothEarbuds(enabled: Boolean) {
         prefs.edit().putBoolean("require_both_earbuds", enabled).apply()
         _requireBothEarbuds.value = enabled
+        ServiceLocator.setRequireBothEarbuds(enabled)
     }
     
     val isMissingEarbudForHeadshake = combine(_requireBothEarbuds, budsController.placementL, budsController.placementR) { req, pL, pR ->
@@ -150,6 +151,7 @@ class HeadShakeViewModel(application: Application) : AndroidViewModel(applicatio
     fun toggleHeadShake(enabled: Boolean) {
         prefs.edit().putBoolean("head_shake_enabled", enabled).apply()
         _headShakeEnabled.value = enabled
+        ServiceLocator.setHeadShakeEnabled(enabled)
         if (enabled) {
             detector.start(emptyList())
         } else {
