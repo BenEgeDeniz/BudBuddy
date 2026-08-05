@@ -170,7 +170,7 @@
     <string name="enabling_this_will_forcefully_do_the_act">Bu seçenek etkinleştirildiğinde eylem her koşulda zorla çalıştırılır.</string>
     <string name="remove">Kaldır</string>
     <string name="no_noise_profiles_yet">Henüz hareket profili yok.</string>
-    <string name="tap_to_record_background_movements_as_no">Arka plan hareketlerini gürültü profili olarak kaydetmek için +\'ya dokunun.</string>
+    <string name="tap_to_record_background_movements_as_no">Arka plan hareketlerini kaydetmek için +\'ya dokunun.</string>
     <string name="back">Geri</string>
     <string name="movement_cancelling_detects_background_p">Hareket Filtresi, yürüme veya ulaşım gibi hareketleri algılar ve yanlış tetiklemeleri önlemek için jestleri geçici olarak durdurur.</string>
     <string name="prevent_accidental_triggers">Yanlış Tetiklemeleri Önle</string>
