@@ -394,6 +394,12 @@
     <string name="fittest_ready">Hazır</string>
     <string name="fittest_testing">Bekleyin...</string>
     <string name="app_version">Uygulama Sürümü</string>
+    <string name="check_for_updates">Güncellemeleri Kontrol Et</string>
+    <string name="checking_for_updates">Güncellemeler kontrol ediliyor...</string>
+    <string name="update_available">Güncelleme Mevcut!</string>
+    <string name="update_available_desc">Yeni bir sürüm (%1$s) GitHub\'da mevcut.</string>
+    <string name="download_update">APK\'yı İndir</string>
+    <string name="app_is_up_to_date">Uygulama güncel</string>
     <string name="wearstate_edit_flow">Akışı Düzenle: %1$s</string>
     <string name="wearstate_unnamed_action">İsimsiz Eylem</string>
     <string name="action_delay_ms">%1$d ms Bekle</string>

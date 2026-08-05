@@ -394,6 +394,12 @@
     <string name="fittest_ready">Ready</string>
     <string name="fittest_testing">Testing...</string>
     <string name="app_version">App Version</string>
+    <string name="check_for_updates">Check for Updates</string>
+    <string name="checking_for_updates">Checking for updates...</string>
+    <string name="update_available">Update Available!</string>
+    <string name="update_available_desc">A new version (%1$s) is available on GitHub.</string>
+    <string name="download_update">Download APK</string>
+    <string name="app_is_up_to_date">App is up to date</string>
     <string name="wearstate_edit_flow">Edit Flow: %1$s</string>
     <string name="wearstate_unnamed_action">Unnamed Action</string>
     <string name="action_delay_ms">Delay %1$dms</string>

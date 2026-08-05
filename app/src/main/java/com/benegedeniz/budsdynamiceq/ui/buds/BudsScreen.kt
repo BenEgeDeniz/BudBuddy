@@ -30,6 +30,7 @@ import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.PriorityHigh
 import androidx.compose.ui.draw.scale
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material3.*
@@ -949,6 +950,7 @@ fun BudsScreen(
             title = stringResource(R.string.bud_buddy),
             isScrolled = isScrolled,
             actionIcon = {
+                val isUpdateAvailable by com.benegedeniz.budsdynamiceq.util.UpdateChecker.isUpdateAvailable.collectAsState()
                 IconButton(
                     onClick = {
                         haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
@@ -956,11 +958,30 @@ fun BudsScreen(
                     },
                     modifier = Modifier.bounceClick()
                 ) {
-                    Icon(
-                        imageVector = androidx.compose.material.icons.Icons.Default.Settings,
-                        contentDescription = stringResource(R.string.settings),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = androidx.compose.material.icons.Icons.Default.Settings,
+                            contentDescription = stringResource(R.string.settings),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        if (isUpdateAvailable) {
+                            Box(
+                                modifier = Modifier
+                                    .size(14.dp)
+                                    .align(Alignment.TopEnd)
+                                    .offset(x = 3.dp, y = (-3).dp)
+                                    .background(com.benegedeniz.budsdynamiceq.ui.theme.ErrorRed, androidx.compose.foundation.shape.CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.PriorityHigh,
+                                    contentDescription = null,
+                                    tint = androidx.compose.ui.graphics.Color.White,
+                                    modifier = Modifier.size(10.dp)
+                                )
+                            }
+                        }
+                    }
                 }
             }
         )

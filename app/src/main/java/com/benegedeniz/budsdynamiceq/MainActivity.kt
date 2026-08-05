@@ -128,6 +128,17 @@ class MainActivity : ComponentActivity() {
                         var showGesturesDisabledDialog by remember { mutableStateOf(false) }
                         var showNoDeviceDialog by remember { mutableStateOf(false) }
                         
+                        val appCoroutineScope = rememberCoroutineScope()
+                        val appContext = androidx.compose.ui.platform.LocalContext.current
+                        LaunchedEffect(Unit) {
+                            val versionName = try {
+                                appContext.packageManager.getPackageInfo(appContext.packageName, 0).versionName ?: "N/A"
+                            } catch (e: Exception) {
+                                "N/A"
+                            }
+                            com.benegedeniz.budsdynamiceq.util.UpdateChecker.checkForUpdates(versionName, appCoroutineScope)
+                        }
+                        
                         Surface(
                             modifier = Modifier.fillMaxSize(),
                             color = MaterialTheme.colorScheme.background
