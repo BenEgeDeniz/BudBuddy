@@ -1,6 +1,7 @@
 # Bud Buddy
 
 <img src="budbuddy.png" alt="Bud Buddy Icon" width="100"/>
+
 *Artwork by [@black_cat_why](https://www.instagram.com/black_cat_why/)*
 
 
