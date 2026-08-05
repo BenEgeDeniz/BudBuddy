@@ -747,22 +747,38 @@ class BudsController(private val context: Context) {
             spatialConsumers.add(consumer)
             stopSpatialJob?.cancel()
         }
-        if (_isSpatialActive.value) return
-        if (effectiveModel.value == BudsModel.BUDS_3_PRO) {
-            Log.i(TAG, "Spatial sensor (Gestures) not supported on Buds 3 Pro yet.")
-            return
-        }
-        _isSpatialActive.value = true
-        Log.i(TAG, "Starting spatial sensor for consumer: $consumer")
-        packetQueue.trySend(SppPacketEncoder.buildPacket(SppPacketEncoder.MSG_ID_SET_SPATIAL_AUDIO, byteArrayOf(1)))
-        packetQueue.trySend(SppPacketEncoder.buildPacket(SppPacketEncoder.MSG_ID_SPATIAL_AUDIO_CONTROL, byteArrayOf(0)))
         
-        keepAliveJob?.cancel()
-        keepAliveJob = scope.launch {
-            while (true) {
-                delay(2000)
-                if (_isSpatialActive.value) {
-                    packetQueue.trySend(SppPacketEncoder.buildPacket(SppPacketEncoder.MSG_ID_SPATIAL_AUDIO_CONTROL, byteArrayOf(4)))
+        scope.launch {
+            // If model is UNKNOWN, wait a bit for the 0x26 debug packet to return
+            // before bombarding the earbuds with spatial audio commands that could interrupt it.
+            var attempts = 0
+            while (effectiveModel.value == BudsModel.UNKNOWN && attempts < 15) {
+                delay(200)
+                attempts++
+            }
+            
+            if (effectiveModel.value == BudsModel.BUDS_3_PRO) {
+                Log.i(TAG, "Spatial sensor (Gestures) not supported on Buds 3 Pro yet.")
+                return@launch
+            }
+            
+            val wasActive = _isSpatialActive.value
+            _isSpatialActive.value = true
+            Log.i(TAG, "Starting spatial sensor for consumer: $consumer (wasActive=$wasActive)")
+            
+            // Always send setup packets as a failsafe against dropped packets or silent detaches
+            packetQueue.trySend(SppPacketEncoder.buildPacket(SppPacketEncoder.MSG_ID_SET_SPATIAL_AUDIO, byteArrayOf(1)))
+            packetQueue.trySend(SppPacketEncoder.buildPacket(SppPacketEncoder.MSG_ID_SPATIAL_AUDIO_CONTROL, byteArrayOf(0)))
+            
+            if (!wasActive || keepAliveJob?.isActive != true) {
+                keepAliveJob?.cancel()
+                keepAliveJob = scope.launch {
+                    while (true) {
+                        delay(2000)
+                        if (_isSpatialActive.value) {
+                            packetQueue.trySend(SppPacketEncoder.buildPacket(SppPacketEncoder.MSG_ID_SPATIAL_AUDIO_CONTROL, byteArrayOf(4)))
+                        }
+                    }
                 }
             }
         }
@@ -770,16 +786,16 @@ class BudsController(private val context: Context) {
 
     fun kickstartSpatialSensor() {
         if (effectiveModel.value == BudsModel.BUDS_3_PRO) return
-        if (_isSpatialActive.value) {
-            Log.i(TAG, "Kickstarting spatial sensor (Hard reset)")
-            // Stop it fully
-            _isSpatialActive.value = false
-            keepAliveJob?.cancel()
-            kickstartJob?.cancel()
-            packetQueue.trySend(SppPacketEncoder.buildPacket(SppPacketEncoder.MSG_ID_SET_SPATIAL_AUDIO, byteArrayOf(0)))
-            packetQueue.trySend(SppPacketEncoder.buildPacket(SppPacketEncoder.MSG_ID_SPATIAL_AUDIO_CONTROL, byteArrayOf(1)))
-            
-            kickstartJob = scope.launch {
+        
+        Log.i(TAG, "Kickstarting spatial sensor (Hard reset)")
+        // Stop it fully
+        _isSpatialActive.value = false
+        keepAliveJob?.cancel()
+        kickstartJob?.cancel()
+        packetQueue.trySend(SppPacketEncoder.buildPacket(SppPacketEncoder.MSG_ID_SET_SPATIAL_AUDIO, byteArrayOf(0)))
+        packetQueue.trySend(SppPacketEncoder.buildPacket(SppPacketEncoder.MSG_ID_SPATIAL_AUDIO_CONTROL, byteArrayOf(1)))
+        
+        kickstartJob = scope.launch {
                 delay(1500) // Wait for earbud role-sync to finish
                 
                 if (spatialConsumers.isNotEmpty()) {
@@ -798,7 +814,6 @@ class BudsController(private val context: Context) {
                     }
                 }
             }
-        }
     }
 
     fun stopSpatialSensor(consumer: String = "default") {

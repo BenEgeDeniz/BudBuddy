@@ -28,3 +28,7 @@
 # Keep Glance ActionCallbacks and Receivers (instantiated via reflection)
 -keep class * implements androidx.glance.appwidget.action.ActionCallback { *; }
 -keep class * extends androidx.glance.appwidget.GlanceAppWidgetReceiver { *; }
+
+# Keep data models and serialization classes to prevent kotlinx.serialization from breaking in release builds
+-keep class com.benegedeniz.budsdynamiceq.data.model.** { *; }
+-keep class com.benegedeniz.budsdynamiceq.gesture.** { *; }

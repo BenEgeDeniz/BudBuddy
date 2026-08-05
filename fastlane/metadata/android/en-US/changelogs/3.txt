@@ -1,0 +1,4 @@
+✨ v1.1.1
+- Improved Spatial Audio initialization stability.
+- Fixed an issue where head gestures were broken in release builds due to code minification.
+- Simplified disconnected status labels.

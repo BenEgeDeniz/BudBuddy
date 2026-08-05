@@ -12,8 +12,8 @@ android {
         applicationId = "com.benegedeniz.budsdynamiceq"
         minSdk = 31
         targetSdk = 37
-        versionCode = 2
-        versionName = "1.1"
+        versionCode = 3
+        versionName = "1.1.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

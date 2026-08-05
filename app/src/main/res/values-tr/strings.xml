@@ -271,7 +271,7 @@ Düğmeye basılı tutun. Tonu artık duyamadığınız an parmağınızı bıra
     <string name="toggle_anc_ambient">ANC / Ortam Sesi</string>
     <string name="active_nc_format">Aktif Gürültü Engelleme: %1$s</string>
     <string name="app_name_service">Bud Buddy Servisi</string>
-    <string name="disconnected">Bud Buddy Bağlı Değil</string>
+    <string name="disconnected">Bağlantı Kesildi</string>
     <string name="expand_for_more">Daha fazlası için genişlet</string>
     <string name="notif_access_disabled">Bildirim erişimi etkin değil.</string>
     <string name="no_new_notifications">Yeni bildirim yok.</string>

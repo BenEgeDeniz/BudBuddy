@@ -264,7 +264,7 @@
     <string name="toggle_anc_ambient">Toggle ANC / Ambient</string>
     <string name="active_nc_format">Active NC: %1$s</string>
     <string name="app_name_service">Bud Buddy Service</string>
-    <string name="disconnected">Bud Buddy Disconnected</string>
+    <string name="disconnected">Disconnected</string>
     <string name="expand_for_more">Expand for more</string>
     <string name="notif_access_disabled">Notification access is not enabled.</string>
     <string name="no_new_notifications">No new notifications.</string>
