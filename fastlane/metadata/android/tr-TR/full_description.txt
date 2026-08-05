@@ -1,8 +1,8 @@
-Bud Buddy, Samsung Galaxy Buds Manager için geliştirilmiş açık kaynaklı bir alternatiftir. Özel baş sallama hareketleri, çevrenize ve o an çalan müziğin türüne göre (Apple Music API ile güçlendirilmiştir) otomatik olarak ayarlanan dinamik EQ kuralları, gürültü kontrol araçları (widget) ve kulaklık uyum testi gibi gelişmiş özellikleri kulaklığınıza getirir. Jetpack Compose ve modern Android mimarisiyle geliştirilen Bud Buddy, dinleme deneyiminiz üzerinde tam kontrol sahibi olmanızı sağlar.
+Bud Buddy, Samsung Galaxy Buds Manager için geliştirilmiş açık kaynaklı bir alternatiftir. Özel baş sallama jestleri, çevrenize ve o an çalan müziğin türüne göre (Apple Music API ile güçlendirilmiştir) otomatik olarak ayarlanan dinamik EQ kuralları, gürültü kontrol araçları (widget) ve kulaklık uyum testi gibi gelişmiş özellikleri kulaklığınıza getirir. Jetpack Compose ve modern Android mimarisiyle geliştirilen Bud Buddy, dinleme deneyiminiz üzerinde tam kontrol sahibi olmanızı sağlar.
 
 Desteklenen Kulaklıklar:
-- Galaxy Buds 4 Pro (Baş Hareketleri dahil tam destek)
-- Galaxy Buds 3 Pro (Destekleniyor, ancak Baş Hareketleri mevcut değil)
+- Galaxy Buds 4 Pro (Baş Jestleri dahil tam destek)
+- Galaxy Buds 3 Pro (Destekleniyor, ancak Baş Jestleri mevcut değil)
 
 Teşekkürler:
 Kulaklıkların Bluetooth baytları üzerinden kontrol edilme yaklaşımı, GalaxyBudsClient projesinde (https://github.com/timschneeb/GalaxyBudsClient) yapılan harika çalışmalardan öğrenilmiştir.

@@ -1,0 +1,7 @@
+✨ v1.2.0
+- Katlanabilir bölümlere sahip özel Uygulama Ayarları ekranı eklendi.
+- GitHub sürümleri ile otomatik güncelleme kontrolü entegre edildi.
+- Baş jestleri algılaması düzeltildi.
+- Ülke bayraklı dil seçimi eklendi.
+- Dinamik uygulama sürüm göstergesi ve geliştirici bilgileri eklendi.
+- Türkçe yerelleştirme ve arayüz tutarlılığı iyileştirildi.

@@ -1,0 +1,7 @@
+✨ v1.2.0
+- Added dedicated App Settings screen with collapsible sections.
+- Integrated automatic update checking with GitHub Release notifications.
+- Fixed head gesture detection.
+- Added language selection with country flag indicators.
+- Added dynamic app version display and developer information.
+- Improved Turkish localization and UI consistency.
