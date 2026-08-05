@@ -391,6 +391,8 @@
     <string name="fittest_good_fit">İyi Uyum</string>
     <string name="fittest_poor_fit">Zayıf Uyum</string>
     <string name="fittest_test_failed">Test Başarısız</string>
+    <string name="fittest_ready">Hazır</string>
+    <string name="fittest_testing">Bekleyin...</string>
     <string name="wearstate_edit_flow">Akışı Düzenle: %1$s</string>
     <string name="wearstate_unnamed_action">İsimsiz Eylem</string>
     <string name="action_delay_ms">%1$d ms Bekle</string>

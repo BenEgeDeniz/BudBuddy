@@ -369,11 +369,10 @@ private fun EarbudStatusCard(
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                     }
-
                     Text(
                         text = when {
                             !inEar -> stringResource(R.string.fittest_not_in_ear)
-                            isTesting -> "Testing..."
+                            isTesting -> stringResource(R.string.fittest_testing)
                             else -> getResultText(fitResult)
                         },
                         style = MaterialTheme.typography.labelMedium,
@@ -392,6 +391,6 @@ private fun getResultText(result: FitTestResult): String {
         FitTestResult.GOOD -> stringResource(R.string.fittest_good_fit)
         FitTestResult.BAD -> stringResource(R.string.fittest_poor_fit)
         FitTestResult.TEST_FAILED -> stringResource(R.string.fittest_test_failed)
-        FitTestResult.UNKNOWN -> "Ready"
+        FitTestResult.UNKNOWN -> stringResource(R.string.fittest_ready)
     }
 }
