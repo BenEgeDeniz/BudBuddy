@@ -1,7 +1,7 @@
 # Bud Buddy
 
 <img src="budbuddy.png" alt="Bud Buddy Icon" width="100"/>
-*Artwork by [@black_cat_why](https://www.instagram.com/black_cat_why/)*
+Artwork by [@black_cat_why](https://www.instagram.com/black_cat_why/)
 
 Bud Buddy is an improved, open-source alternative to the Samsung Galaxy Buds Manager. It brings advanced features to your earbuds to give you full control over your listening experience. Built with Jetpack Compose and modern Android architecture.
 
