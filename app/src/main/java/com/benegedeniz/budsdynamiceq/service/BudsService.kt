@@ -100,12 +100,14 @@ class BudsService : Service() {
                                  
                 val effectiveModel = budsController.effectiveModel.value
                 val nextMode = if (wearingOne && !oneEarbudEnabled) {
+                    // ANC is hardware disabled when wearing one earbud unless the setting is on.
+                    // Cycle between Transparency and OFF (or just OFF if transparency not supported).
                     if (currentNc == NoiseControlMode.TRANSPARENT) NoiseControlMode.OFF else if (effectiveModel.supportsTransparencyNC) NoiseControlMode.TRANSPARENT else NoiseControlMode.OFF
                 } else {
                     if (currentNc == NoiseControlMode.NOISE_CANCELLATION) {
                         if (effectiveModel.supportsTransparencyNC) NoiseControlMode.TRANSPARENT else NoiseControlMode.OFF
                     } else if (currentNc == NoiseControlMode.TRANSPARENT) {
-                        NoiseControlMode.OFF
+                        NoiseControlMode.NOISE_CANCELLATION
                     } else {
                         NoiseControlMode.NOISE_CANCELLATION
                     }

@@ -875,7 +875,7 @@ class BudsController(private val context: Context) {
         val current = lastSentNcMode ?: _manualNoiseControl.value
         val next = when (current) {
             NoiseControlMode.NOISE_CANCELLATION -> if (effectiveModel.value.supportsTransparencyNC) NoiseControlMode.TRANSPARENT else NoiseControlMode.OFF
-            NoiseControlMode.TRANSPARENT -> NoiseControlMode.OFF
+            NoiseControlMode.TRANSPARENT -> NoiseControlMode.NOISE_CANCELLATION
             else -> NoiseControlMode.NOISE_CANCELLATION
         }
         sendNoiseControl(next)
