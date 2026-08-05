@@ -435,10 +435,7 @@ class HeadShakeViewModel(application: Application) : AndroidViewModel(applicatio
                 conflictWarning.value = conflict
             }
 
-            if (!wasActive && _recordingState.value != RecordingState.TESTING) {
-                // Keep it on if we're moving to test phase, but detach if they cancel
-                // We'll manage it better in test or cancel.
-            }
+            if (!wasActive) budsController.stopSpatialSensor("recording")
 
             val targetCount = if (_editingGesture.value != null) 3 else 5
             _recordingState.value = RecordingState.SAMPLE_DONE
@@ -607,6 +604,8 @@ class HeadShakeViewModel(application: Application) : AndroidViewModel(applicatio
         detector.stop()
         globalDetector.isTrainingMode = false
         budsController.stopSpatialSensor("recording")
+        budsController.stopSpatialSensor("recording_setup")
+        budsController.stopSpatialSensor("recording_noise")
         budsController.stopSpatialSensor("testing")
         budsController.stopSpatialSensor("training_session")
         

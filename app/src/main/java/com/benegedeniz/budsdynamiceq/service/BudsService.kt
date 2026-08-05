@@ -125,18 +125,16 @@ class BudsService : Service() {
         // Sync manual defaults from SharedPreferences
         val prefs = getSharedPreferences("BudsPrefs", MODE_PRIVATE)
         val savedPresetName = prefs.getString("default_preset", null)
-        if (savedPresetName != null) {
-            budsController.setManualPreset(EqPreset.valueOf(savedPresetName))
-        } else {
-            budsController.setManualPreset(EqPreset.NORMAL)
+        val resolvedPreset = savedPresetName?.let {
+            try { EqPreset.valueOf(it) } catch (_: IllegalArgumentException) { null }
         }
+        budsController.setManualPreset(resolvedPreset ?: EqPreset.NORMAL)
 
         val savedNcName = prefs.getString("default_nc", null)
-        if (savedNcName != null) {
-            budsController.setManualNoiseControl(NoiseControlMode.valueOf(savedNcName))
-        } else {
-            budsController.setManualNoiseControl(NoiseControlMode.IGNORE)
+        val resolvedNc = savedNcName?.let {
+            try { NoiseControlMode.valueOf(it) } catch (_: IllegalArgumentException) { null }
         }
+        budsController.setManualNoiseControl(resolvedNc ?: NoiseControlMode.IGNORE)
 
         // All runtime-togglable settings are shared via ServiceLocator flows,
         // so BudsService sees changes immediately without any prefs listener.
@@ -249,7 +247,7 @@ class BudsService : Service() {
 
                 prevL = pL
                 prevR = pR
-            }.collectLatest { }
+            }.collect { }
         }
 
         scope.launch {
@@ -258,8 +256,8 @@ class BudsService : Service() {
             var isHandoffInProgress = false
             var expectedPitchSignFlip = false
             var lastPitch = 0f
-            var prevLWearing = false
-            var prevRWearing = false
+            var prevLWearing = budsController.placementL.value == com.benegedeniz.budsdynamiceq.data.model.PlacementState.WEARING
+            var prevRWearing = budsController.placementR.value == com.benegedeniz.budsdynamiceq.data.model.PlacementState.WEARING
             var isImuForced = false
             var smoothedZ = 0f
             var longTermVx = 0f
@@ -510,16 +508,13 @@ class BudsService : Service() {
             var previousNcMode: NoiseControlMode? = null
             combine(
                 budsController.activeNoiseControl,
-                budsController.conversationDetectionEnabled,
                 pauseMediaOnConversationFlow
-            ) { ncMode, convoEnabled, pauseMedia ->
-                Triple(ncMode, convoEnabled, pauseMedia)
-            }.collect { (ncMode, convoEnabled, pauseMedia) ->
-                if (pauseMedia && convoEnabled && previousNcMode != null && ncMode != previousNcMode) {
-                    if (previousNcMode == NoiseControlMode.NOISE_CANCELLATION && ncMode == NoiseControlMode.TRANSPARENT) {
+            ) { ncMode, pauseOnTransparency ->
+                Pair(ncMode, pauseOnTransparency)
+            }.collect { (ncMode, pauseOnTransparency) ->
+                if (pauseOnTransparency && previousNcMode != null && ncMode != previousNcMode) {
+                    if (ncMode == NoiseControlMode.TRANSPARENT) {
                         actionExecutor.triggerPause()
-                    } else if (previousNcMode == NoiseControlMode.TRANSPARENT && ncMode == NoiseControlMode.NOISE_CANCELLATION) {
-                        actionExecutor.triggerPlay()
                     }
                 }
                 previousNcMode = ncMode
@@ -561,12 +556,15 @@ class BudsService : Service() {
                 }
             }
             
+            // activeNoiseControl is intentionally NOT in deviceStateFlow.
+            // Including it caused a feedback loop: every sendNoiseControl() call set
+            // _activeNoiseControl, which re-triggered this combine, which re-evaluated
+            // defaultChanged and re-sent the manual NC mode — fighting the user's tap.
             val deviceStateFlow = combine(
                 budsController.isConnected,
                 batteryPlacementFlow,
-                budsController.oneEarbudNoiseControlEnabled,
-                budsController.activeNoiseControl
-            ) { connected, bp, oneEarbudEnabled, activeNc ->
+                budsController.oneEarbudNoiseControlEnabled
+            ) { connected, bp, oneEarbudEnabled ->
                 object {
                     val connected = connected
                     val bL = bp.bL
@@ -574,12 +572,22 @@ class BudsService : Service() {
                     val pL = bp.pL
                     val pR = bp.pR
                     val oneEarbudEnabled = oneEarbudEnabled
+                }
+            }
+
+            // Notification display only — activeNc is read here but does NOT drive rule logic.
+            val notificationOnlyFlow = combine(
+                deviceStateFlow,
+                budsController.activeNoiseControl
+            ) { device, activeNc ->
+                object {
+                    val device = device
                     val activeNc = activeNc
                 }
             }
             
             scope.launch {
-                deviceStateFlow.collectLatest {
+                notificationOnlyFlow.collectLatest {
                     kotlinx.coroutines.delay(200L) // Debounce rapid state changes like battery
                     try {
                         val manager = androidx.glance.appwidget.GlanceAppWidgetManager(this@BudsService)
@@ -601,12 +609,13 @@ class BudsService : Service() {
             combine(
                 transientNotification,
                 ruleStateFlow,
-                deviceStateFlow
-            ) { transient, ruleState, deviceState ->
+                notificationOnlyFlow
+            ) { transient, ruleState, notif ->
                 object {
                     val transient = transient
                     val ruleState = ruleState
-                    val deviceState = deviceState
+                    val deviceState = notif.device
+                    val activeNc = notif.activeNc
                 }
             }.collect { state ->
                 val connected = state.deviceState.connected
@@ -690,7 +699,7 @@ class BudsService : Service() {
                 
                 val wearingOne = (isLWorn && !isRWorn) || (isRWorn && !isLWorn)
                 val toggleText = if (wearingOne && !state.deviceState.oneEarbudEnabled) getString(R.string.toggle_off_ambient) else getString(R.string.toggle_anc_ambient)
-                val hardwareNcText = getString(R.string.active_nc_format, state.deviceState.activeNc?.let { getString(it.displayNameRes) } ?: getString(R.string.unknown))
+                val hardwareNcText = getString(R.string.active_nc_format, state.activeNc?.let { getString(it.displayNameRes) } ?: getString(R.string.unknown))
 
                 if (state.transient != null) {
                     updateNotification(

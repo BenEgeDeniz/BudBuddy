@@ -95,13 +95,17 @@ class RulesViewModel(application: Application) : AndroidViewModel(application) {
         
         if (budsController.manualPreset.value == null) {
             val savedPresetName = prefs.getString("default_preset", null)
-            val presetToSet = if (savedPresetName != null) EqPreset.valueOf(savedPresetName) else EqPreset.NORMAL
+            val presetToSet = savedPresetName?.let {
+                try { EqPreset.valueOf(it) } catch (_: IllegalArgumentException) { null }
+            } ?: EqPreset.NORMAL
             budsController.setManualPreset(presetToSet)
             if (savedPresetName == null) prefs.edit().putString("default_preset", EqPreset.NORMAL.name).apply()
         }
         if (budsController.manualNoiseControl.value == null) {
             val savedNcName = prefs.getString("default_nc", null)
-            val ncToSet = if (savedNcName != null) NoiseControlMode.valueOf(savedNcName) else NoiseControlMode.IGNORE
+            val ncToSet = savedNcName?.let {
+                try { NoiseControlMode.valueOf(it) } catch (_: IllegalArgumentException) { null }
+            } ?: NoiseControlMode.IGNORE
             budsController.setManualNoiseControl(ncToSet)
             if (savedNcName == null) prefs.edit().putString("default_nc", NoiseControlMode.IGNORE.name).apply()
         }

@@ -204,8 +204,8 @@
     <string name="conversation_detection">Conversation Detection</string>
     <string name="automatically_switches_to_ambient_mode_w">Automatically switches to Ambient mode when you speak.</string>
     <string name="requires_both_earbuds_to_be_worn">Requires both earbuds to be worn</string>
-    <string name="auto_pause_media">Auto-Pause Media</string>
-    <string name="pauses_media_when_ambient_mode_is_trigge">Pauses media when Ambient mode is triggered.</string>
+    <string name="auto_pause_media">Pause on Transparency</string>
+    <string name="pauses_media_when_ambient_mode_is_trigge">Pauses media whenever Transparency mode is activated.</string>
     <string name="wear_state_actions">Wear State Actions</string>
     <string name="earbud_fit_test">Earbud Fit Test</string>
     <string name="language">Language</string>

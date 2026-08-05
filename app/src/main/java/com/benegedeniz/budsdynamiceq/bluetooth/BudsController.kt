@@ -631,6 +631,8 @@ class BudsController(private val context: Context) {
     private var lastSentEq: EqPreset? = null
     private var lastSentNcMode: com.benegedeniz.budsdynamiceq.data.model.NoiseControlMode? = null
     private var lastNcSendTimestamp: Long = 0L
+    /** Milliseconds since epoch of the last app-sent NC command. Used externally to distinguish app vs hardware NC changes. */
+    val lastAppNcSendTimestamp: Long get() = lastNcSendTimestamp
 
     /**
      * Sends the equalizer command to the connected buds.
@@ -650,7 +652,7 @@ class BudsController(private val context: Context) {
 
     fun sendNoiseControl(mode: com.benegedeniz.budsdynamiceq.data.model.NoiseControlMode?) {
         if (mode == null || mode == com.benegedeniz.budsdynamiceq.data.model.NoiseControlMode.IGNORE) return
-        if (mode == lastSentNcMode && System.currentTimeMillis() - lastNcSendTimestamp > 2000L) return
+        if (mode == lastSentNcMode && System.currentTimeMillis() - lastNcSendTimestamp < 2000L) return
         lastSentNcMode = mode
         lastNcSendTimestamp = System.currentTimeMillis()
         _activeNoiseControl.value = mode
