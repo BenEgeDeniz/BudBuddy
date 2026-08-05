@@ -139,18 +139,12 @@ class BudsService : Service() {
             budsController.setManualNoiseControl(NoiseControlMode.IGNORE)
         }
 
-        // Seed the shared flows from saved prefs, then observe them directly.
-        // This eliminates the fragile SharedPreferences listener approach.
+        // All runtime-togglable settings are shared via ServiceLocator flows,
+        // so BudsService sees changes immediately without any prefs listener.
         ServiceLocator.initFromPrefs(this)
         val headShakeEnabledFlow = ServiceLocator.headShakeEnabled
         val requireBothEarbudsFlow = ServiceLocator.requireBothEarbuds
-        val pauseMediaOnConversationFlow = MutableStateFlow(prefs.getBoolean("pause_media_on_conversation", false))
-        prefsListener = SharedPreferences.OnSharedPreferenceChangeListener { sharedPreferences, key ->
-            if (key == "pause_media_on_conversation") {
-                pauseMediaOnConversationFlow.value = sharedPreferences.getBoolean("pause_media_on_conversation", false)
-            }
-        }
-        prefs.registerOnSharedPreferenceChangeListener(prefsListener)
+        val pauseMediaOnConversationFlow = ServiceLocator.pauseMediaOnConversation
 
         scope.launch {
             gestureRepo.loadGestures()

@@ -90,6 +90,8 @@ class RulesViewModel(application: Application) : AndroidViewModel(application) {
         // Load defaults for the UI
         val prefs = application.getSharedPreferences("BudsPrefs", android.content.Context.MODE_PRIVATE)
         _pauseMediaOnConversationEnabled.value = prefs.getBoolean("pause_media_on_conversation", false)
+        // Keep ServiceLocator in sync in case RulesViewModel is created before BudsService calls initFromPrefs
+        ServiceLocator.setPauseMediaOnConversation(_pauseMediaOnConversationEnabled.value)
         
         if (budsController.manualPreset.value == null) {
             val savedPresetName = prefs.getString("default_preset", null)
@@ -211,6 +213,7 @@ class RulesViewModel(application: Application) : AndroidViewModel(application) {
 
     fun setPauseMediaOnConversation(enabled: Boolean) {
         _pauseMediaOnConversationEnabled.value = enabled
+        ServiceLocator.setPauseMediaOnConversation(enabled)
         val prefs = getApplication<Application>().getSharedPreferences("BudsPrefs", android.content.Context.MODE_PRIVATE)
         prefs.edit().putBoolean("pause_media_on_conversation", enabled).apply()
     }

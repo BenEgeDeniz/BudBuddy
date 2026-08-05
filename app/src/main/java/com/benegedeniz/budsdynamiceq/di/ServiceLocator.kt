@@ -52,6 +52,7 @@ object ServiceLocator {
         val prefs = context.getSharedPreferences("BudsPrefs", Context.MODE_PRIVATE)
         _headShakeEnabled.value = prefs.getBoolean("head_shake_enabled", false)
         _requireBothEarbuds.value = prefs.getBoolean("require_both_earbuds", false)
+        _pauseMediaOnConversation.value = prefs.getBoolean("pause_media_on_conversation", false)
     }
 
     fun setHeadShakeEnabled(enabled: Boolean) {
@@ -60,6 +61,13 @@ object ServiceLocator {
 
     fun setRequireBothEarbuds(enabled: Boolean) {
         _requireBothEarbuds.value = enabled
+    }
+
+    private val _pauseMediaOnConversation = MutableStateFlow(false)
+    val pauseMediaOnConversation: StateFlow<Boolean> = _pauseMediaOnConversation.asStateFlow()
+
+    fun setPauseMediaOnConversation(enabled: Boolean) {
+        _pauseMediaOnConversation.value = enabled
     }
 
     fun provideBudsController(context: Context): BudsController {
