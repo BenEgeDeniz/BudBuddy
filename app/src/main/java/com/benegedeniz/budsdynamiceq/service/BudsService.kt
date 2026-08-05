@@ -336,15 +336,18 @@ class BudsService : Service() {
                     // a bad initial guess shortly after the user looks straight ahead.
                     longTermVx = if (longTermVx == 0f) hardwareVx else (longTermVx * 0.985f) + (hardwareVx * 0.015f)
                     
+                    val isBuds2 = budsController.effectiveModel.value == com.benegedeniz.budsdynamiceq.bluetooth.BudsModel.BUDS_2 || budsController.effectiveModel.value == com.benegedeniz.budsdynamiceq.bluetooth.BudsModel.BUDS_2_PRO
+                    val rightSign = if (isBuds2) -1f else 1f
+                    
                     if (activeImu == ImuSide.UNKNOWN) {
                         // require very strong baseline to avoid false detection if user is looking down when app opens.
                         // Right earbud upright is -0.68. If they look down 15 degrees it's -0.48.
-                        if (hardwareVx > 0.55f) {
+                        if (hardwareVx * rightSign > 0.55f) {
                             Log.i(TAG, "Auto-detected LEFT earbud as primary IMU from baseline vx=\$hardwareVx")
                             activeImu = ImuSide.LEFT
                             budsController.setActiveImuSide(activeImu, getString(R.string.auto_detected_left_imu))
                             smoothedZ = hardwareVx
-                        } else if (hardwareVx < -0.55f) {
+                        } else if (hardwareVx * rightSign < -0.55f) {
                             Log.i(TAG, "Auto-detected RIGHT earbud as primary IMU from baseline vx=\$hardwareVx")
                             activeImu = ImuSide.RIGHT
                             budsController.setActiveImuSide(activeImu, getString(R.string.auto_detected_right_imu))
@@ -360,13 +363,13 @@ class BudsService : Service() {
                         } ?: 1f
 
                         if (abs(dot) < 0.5f) {
-                            if (activeImu == ImuSide.RIGHT && hardwareVx > 0f) {
+                            if (activeImu == ImuSide.RIGHT && hardwareVx * rightSign > 0f) {
                                 Log.w(TAG, "Hardware spontaneous IMU hijack to LEFT detected! (dot = \$dot). Correcting.")
                                 activeImu = ImuSide.LEFT
                                 budsController.setActiveImuSide(activeImu, getString(R.string.hardware_imu_hijack))
                                 expectedPitchSignFlip = true
                                 longTermVx = hardwareVx // Reset to prevent self-healing from fighting the correction
-                            } else if (activeImu == ImuSide.LEFT && hardwareVx < 0f) {
+                            } else if (activeImu == ImuSide.LEFT && hardwareVx * rightSign < 0f) {
                                 Log.w(TAG, "Hardware spontaneous IMU hijack to RIGHT detected! (dot = \$dot). Correcting.")
                                 activeImu = ImuSide.RIGHT
                                 budsController.setActiveImuSide(activeImu, getString(R.string.hardware_imu_hijack))

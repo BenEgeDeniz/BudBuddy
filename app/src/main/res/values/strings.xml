@@ -398,6 +398,11 @@
     <string name="fittest_poor_fit">Poor Fit</string>
     <string name="fittest_test_failed">Test Failed</string>
     <string name="fittest_ready">Ready</string>
+    
+    <string name="action_group_media">Media</string>
+    <string name="action_group_noise_controls">Noise Controls</string>
+    <string name="action_group_system">System and Calls</string>
+    <string name="action_group_other">Other</string>
     <string name="fittest_testing">Testing...</string>
     <string name="app_version">App Version</string>
     <string name="check_for_updates">Check for Updates</string>

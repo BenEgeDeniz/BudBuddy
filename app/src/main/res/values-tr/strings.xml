@@ -398,6 +398,11 @@
     <string name="fittest_poor_fit">Zayıf Uyum</string>
     <string name="fittest_test_failed">Test Başarısız</string>
     <string name="fittest_ready">Hazır</string>
+    
+    <string name="action_group_media">Medya</string>
+    <string name="action_group_noise_controls">Gürültü Kontrolleri</string>
+    <string name="action_group_system">Sistem ve Aramalar</string>
+    <string name="action_group_other">Diğer</string>
     <string name="fittest_testing">Bekleyin...</string>
     <string name="app_version">Uygulama Sürümü</string>
     <string name="check_for_updates">Güncellemeleri Kontrol Et</string>

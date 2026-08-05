@@ -242,16 +242,16 @@ class MainActivity : ComponentActivity() {
                             val context = androidx.compose.ui.platform.LocalContext.current
                             
                             androidx.compose.runtime.LaunchedEffect(effectiveModel, experimentalGesturesEnabled) {
-                                if (effectiveModel != com.benegedeniz.budsdynamiceq.bluetooth.BudsModel.BUDS_4_PRO && !experimentalGesturesEnabled && selectedTab == 2) {
+                                if (effectiveModel.isExperimentalGestures && !experimentalGesturesEnabled && selectedTab == 2) {
                                     selectedTab = 0
                                 }
                             }
                             
                             GlassyBottomNavBar(
                                 selectedTab = selectedTab,
-                                disabledTabs = if (effectiveModel != com.benegedeniz.budsdynamiceq.bluetooth.BudsModel.BUDS_4_PRO && !experimentalGesturesEnabled) listOf(2) else emptyList(),
+                                disabledTabs = if (effectiveModel.isExperimentalGestures && !experimentalGesturesEnabled) listOf(2) else emptyList(),
                                 onTabSelected = { 
-                                    if (it == 2 && effectiveModel != com.benegedeniz.budsdynamiceq.bluetooth.BudsModel.BUDS_4_PRO && !experimentalGesturesEnabled) {
+                                    if (it == 2 && effectiveModel.isExperimentalGestures && !experimentalGesturesEnabled) {
                                         if (savedDeviceMac == null) {
                                             showNoDeviceDialog = true
                                         } else {

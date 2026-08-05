@@ -52,7 +52,7 @@ fun ActionSelectionDialog(
 
     val gridLayout = remember(effectiveForbidden) {
         listOf(
-            "Media" to listOf(
+            context.getString(R.string.action_group_media) to listOf(
                 listOf(GestureAction.PLAY_PAUSE),
                 listOf(GestureAction.PLAY, GestureAction.PAUSE),
                 listOf(GestureAction.SET_VOLUME),
@@ -60,7 +60,7 @@ fun ActionSelectionDialog(
                 listOf(GestureAction.PREVIOUS_TRACK, GestureAction.NEXT_TRACK),
                 listOf(GestureAction.ANNOUNCE_TRACK)
             ),
-            "Noise Controls" to buildList {
+            context.getString(R.string.action_group_noise_controls) to buildList {
                 add(listOf(GestureAction.NC_TOGGLE))
                 if (effectiveModel.supportsTransparencyNC) {
                     add(listOf(GestureAction.NC_ACTIVE, GestureAction.NC_TRANSPARENT))
@@ -72,14 +72,14 @@ fun ActionSelectionDialog(
                 }
                 add(listOf(GestureAction.NC_OFF))
             },
-            "System and Calls" to listOf(
+            context.getString(R.string.action_group_system) to listOf(
                 listOf(GestureAction.ACCEPT_CALL, GestureAction.REJECT_CALL),
                 listOf(GestureAction.VOICE_ASSISTANT),
                 listOf(GestureAction.LAUNCH_APP),
                 listOf(GestureAction.READ_NOTIFICATIONS),
                 listOf(GestureAction.SPEAK_TEXT)
             ),
-            "Other" to listOf(
+            context.getString(R.string.action_group_other) to listOf(
                 listOf(GestureAction.FIT_TEST),
                 listOf(GestureAction.NO_ACTION)
             )

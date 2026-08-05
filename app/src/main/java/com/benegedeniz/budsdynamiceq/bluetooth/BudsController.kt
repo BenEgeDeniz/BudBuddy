@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.isActive
@@ -48,6 +49,7 @@ enum class BudsModel(@androidx.annotation.StringRes val displayNameRes: Int) {
     val supportsTransparencyNC: Boolean get() = this != BUDS_3
     val supportsConversationDetection: Boolean get() = this != BUDS_2 && this != BUDS_3
     val supportsFitTest: Boolean get() = this != BUDS_3
+    val isExperimentalGestures: Boolean get() = this != BUDS_4_PRO && this != BUDS_2 && this != BUDS_2_PRO
 }
 
 class BudsController(private val context: Context) {
@@ -150,9 +152,13 @@ class BudsController(private val context: Context) {
     private val _activeImuReason = MutableStateFlow("Initializing...")
     val activeImuReason: StateFlow<String> = _activeImuReason.asStateFlow()
 
-    val invertPitch: StateFlow<Boolean> = _activeImuSide
-        .map { it == ImuSide.LEFT }
-        .stateIn(scope, SharingStarted.Eagerly, false)
+    val invertPitch: StateFlow<Boolean> = combine(_activeImuSide, effectiveModel) { side, model ->
+        if (model == BudsModel.BUDS_2 || model == BudsModel.BUDS_2_PRO) {
+            side == ImuSide.RIGHT
+        } else {
+            side == ImuSide.LEFT
+        }
+    }.stateIn(scope, SharingStarted.Eagerly, false)
 
     fun setActiveImuSide(side: ImuSide, reason: String? = null) {
         _activeImuSide.value = side
@@ -317,9 +323,26 @@ class BudsController(private val context: Context) {
         _savedDeviceMac.value = device.address
         targetDevice = device
 
-        val savedModel = prefs.getString("detected_model_${device.address}", null)?.let {
+        var savedModel = prefs.getString("detected_model_${device.address}", null)?.let {
             try { BudsModel.valueOf(it) } catch (_: Exception) { null }
         } ?: BudsModel.UNKNOWN
+        
+        if (savedModel == BudsModel.UNKNOWN) {
+            @SuppressLint("MissingPermission")
+            val name = device.name ?: ""
+            savedModel = when {
+                name.contains("Buds4 Pro", ignoreCase = true) -> BudsModel.BUDS_4_PRO
+                name.contains("Buds3 Pro", ignoreCase = true) -> BudsModel.BUDS_3_PRO
+                name.contains("Buds3", ignoreCase = true) -> BudsModel.BUDS_3
+                name.contains("Buds2 Pro", ignoreCase = true) -> BudsModel.BUDS_2_PRO
+                name.contains("Buds2", ignoreCase = true) -> BudsModel.BUDS_2
+                else -> BudsModel.UNKNOWN
+            }
+            if (savedModel != BudsModel.UNKNOWN) {
+                prefs.edit().putString("detected_model_${device.address}", savedModel.name).apply()
+            }
+        }
+        
         _connectedModel.value = savedModel
 
         val savedOverride = prefs.getString("model_override_${device.address}", null)?.let {
