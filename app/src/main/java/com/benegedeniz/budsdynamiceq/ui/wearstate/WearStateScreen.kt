@@ -30,6 +30,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.benegedeniz.budsdynamiceq.data.model.WearStateAction
 import com.benegedeniz.budsdynamiceq.data.model.FlowAction
 import com.benegedeniz.budsdynamiceq.data.model.GestureAction
+import com.benegedeniz.budsdynamiceq.data.model.getDisplayName
 import com.benegedeniz.budsdynamiceq.ui.components.PageHeader
 import com.benegedeniz.budsdynamiceq.ui.components.bounceClick
 import com.benegedeniz.budsdynamiceq.ui.theme.StatusActiveGreen
@@ -170,7 +171,7 @@ fun WearStateActionCard(
 @androidx.compose.runtime.Composable
 fun FlowAction.getDisplayName(): String {
     return when (this) {
-        is FlowAction.SystemAction -> stringResource(this.action.displayNameRes)
+        is FlowAction.SystemAction -> this.action.getDisplayName()
         is FlowAction.DelayAction -> stringResource(R.string.action_delay_ms, this.ms)
         is FlowAction.AppAction -> stringResource(R.string.action_open_app, this.appName)
         is FlowAction.VolumeAction -> stringResource(R.string.action_set_volume_pct, this.percentage)

@@ -37,6 +37,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.window.DialogProperties
 import com.benegedeniz.budsdynamiceq.data.model.GestureAction
+import com.benegedeniz.budsdynamiceq.data.model.getDisplayName
 import androidx.compose.ui.res.stringResource
 import com.benegedeniz.budsdynamiceq.R
 
@@ -264,7 +265,7 @@ fun SetupStep(
             var showAppSelectionDialog by remember { mutableStateOf(false) }
 
             val actionDisplayName = when (action) {
-                is com.benegedeniz.budsdynamiceq.data.model.FlowAction.SystemAction -> stringResource(action.action.displayNameRes)
+                is com.benegedeniz.budsdynamiceq.data.model.FlowAction.SystemAction -> action.action.getDisplayName()
                 is com.benegedeniz.budsdynamiceq.data.model.FlowAction.DelayAction -> "Delay"
                 is com.benegedeniz.budsdynamiceq.data.model.FlowAction.AppAction -> stringResource(R.string.action_start_application)
                 is com.benegedeniz.budsdynamiceq.data.model.FlowAction.VolumeAction -> stringResource(R.string.action_set_volume_to, action.percentage)

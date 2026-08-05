@@ -37,9 +37,17 @@ import java.nio.ByteOrder
 import java.util.UUID
 
 enum class BudsModel(@androidx.annotation.StringRes val displayNameRes: Int) {
+    BUDS_2(R.string.model_buds_2),
+    BUDS_2_PRO(R.string.model_buds_2_pro),
+    BUDS_3(R.string.model_buds_3),
     BUDS_3_PRO(R.string.model_buds_3_pro),
     BUDS_4_PRO(R.string.model_buds_4_pro),
-    UNKNOWN(R.string.model_buds_unknown)
+    UNKNOWN(R.string.model_buds_unknown);
+    
+    val supportsAdaptiveNC: Boolean get() = this != BUDS_2 && this != BUDS_2_PRO && this != BUDS_3
+    val supportsTransparencyNC: Boolean get() = this != BUDS_3
+    val supportsConversationDetection: Boolean get() = this != BUDS_2 && this != BUDS_3
+    val supportsFitTest: Boolean get() = this != BUDS_3
 }
 
 class BudsController(private val context: Context) {
@@ -108,9 +116,13 @@ class BudsController(private val context: Context) {
     )
     val connectedModel: StateFlow<BudsModel> = _connectedModel.asStateFlow()
 
-    private val _modelOverride = MutableStateFlow<BudsModel?>(prefs.getString("model_override", null)?.let {
-        try { BudsModel.valueOf(it) } catch (_: Exception) { null }
-    })
+    private val _modelOverride = MutableStateFlow<BudsModel?>(
+        prefs.getString(KEY_MAC_ADDRESS, null)?.let { mac ->
+            prefs.getString("model_override_$mac", null)?.let { overrideStr ->
+                try { BudsModel.valueOf(overrideStr) } catch (_: Exception) { null }
+            }
+        }
+    )
     val modelOverride: StateFlow<BudsModel?> = _modelOverride.asStateFlow()
 
     /** The effective model: override if set, otherwise auto-detected */
@@ -120,10 +132,13 @@ class BudsController(private val context: Context) {
 
     fun setModelOverride(model: BudsModel?) {
         _modelOverride.value = model
-        if (model != null) {
-            prefs.edit().putString("model_override", model.name).apply()
-        } else {
-            prefs.edit().remove("model_override").apply()
+        val mac = _savedDeviceMac.value
+        if (mac != null) {
+            if (model != null) {
+                prefs.edit().putString("model_override_$mac", model.name).apply()
+            } else {
+                prefs.edit().remove("model_override_$mac").apply()
+            }
         }
     }
 
@@ -307,6 +322,11 @@ class BudsController(private val context: Context) {
         } ?: BudsModel.UNKNOWN
         _connectedModel.value = savedModel
 
+        val savedOverride = prefs.getString("model_override_${device.address}", null)?.let {
+            try { BudsModel.valueOf(it) } catch (_: Exception) { null }
+        }
+        _modelOverride.value = savedOverride
+
         connectionJob?.cancel()
         connectionJob = scope.launch {
             while (true) {
@@ -428,7 +448,7 @@ class BudsController(private val context: Context) {
                                     val ncModeVal = payload[12].toInt() and 0xFF
                                     val ncMode = NoiseControlMode.entries.find { it.payloadByte.toInt() == ncModeVal }
                                     if (ncMode != null && _activeNoiseControl.value != ncMode) {
-                                        if (System.currentTimeMillis() - lastNcSendTimestamp > 1500L) {
+                                        if (System.currentTimeMillis() - lastNcSendTimestamp > 1500L && ncJob?.isActive != true) {
                                             _activeNoiseControl.value = ncMode
                                             lastSentNcMode = ncMode // keep in sync
                                         }
@@ -476,8 +496,11 @@ class BudsController(private val context: Context) {
                                     val ch4 = payload[4].toInt().toChar() // '3' or '4'
                                     val prefix = "$ch2$ch3$ch4"
                                     val detected = when {
-                                        prefix.startsWith("R63") -> BudsModel.BUDS_3_PRO
                                         prefix.startsWith("R64") -> BudsModel.BUDS_4_PRO
+                                        prefix.startsWith("R63") -> BudsModel.BUDS_3_PRO
+                                        prefix.startsWith("R53") -> BudsModel.BUDS_3
+                                        prefix.startsWith("R51") -> BudsModel.BUDS_2_PRO
+                                        prefix.startsWith("R17") -> BudsModel.BUDS_2
                                         else -> BudsModel.UNKNOWN
                                     }
                                     if (detected != BudsModel.UNKNOWN && detected != _connectedModel.value) {
@@ -518,7 +541,7 @@ class BudsController(private val context: Context) {
                                     val ncModeVal = payload[0].toInt() and 0xFF
                                     val ncMode = NoiseControlMode.entries.find { it.payloadByte.toInt() == ncModeVal }
                                     if (ncMode != null && _activeNoiseControl.value != ncMode) {
-                                        if (System.currentTimeMillis() - lastNcSendTimestamp > 1500L) {
+                                        if (System.currentTimeMillis() - lastNcSendTimestamp > 1500L && ncJob?.isActive != true) {
                                             _activeNoiseControl.value = ncMode
                                             lastSentNcMode = ncMode // keep in sync
                                         }
@@ -628,9 +651,11 @@ class BudsController(private val context: Context) {
     }
 
 
+    private var lastEqSendTimestamp: Long = 0
     private var lastSentEq: EqPreset? = null
     private var lastSentNcMode: com.benegedeniz.budsdynamiceq.data.model.NoiseControlMode? = null
-    private var lastNcSendTimestamp: Long = 0L
+    private var lastNcSendTimestamp: Long = 0
+    private var ncJob: Job? = null
     /** Milliseconds since epoch of the last app-sent NC command. Used externally to distinguish app vs hardware NC changes. */
     val lastAppNcSendTimestamp: Long get() = lastNcSendTimestamp
 
@@ -652,15 +677,25 @@ class BudsController(private val context: Context) {
 
     fun sendNoiseControl(mode: com.benegedeniz.budsdynamiceq.data.model.NoiseControlMode?) {
         if (mode == null || mode == com.benegedeniz.budsdynamiceq.data.model.NoiseControlMode.IGNORE) return
-        if (mode == lastSentNcMode && System.currentTimeMillis() - lastNcSendTimestamp < 2000L) return
-        lastSentNcMode = mode
-        lastNcSendTimestamp = System.currentTimeMillis()
+        
+        // Optimistically update the UI instantly
         _activeNoiseControl.value = mode
 
-        val payload = byteArrayOf(mode.payloadByte)
-        val packet = SppPacketEncoder.buildPacket(SppPacketEncoder.MSG_ID_NOISE_CONTROLS, payload)
-        packetQueue.trySend(packet)
-        Log.i(TAG, "Queued Noise Control: ${mode.name} (byte: 0x%02X)".format(mode.payloadByte))
+        ncJob?.cancel()
+        ncJob = CoroutineScope(Dispatchers.IO).launch {
+            val delayTime = 1500L - (System.currentTimeMillis() - lastNcSendTimestamp)
+            if (delayTime > 0) {
+                delay(delayTime)
+            }
+            if (mode == lastSentNcMode) return@launch
+            lastSentNcMode = mode
+            lastNcSendTimestamp = System.currentTimeMillis()
+
+            val payload = byteArrayOf(mode.payloadByte)
+            val packet = SppPacketEncoder.buildPacket(SppPacketEncoder.MSG_ID_NOISE_CONTROLS, payload)
+            packetQueue.trySend(packet)
+            Log.i(TAG, "Queued Noise Control: ${mode.name} (byte: 0x%02X) with delay ${if(delayTime > 0) delayTime else 0}ms")
+        }
     }
 
     fun setLastMatchedRule(rule: EqRule?) {
@@ -759,11 +794,7 @@ class BudsController(private val context: Context) {
                 attempts++
             }
             
-            if (effectiveModel.value == BudsModel.BUDS_3_PRO) {
-                Log.i(TAG, "Spatial sensor (Gestures) not supported on Buds 3 Pro yet.")
-                return@launch
-            }
-            
+
             val wasActive = _isSpatialActive.value
             _isSpatialActive.value = true
             Log.i(TAG, "Starting spatial sensor for consumer: $consumer (wasActive=$wasActive)")
@@ -787,8 +818,7 @@ class BudsController(private val context: Context) {
     }
 
     fun kickstartSpatialSensor() {
-        if (effectiveModel.value == BudsModel.BUDS_3_PRO) return
-        
+
         Log.i(TAG, "Kickstarting spatial sensor (Hard reset)")
         // Stop it fully
         _isSpatialActive.value = false
@@ -844,7 +874,8 @@ class BudsController(private val context: Context) {
     fun toggleNoiseControl() {
         val current = lastSentNcMode ?: _manualNoiseControl.value
         val next = when (current) {
-            NoiseControlMode.NOISE_CANCELLATION -> NoiseControlMode.TRANSPARENT
+            NoiseControlMode.NOISE_CANCELLATION -> if (effectiveModel.value.supportsTransparencyNC) NoiseControlMode.TRANSPARENT else NoiseControlMode.OFF
+            NoiseControlMode.TRANSPARENT -> NoiseControlMode.OFF
             else -> NoiseControlMode.NOISE_CANCELLATION
         }
         sendNoiseControl(next)

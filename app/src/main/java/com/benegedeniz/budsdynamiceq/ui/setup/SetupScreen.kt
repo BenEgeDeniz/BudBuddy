@@ -6,6 +6,8 @@ import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -14,6 +16,7 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Headphones
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import com.benegedeniz.budsdynamiceq.ui.components.verticalScrollbar
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -120,11 +123,11 @@ fun SetupScreen(onPermissionsGranted: () -> Unit) {
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                verticalArrangement = Arrangement.SpaceBetween
             ) {
                 // Supported Earbuds Card
                 Card(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().weight(1f, fill = false),
                     shape = RoundedCornerShape(24.dp),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                 ) {
@@ -146,36 +149,48 @@ fun SetupScreen(onPermissionsGranted: () -> Unit) {
                         Spacer(modifier = Modifier.height(16.dp))
                         
                         val earbuds = listOf(
-                            Pair("Galaxy Buds 4 Pro", stringResource(R.string.setup_gestures_supported)),
-                            Pair("Galaxy Buds 3 Pro", stringResource(R.string.setup_gestures_not_supported))
+                            Pair(stringResource(R.string.model_buds_4_pro), stringResource(R.string.setup_gestures_supported)),
+                            Pair(stringResource(R.string.model_buds_3_pro), stringResource(R.string.setup_gestures_not_supported)),
+                            Pair(stringResource(R.string.model_buds_3), stringResource(R.string.setup_gestures_not_supported)),
+                            Pair(stringResource(R.string.model_buds_2_pro), stringResource(R.string.setup_gestures_not_supported)),
+                            Pair(stringResource(R.string.model_buds_2), stringResource(R.string.setup_gestures_not_supported))
                         )
                         
-                        earbuds.forEach { (bud, subtext) ->
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(vertical = 4.dp)
-                            ) {
-                                val isPartial = subtext == stringResource(R.string.setup_gestures_not_supported)
-                                Icon(
-                                    imageVector = Icons.Default.CheckCircle,
-                                    contentDescription = null,
-                                    tint = if (isPartial) Color(0xFFFBC02D) else MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                                Spacer(modifier = Modifier.width(12.dp))
-                                Column {
-                                    Text(
-                                        text = bud,
-                                        style = MaterialTheme.typography.bodyLarge,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        val scrollState = rememberScrollState()
+                        Column(
+                            modifier = Modifier
+                                .weight(1f, fill = false)
+                                .fillMaxWidth()
+                                .verticalScroll(scrollState)
+                                .verticalScrollbar(scrollState)
+                        ) {
+                            earbuds.forEach { (bud, subtext) ->
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.padding(vertical = 4.dp)
+                                ) {
+                                    val isPartial = subtext == stringResource(R.string.setup_gestures_not_supported)
+                                    Icon(
+                                        imageVector = Icons.Default.CheckCircle,
+                                        contentDescription = null,
+                                        tint = if (isPartial) Color(0xFFFBC02D) else MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(18.dp)
                                     )
-                                    
-                                    val subtextColor = if (subtext == stringResource(R.string.setup_gestures_not_supported)) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                                    Text(
-                                        text = subtext,
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = subtextColor
-                                    )
+                                    Spacer(modifier = Modifier.width(12.dp))
+                                    Column {
+                                        Text(
+                                            text = bud,
+                                            style = MaterialTheme.typography.bodyLarge,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                        
+                                        val subtextColor = if (subtext == stringResource(R.string.setup_gestures_not_supported)) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                                        Text(
+                                            text = subtext,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = subtextColor
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -188,8 +203,7 @@ fun SetupScreen(onPermissionsGranted: () -> Unit) {
                         )
                     }
                 }
-
-                Spacer(modifier = Modifier.weight(1f))
+                Spacer(modifier = Modifier.height(16.dp))
 
                 // Permissions Card
                 Card(

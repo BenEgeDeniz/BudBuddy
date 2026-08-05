@@ -38,6 +38,7 @@ import com.benegedeniz.budsdynamiceq.ui.theme.StatusErrorRed
 import com.benegedeniz.budsdynamiceq.ui.components.bounceClick
 import com.benegedeniz.budsdynamiceq.data.model.FitTestResult
 import com.benegedeniz.budsdynamiceq.data.model.GestureAction
+import com.benegedeniz.budsdynamiceq.data.model.getDisplayName
 import com.benegedeniz.budsdynamiceq.data.model.HeadGesture
 import androidx.compose.ui.res.stringResource
 import com.benegedeniz.budsdynamiceq.R
@@ -625,7 +626,7 @@ fun GestureCard(
                     Text(
                         text = if (gesture.actions.size > 1) stringResource(R.string.headshake_steps, gesture.actions.size) else {
                             when(val action = gesture.actions.firstOrNull()) {
-                                is com.benegedeniz.budsdynamiceq.data.model.FlowAction.SystemAction -> stringResource(action.action.displayNameRes)
+                                is com.benegedeniz.budsdynamiceq.data.model.FlowAction.SystemAction -> action.action.getDisplayName()
                                 is com.benegedeniz.budsdynamiceq.data.model.FlowAction.AppAction -> if (action.appName.isNotBlank() && action.appName != "Select App") action.appName else stringResource(R.string.action_start_application)
                                 is com.benegedeniz.budsdynamiceq.data.model.FlowAction.DelayAction -> "Delay"
                                 is com.benegedeniz.budsdynamiceq.data.model.FlowAction.VolumeAction -> stringResource(R.string.action_set_volume_to, action.percentage)

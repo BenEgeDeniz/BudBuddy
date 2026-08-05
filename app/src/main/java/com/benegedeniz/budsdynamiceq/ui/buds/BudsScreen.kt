@@ -385,17 +385,17 @@ fun BudsScreen(
                         modifier = Modifier.fillMaxWidth().padding(16.dp),
                         horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
-                        val controls = listOf(
-                            NoiseControlMode.OFF,
-                            NoiseControlMode.TRANSPARENT,
-                            NoiseControlMode.ADAPTIVE,
-                            NoiseControlMode.NOISE_CANCELLATION
-                        )
+                        val controls = buildList {
+                            add(NoiseControlMode.OFF)
+                            if (effectiveModel.supportsTransparencyNC) add(NoiseControlMode.TRANSPARENT)
+                            if (effectiveModel.supportsAdaptiveNC) add(NoiseControlMode.ADAPTIVE)
+                            add(NoiseControlMode.NOISE_CANCELLATION)
+                        }
                         val bothInEar = isConnected && placementL == com.benegedeniz.budsdynamiceq.data.model.PlacementState.WEARING && placementR == com.benegedeniz.budsdynamiceq.data.model.PlacementState.WEARING
                         val anyInEar = isConnected && (placementL == com.benegedeniz.budsdynamiceq.data.model.PlacementState.WEARING || placementR == com.benegedeniz.budsdynamiceq.data.model.PlacementState.WEARING)
                         controls.forEach { mode ->
                             val isSelected = activeNoiseControl == mode
-                            val isModeEnabled = isConnected && anyInEar && (bothInEar || oneEarbudNoiseControlEnabled || (mode != NoiseControlMode.ADAPTIVE && mode != NoiseControlMode.NOISE_CANCELLATION))
+                            val isModeEnabled = isConnected && anyInEar && (bothInEar || oneEarbudNoiseControlEnabled || (mode != NoiseControlMode.ADAPTIVE && mode != NoiseControlMode.NOISE_CANCELLATION && mode != NoiseControlMode.TRANSPARENT))
                             
                             val bgColor by androidx.compose.animation.animateColorAsState(
                                 targetValue = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
@@ -538,47 +538,49 @@ fun BudsScreen(
                             )
 
                             // 2. Use ambient sound during calls
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 16.dp, vertical = 6.dp)
-                                    .alpha(if (isConnected) 1f else 0.5f),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
+                            if (effectiveModel.supportsTransparencyNC) {
                                 Row(
-                                    modifier = Modifier.weight(1f).padding(end = 12.dp),
-                                    verticalAlignment = Alignment.CenterVertically
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 16.dp, vertical = 6.dp)
+                                        .alpha(if (isConnected) 1f else 0.5f),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
-                                    Icon(
-                                        imageVector = Icons.Default.PhoneInTalk,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        modifier = Modifier.size(18.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(12.dp))
-                                    Text(
-                                        text = stringResource(R.string.use_ambient_sound_during_calls),
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onSurface,
-                                        softWrap = true
+                                    Row(
+                                        modifier = Modifier.weight(1f).padding(end = 12.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.PhoneInTalk,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(12.dp))
+                                        Text(
+                                            text = stringResource(R.string.use_ambient_sound_during_calls),
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurface,
+                                            softWrap = true
+                                        )
+                                    }
+                                    Switch(
+                                        checked = useAmbientSoundDuringCalls,
+                                        onCheckedChange = {
+                                            haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
+                                            viewModel.setUseAmbientSoundDuringCalls(it)
+                                        },
+                                        enabled = isConnected,
+                                        modifier = Modifier.scale(0.85f)
                                     )
                                 }
-                                Switch(
-                                    checked = useAmbientSoundDuringCalls,
-                                    onCheckedChange = {
-                                        haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
-                                        viewModel.setUseAmbientSoundDuringCalls(it)
-                                    },
-                                    enabled = isConnected,
-                                    modifier = Modifier.scale(0.85f)
+
+                                HorizontalDivider(
+                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 2.dp),
+                                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
                                 )
                             }
-
-                            HorizontalDivider(
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 2.dp),
-                                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
-                            )
 
                             // 3. In-ear detection for calls
                             Row(
@@ -742,7 +744,7 @@ fun BudsScreen(
             }
 
             // Voice Detect Switch Card
-            item {
+            if (effectiveModel.supportsConversationDetection) item {
                 Card(
                     modifier = Modifier.fillMaxWidth().animateContentSize(),
                     shape = RoundedCornerShape(24.dp),
@@ -806,7 +808,8 @@ fun BudsScreen(
             }
 
             // Auto-Pause on Transparency Mode — independent toggle
-            item {
+            if (effectiveModel.supportsTransparencyNC) {
+                item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(
@@ -853,6 +856,7 @@ fun BudsScreen(
                     }
                 }
                 Spacer(modifier = Modifier.height(16.dp))
+                }
             }
 
             // Wear State Actions Button
@@ -897,7 +901,8 @@ fun BudsScreen(
             }
 
             // Fit Test Button
-            item {
+            if (connectedModel.supportsFitTest) {
+                item {
                 val fitTestEnabled = isConnected && placementL == com.benegedeniz.budsdynamiceq.data.model.PlacementState.WEARING && placementR == com.benegedeniz.budsdynamiceq.data.model.PlacementState.WEARING
                 Card(
                     modifier = Modifier
@@ -943,6 +948,7 @@ fun BudsScreen(
                         )
                     }
                 }
+            }
             }
         }
 
@@ -1087,7 +1093,10 @@ fun BudsScreen(
                     // Manual model options
                     val models = listOf(
                         com.benegedeniz.budsdynamiceq.bluetooth.BudsModel.BUDS_4_PRO,
-                        com.benegedeniz.budsdynamiceq.bluetooth.BudsModel.BUDS_3_PRO
+                        com.benegedeniz.budsdynamiceq.bluetooth.BudsModel.BUDS_3_PRO,
+                        com.benegedeniz.budsdynamiceq.bluetooth.BudsModel.BUDS_3,
+                        com.benegedeniz.budsdynamiceq.bluetooth.BudsModel.BUDS_2_PRO,
+                        com.benegedeniz.budsdynamiceq.bluetooth.BudsModel.BUDS_2
                     )
                     models.forEach { model ->
                         Row(

@@ -32,6 +32,9 @@ import org.burnoutcrew.reorderable.rememberReorderableLazyListState
 import org.burnoutcrew.reorderable.ReorderableItem
 import org.burnoutcrew.reorderable.detectReorder
 import org.burnoutcrew.reorderable.reorderable
+import com.benegedeniz.budsdynamiceq.data.model.EqPreset
+import com.benegedeniz.budsdynamiceq.data.model.NoiseControlMode
+import com.benegedeniz.budsdynamiceq.data.model.getDisplayName
 import com.benegedeniz.budsdynamiceq.data.model.FlowAction
 import com.benegedeniz.budsdynamiceq.data.model.GestureAction
 import com.benegedeniz.budsdynamiceq.data.model.HeadGesture
@@ -286,7 +289,7 @@ fun FlowActionItem(
                     Column(modifier = Modifier.weight(1f)) {
                         Box(modifier = Modifier.fillMaxWidth()) {
                             OutlinedTextField(
-                                value = stringResource(action.action.displayNameRes),
+                                value = action.action.getDisplayName(),
                                 onValueChange = {},
                                 readOnly = true,
                                 shape = RoundedCornerShape(16.dp),

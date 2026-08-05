@@ -61,6 +61,30 @@ class BudsService : Service() {
 
     private val transientNotification = MutableStateFlow<Pair<String, String>?>(null)
 
+    private val bluetoothReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action == android.bluetooth.BluetoothDevice.ACTION_ACL_CONNECTED) {
+                val device = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    intent.getParcelableExtra(android.bluetooth.BluetoothDevice.EXTRA_DEVICE, android.bluetooth.BluetoothDevice::class.java)
+                } else {
+                    @Suppress("DEPRECATION")
+                    intent.getParcelableExtra<android.bluetooth.BluetoothDevice>(android.bluetooth.BluetoothDevice.EXTRA_DEVICE)
+                }
+                if (device != null) {
+                    val name = try { device.name } catch (e: SecurityException) { null }
+                    if (name != null && name.contains("Buds", ignoreCase = true)) {
+                        Log.i(TAG, "Detected Buds connection: $name (${device.address})")
+                        val budsController = ServiceLocator.provideBudsController(this@BudsService)
+                        if (budsController.savedDeviceMac.value != device.address) {
+                            Log.i(TAG, "Automatically switching to newly connected Buds: $name")
+                            budsController.connect(device)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     private val toggleReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             Log.d(TAG, "toggleReceiver onReceive action=${intent?.action}")
@@ -74,10 +98,17 @@ class BudsService : Service() {
                 val wearingOne = (pL == com.benegedeniz.budsdynamiceq.data.model.PlacementState.WEARING && pR != com.benegedeniz.budsdynamiceq.data.model.PlacementState.WEARING) || 
                                  (pR == com.benegedeniz.budsdynamiceq.data.model.PlacementState.WEARING && pL != com.benegedeniz.budsdynamiceq.data.model.PlacementState.WEARING)
                                  
+                val effectiveModel = budsController.effectiveModel.value
                 val nextMode = if (wearingOne && !oneEarbudEnabled) {
-                    if (currentNc == NoiseControlMode.TRANSPARENT) NoiseControlMode.OFF else NoiseControlMode.TRANSPARENT
+                    if (currentNc == NoiseControlMode.TRANSPARENT) NoiseControlMode.OFF else if (effectiveModel.supportsTransparencyNC) NoiseControlMode.TRANSPARENT else NoiseControlMode.OFF
                 } else {
-                    if (currentNc == NoiseControlMode.NOISE_CANCELLATION) NoiseControlMode.TRANSPARENT else NoiseControlMode.NOISE_CANCELLATION
+                    if (currentNc == NoiseControlMode.NOISE_CANCELLATION) {
+                        if (effectiveModel.supportsTransparencyNC) NoiseControlMode.TRANSPARENT else NoiseControlMode.OFF
+                    } else if (currentNc == NoiseControlMode.TRANSPARENT) {
+                        NoiseControlMode.OFF
+                    } else {
+                        NoiseControlMode.NOISE_CANCELLATION
+                    }
                 }
                 
                 Log.d(TAG, "Toggle nextMode: $nextMode, wearingOne: $wearingOne, oneEarbudEnabled: $oneEarbudEnabled")
@@ -95,6 +126,9 @@ class BudsService : Service() {
         } else {
             registerReceiver(toggleReceiver, filter)
         }
+
+        val btFilter = IntentFilter(android.bluetooth.BluetoothDevice.ACTION_ACL_CONNECTED)
+        registerReceiver(bluetoothReceiver, btFilter)
 
         createNotificationChannel()
         startForeground(1, buildNotification(
@@ -698,7 +732,13 @@ class BudsService : Service() {
                 val rText = "${state.deviceState.bR}%"
                 
                 val wearingOne = (isLWorn && !isRWorn) || (isRWorn && !isLWorn)
-                val toggleText = if (wearingOne && !state.deviceState.oneEarbudEnabled) getString(R.string.toggle_off_ambient) else getString(R.string.toggle_anc_ambient)
+                val toggleText = if (wearingOne && !state.deviceState.oneEarbudEnabled) {
+                    getString(R.string.toggle_off_ambient)
+                } else if (!budsController.effectiveModel.value.supportsTransparencyNC) {
+                    getString(R.string.toggle_anc_off)
+                } else {
+                    getString(R.string.toggle_anc_ambient)
+                }
                 val hardwareNcText = getString(R.string.active_nc_format, state.activeNc?.let { getString(it.displayNameRes) } ?: getString(R.string.unknown))
 
                 if (state.transient != null) {
@@ -838,6 +878,7 @@ class BudsService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         unregisterReceiver(toggleReceiver)
+        unregisterReceiver(bluetoothReceiver)
         scope.cancel()
         
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {

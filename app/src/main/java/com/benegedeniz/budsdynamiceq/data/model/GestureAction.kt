@@ -2,6 +2,11 @@ package com.benegedeniz.budsdynamiceq.data.model
 
 import androidx.annotation.StringRes
 import com.benegedeniz.budsdynamiceq.R
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import com.benegedeniz.budsdynamiceq.di.ServiceLocator
 
 enum class GestureAction(@StringRes val displayNameRes: Int, @StringRes val groupRes: Int) {
     PLAY_PAUSE(R.string.action_play_pause, R.string.group_media),
@@ -26,4 +31,24 @@ enum class GestureAction(@StringRes val displayNameRes: Int, @StringRes val grou
     FIT_TEST(R.string.action_fit_test, R.string.group_system),
     SPEAK_TEXT(R.string.action_speak_text, R.string.group_system),
     NO_ACTION(R.string.action_none, R.string.group_system)
+}
+
+@Composable
+fun GestureAction.getDisplayName(): String {
+    val context = LocalContext.current
+    val budsController = ServiceLocator.provideBudsController(context)
+    val model = budsController.effectiveModel.collectAsState().value
+    if (this == GestureAction.NC_TOGGLE && !model.supportsTransparencyNC) {
+        return stringResource(R.string.action_nc_toggle_off)
+    }
+    return stringResource(this.displayNameRes)
+}
+
+fun GestureAction.getDisplayNameString(context: android.content.Context): String {
+    val budsController = ServiceLocator.provideBudsController(context)
+    val model = budsController.effectiveModel.value
+    if (this == GestureAction.NC_TOGGLE && !model.supportsTransparencyNC) {
+        return context.getString(R.string.action_nc_toggle_off)
+    }
+    return context.getString(this.displayNameRes)
 }

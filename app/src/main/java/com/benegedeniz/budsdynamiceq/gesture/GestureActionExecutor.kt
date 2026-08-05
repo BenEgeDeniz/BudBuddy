@@ -54,8 +54,16 @@ class GestureActionExecutor(
                         GestureAction.NC_TOGGLE -> budsController.toggleNoiseControl()
                         GestureAction.NC_ACTIVE -> budsController.sendNoiseControl(NoiseControlMode.NOISE_CANCELLATION)
                         GestureAction.NC_OFF -> budsController.sendNoiseControl(NoiseControlMode.OFF)
-                        GestureAction.NC_TRANSPARENT -> budsController.sendNoiseControl(NoiseControlMode.TRANSPARENT)
-                        GestureAction.NC_ADAPTIVE -> budsController.sendNoiseControl(NoiseControlMode.ADAPTIVE)
+                        GestureAction.NC_TRANSPARENT -> {
+                            if (budsController.effectiveModel.value.supportsTransparencyNC) {
+                                budsController.sendNoiseControl(NoiseControlMode.TRANSPARENT)
+                            }
+                        }
+                        GestureAction.NC_ADAPTIVE -> {
+                            if (budsController.effectiveModel.value.supportsAdaptiveNC) {
+                                budsController.sendNoiseControl(NoiseControlMode.ADAPTIVE)
+                            }
+                        }
                         GestureAction.VOICE_ASSISTANT -> triggerVoiceAssistant()
                         GestureAction.ACCEPT_CALL -> acceptCall()
                         GestureAction.REJECT_CALL -> rejectCall()

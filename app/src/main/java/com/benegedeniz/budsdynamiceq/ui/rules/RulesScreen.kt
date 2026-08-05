@@ -242,7 +242,8 @@ fun RulesScreen(viewModel: RulesViewModel, modifier: Modifier = Modifier) {
                                         onDismissRequest = { ncExpanded = false },
                                         modifier = Modifier.background(MaterialTheme.colorScheme.surface, RoundedCornerShape(16.dp))
                                     ) {
-                                        NoiseControlMode.entries.filter { it != NoiseControlMode.DEFAULT }.forEach { ncMode ->
+                                        val effectiveModel = viewModel.effectiveModel.collectAsState().value
+                                        NoiseControlMode.entries.filter { it != NoiseControlMode.DEFAULT && (it != NoiseControlMode.ADAPTIVE || effectiveModel.supportsAdaptiveNC) && (it != NoiseControlMode.TRANSPARENT || effectiveModel.supportsTransparencyNC) }.forEach { ncMode ->
                                             DropdownMenuItem(
                                                 text = { Text(stringResource(ncMode.displayNameRes)) },
                                                 onClick = {
@@ -845,7 +846,9 @@ fun RuleEditScreen(
                             onDismissRequest = { ncExpanded = false },
                             modifier = Modifier.background(MaterialTheme.colorScheme.surface)
                         ) {
-                            NoiseControlMode.entries.forEach { ncMode ->
+                            val budsController = com.benegedeniz.budsdynamiceq.di.ServiceLocator.provideBudsController(androidx.compose.ui.platform.LocalContext.current)
+                            val effectiveModel = budsController.effectiveModel.collectAsState().value
+                            NoiseControlMode.entries.filter { (it != NoiseControlMode.ADAPTIVE || effectiveModel.supportsAdaptiveNC) && (it != NoiseControlMode.TRANSPARENT || effectiveModel.supportsTransparencyNC) }.forEach { ncMode ->
                                 DropdownMenuItem(
                                     text = { Text(stringResource(ncMode.displayNameRes)) },
                                     onClick = {

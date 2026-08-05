@@ -1,8 +1,9 @@
 <?xml version="1.0" ?>
 <resources>
     <string name="app_name">Bud Buddy</string>
-    <string name="gestures_not_supported">Jestler Desteklenmiyor</string>
-    <string name="head_gestures_are_currently_a_galaxy_bud">Kafa Jestleri şu anda Galaxy Buds4 Pro\'ya özel bir özelliktir. Buds 3 Pro\'da deneysel olan bu özelliği denemek isterseniz, Ana ekrandaki cihaz seçeneklerinden modelinizi Buds4 Pro yapabilirsiniz.</string>
+    <string name="gestures_not_supported">Hareketler Desteklenmiyor</string>
+    <string name="experimental_gestures_warning">Şu anda bağlı olan Galaxy Buds modeli için jest desteği oldukça kararsız ve deneyseldir. Bu özelliği test amacıyla etkinleştirmek ister misiniz?</string>
+    <string name="enable">Etkinleştir</string>
     <string name="got_it">Anladım</string>
     <string name="no_device_connected">Cihaz Bağlı Değil</string>
     <string name="connect_the_buds_first_to_access_this_fe">Bu özelliğe erişmek için önce kulaklıkları bağlayın.</string>
@@ -262,6 +263,7 @@
     <string name="default_settings">Varsayılan Ayarlar</string>
     <string name="toggle_off_ambient">Kapalı / Ortam Sesi</string>
     <string name="toggle_anc_ambient">ANC / Ortam Sesi</string>
+    <string name="toggle_anc_off">ANC / Kapalı</string>
     <string name="active_nc_format">Aktif Gürültü Kontrolü: %1$s</string>
     <string name="app_name_service">Bud Buddy Hizmeti</string>
     <string name="disconnected">Bağlantı Kesildi</string>
@@ -304,6 +306,7 @@
     <string name="action_prev_track">Önceki Parça</string>
     <string name="action_announce">Ne Çalıyor?</string>
     <string name="action_nc_toggle">ANC ↔ Ortam Sesi</string>
+    <string name="action_nc_toggle_off">ANC ↔ Kapalı</string>
     <string name="action_nc_active">Aktif Gürültü Engelleme</string>
     <string name="action_nc_off">Gürültü Kontrolü Kapalı</string>
     <string name="action_nc_trans">Ortam Sesi Modu</string>
@@ -329,11 +332,14 @@
     <string name="place_unknown">Bilinmiyor</string>
     <string name="trigger_earbud_removed">Tek Kulaklık Takılı</string>
     <string name="trigger_both_worn">Çift Kulaklık Takılı</string>
+    <string name="model_buds_2">Galaxy Buds2</string>
+    <string name="model_buds_2_pro">Galaxy Buds2 Pro</string>
+    <string name="model_buds_3">Galaxy Buds3</string>
     <string name="model_buds_3_pro">Galaxy Buds3 Pro</string>
     <string name="model_buds_4_pro">Galaxy Buds4 Pro</string>
     <string name="model_buds_unknown">Galaxy Buds (Bilinmiyor)</string>
     <string name="setup_gestures_supported">Jestler destekleniyor</string>
-    <string name="setup_gestures_not_supported">Jestler desteklenmiyor</string>
+    <string name="setup_gestures_not_supported">Jest desteği deneyseldir</string>
     <string name="btn_next">İleri</string>
     <string name="btn_get_started">Başlayın</string>
     <string name="btn_got_it">Anladım</string>

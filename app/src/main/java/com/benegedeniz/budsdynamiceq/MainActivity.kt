@@ -130,6 +130,12 @@ class MainActivity : ComponentActivity() {
                         
                         val appCoroutineScope = rememberCoroutineScope()
                         val appContext = androidx.compose.ui.platform.LocalContext.current
+                        val budsController = com.benegedeniz.budsdynamiceq.di.ServiceLocator.provideBudsController(appContext)
+                        val savedMac by budsController.savedDeviceMac.collectAsState()
+                        val prefs = appContext.getSharedPreferences("BudsPrefs", android.content.Context.MODE_PRIVATE)
+                        var experimentalGesturesEnabled by remember(savedMac) { 
+                            mutableStateOf(prefs.getBoolean("experimental_gestures_enabled_${savedMac ?: ""}", false)) 
+                        }
                         LaunchedEffect(Unit) {
                             val versionName = try {
                                 appContext.packageManager.getPackageInfo(appContext.packageName, 0).versionName ?: "N/A"
@@ -235,17 +241,17 @@ class MainActivity : ComponentActivity() {
                             val savedDeviceMac = rulesViewModel.savedDeviceMac.collectAsState().value
                             val context = androidx.compose.ui.platform.LocalContext.current
                             
-                            androidx.compose.runtime.LaunchedEffect(effectiveModel) {
-                                if (effectiveModel != com.benegedeniz.budsdynamiceq.bluetooth.BudsModel.BUDS_4_PRO && selectedTab == 2) {
+                            androidx.compose.runtime.LaunchedEffect(effectiveModel, experimentalGesturesEnabled) {
+                                if (effectiveModel != com.benegedeniz.budsdynamiceq.bluetooth.BudsModel.BUDS_4_PRO && !experimentalGesturesEnabled && selectedTab == 2) {
                                     selectedTab = 0
                                 }
                             }
                             
                             GlassyBottomNavBar(
                                 selectedTab = selectedTab,
-                                disabledTabs = if (effectiveModel != com.benegedeniz.budsdynamiceq.bluetooth.BudsModel.BUDS_4_PRO) listOf(2) else emptyList(),
+                                disabledTabs = if (effectiveModel != com.benegedeniz.budsdynamiceq.bluetooth.BudsModel.BUDS_4_PRO && !experimentalGesturesEnabled) listOf(2) else emptyList(),
                                 onTabSelected = { 
-                                    if (it == 2 && effectiveModel != com.benegedeniz.budsdynamiceq.bluetooth.BudsModel.BUDS_4_PRO) {
+                                    if (it == 2 && effectiveModel != com.benegedeniz.budsdynamiceq.bluetooth.BudsModel.BUDS_4_PRO && !experimentalGesturesEnabled) {
                                         if (savedDeviceMac == null) {
                                             showNoDeviceDialog = true
                                         } else {
@@ -276,10 +282,23 @@ class MainActivity : ComponentActivity() {
                             AlertDialog(
                                 onDismissRequest = { showGesturesDisabledDialog = false },
                                 title = { Text(stringResource(R.string.gestures_not_supported)) },
-                                text = { Text(stringResource(R.string.head_gestures_are_currently_a_galaxy_bud)) },
+                                text = { Text(stringResource(R.string.experimental_gestures_warning)) },
                                 confirmButton = {
+                                    TextButton(onClick = { 
+                                        appContext.getSharedPreferences("BudsPrefs", android.content.Context.MODE_PRIVATE)
+                                            .edit()
+                                            .putBoolean("experimental_gestures_enabled_${savedMac ?: ""}", true)
+                                            .apply()
+                                        experimentalGesturesEnabled = true
+                                        showGesturesDisabledDialog = false 
+                                        selectedTab = 2
+                                    }) {
+                                        Text(stringResource(R.string.enable))
+                                    }
+                                },
+                                dismissButton = {
                                     TextButton(onClick = { showGesturesDisabledDialog = false }) {
-                                        Text(stringResource(R.string.got_it))
+                                        Text(stringResource(R.string.cancel))
                                     }
                                 },
                                 containerColor = MaterialTheme.colorScheme.surface,

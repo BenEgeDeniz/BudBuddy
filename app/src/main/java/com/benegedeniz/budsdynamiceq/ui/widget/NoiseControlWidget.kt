@@ -67,7 +67,8 @@ class NoiseControlWidget : GlanceAppWidget() {
                 oneEarbudNoiseControlEnabled = oneEarbudNoiseControlEnabled,
                 activeNoiseControl = activeNoiseControl,
                 batteryL = batteryL,
-                batteryR = batteryR
+                batteryR = batteryR,
+                effectiveModel = budsController.effectiveModel.value
             )
         }
     }
@@ -81,7 +82,8 @@ fun WidgetContent(
     oneEarbudNoiseControlEnabled: Boolean,
     activeNoiseControl: NoiseControlMode,
     batteryL: Int,
-    batteryR: Int
+    batteryR: Int,
+    effectiveModel: com.benegedeniz.budsdynamiceq.bluetooth.BudsModel
 ) {
     val bothInEar = isConnected && placementL == PlacementState.WEARING && placementR == PlacementState.WEARING
     val anyInEar = isConnected && (placementL == PlacementState.WEARING || placementR == PlacementState.WEARING)
@@ -106,16 +108,16 @@ fun WidgetContent(
             modifier = subPillModifier,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            val controls = listOf(
-                NoiseControlMode.OFF,
-                NoiseControlMode.TRANSPARENT,
-                NoiseControlMode.ADAPTIVE,
-                NoiseControlMode.NOISE_CANCELLATION
-            )
+            val controls = buildList {
+                add(NoiseControlMode.OFF)
+                if (effectiveModel.supportsTransparencyNC) add(NoiseControlMode.TRANSPARENT)
+                if (effectiveModel.supportsAdaptiveNC) add(NoiseControlMode.ADAPTIVE)
+                add(NoiseControlMode.NOISE_CANCELLATION)
+            }
 
             controls.forEach { mode ->
                 val isSelected = activeNoiseControl == mode
-                val isModeEnabled = isConnected && anyInEar && (bothInEar || oneEarbudNoiseControlEnabled || (mode != NoiseControlMode.ADAPTIVE && mode != NoiseControlMode.NOISE_CANCELLATION))
+                val isModeEnabled = isConnected && anyInEar && (bothInEar || oneEarbudNoiseControlEnabled || (mode != NoiseControlMode.ADAPTIVE && mode != NoiseControlMode.NOISE_CANCELLATION && mode != NoiseControlMode.TRANSPARENT))
 
                 val iconRes = when (mode) {
                     NoiseControlMode.NOISE_CANCELLATION -> R.drawable.ic_noise_cancellation

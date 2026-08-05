@@ -1,0 +1,5 @@
+✨ v1.3.0
+- Added support for: Buds2, Buds2 Pro and Buds3
+- Fixed an issue where rapid Noise Control toggling could cause UI desynchronization.
+- Fixed manual Bud Model override incorrectly applying to all devices.
+- Improved Turkish translations and UI text spacing.

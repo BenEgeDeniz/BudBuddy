@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
@@ -26,6 +27,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.benegedeniz.budsdynamiceq.data.model.GestureAction
+import com.benegedeniz.budsdynamiceq.data.model.getDisplayName
+import com.benegedeniz.budsdynamiceq.data.model.getDisplayNameString
 import com.benegedeniz.budsdynamiceq.ui.components.SearchBarInput
 import androidx.compose.ui.res.stringResource
 import com.benegedeniz.budsdynamiceq.R
@@ -41,8 +44,13 @@ fun ActionSelectionDialog(
 ) {
     var searchQuery by remember { mutableStateOf("") }
     val focusManager = LocalFocusManager.current
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val effectiveModel = com.benegedeniz.budsdynamiceq.di.ServiceLocator.provideBudsController(context).effectiveModel.collectAsState().value
+    val effectiveForbidden = remember(forbiddenActions, effectiveModel) {
+        if (!effectiveModel.supportsFitTest) forbiddenActions + GestureAction.FIT_TEST else forbiddenActions
+    }
 
-    val gridLayout = remember {
+    val gridLayout = remember(effectiveForbidden) {
         listOf(
             "Media" to listOf(
                 listOf(GestureAction.PLAY_PAUSE),
@@ -52,12 +60,18 @@ fun ActionSelectionDialog(
                 listOf(GestureAction.PREVIOUS_TRACK, GestureAction.NEXT_TRACK),
                 listOf(GestureAction.ANNOUNCE_TRACK)
             ),
-            "Noise Controls" to listOf(
-                listOf(GestureAction.NC_TOGGLE),
-                listOf(GestureAction.NC_ACTIVE, GestureAction.NC_TRANSPARENT),
-                listOf(GestureAction.NC_ADAPTIVE),
-                listOf(GestureAction.NC_OFF)
-            ),
+            "Noise Controls" to buildList {
+                add(listOf(GestureAction.NC_TOGGLE))
+                if (effectiveModel.supportsTransparencyNC) {
+                    add(listOf(GestureAction.NC_ACTIVE, GestureAction.NC_TRANSPARENT))
+                } else {
+                    add(listOf(GestureAction.NC_ACTIVE))
+                }
+                if (effectiveModel.supportsAdaptiveNC) {
+                    add(listOf(GestureAction.NC_ADAPTIVE))
+                }
+                add(listOf(GestureAction.NC_OFF))
+            },
             "System and Calls" to listOf(
                 listOf(GestureAction.ACCEPT_CALL, GestureAction.REJECT_CALL),
                 listOf(GestureAction.VOICE_ASSISTANT),
@@ -71,18 +85,17 @@ fun ActionSelectionDialog(
             )
         ).map { group ->
             group.first to group.second.map { row ->
-                row.filter { it !in forbiddenActions }
+                row.filter { it !in effectiveForbidden }
             }.filter { it.isNotEmpty() }
         }.filter { it.second.isNotEmpty() }
     }
 
-    val context = androidx.compose.ui.platform.LocalContext.current
-    val filteredActions = remember(searchQuery, forbiddenActions) {
+    val filteredActions = remember(searchQuery, effectiveForbidden) {
         if (searchQuery.isBlank()) {
             emptyList()
         } else {
             GestureAction.entries.filter { 
-                it !in forbiddenActions && (context.getString(it.displayNameRes).contains(searchQuery, ignoreCase = true) || 
+                it !in effectiveForbidden && (it.getDisplayNameString(context).contains(searchQuery, ignoreCase = true) || 
                 context.getString(it.groupRes).contains(searchQuery, ignoreCase = true))
             }
         }
@@ -258,7 +271,7 @@ fun ActionItem(
             Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = stringResource(action.displayNameRes),
+                    text = action.getDisplayName(),
                     style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = alpha),
                     maxLines = 2,
