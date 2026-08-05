@@ -58,7 +58,6 @@ class BudsService : Service() {
 
     override fun onBind(intent: Intent?): IBinder? = null
 
-    private var prefsListener: SharedPreferences.OnSharedPreferenceChangeListener? = null
 
     private val transientNotification = MutableStateFlow<Pair<String, String>?>(null)
 
