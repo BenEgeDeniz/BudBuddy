@@ -3,3 +3,4 @@
 - Gürültü Kontrolü'nün hızlıca açılıp kapatılması durumunda arayüzün senkronizasyonunu kaybetmesine neden olan bir sorun giderildi.
 - Manuel Kulaklık Modeli geçersiz kılma ayarının yanlışlıkla tüm cihazlara uygulanmasına neden olan bir hata düzeltildi.
 - Türkçe çeviriler ve arayüz metinlerindeki boşluklar iyileştirildi.
+- Azerbaycanca çeviri eklendi (@southstar21angel, GitHub)

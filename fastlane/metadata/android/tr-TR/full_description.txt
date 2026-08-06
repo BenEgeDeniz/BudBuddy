@@ -3,6 +3,9 @@ Bud Buddy, Samsung Galaxy Buds Manager için geliştirilmiş açık kaynaklı bi
 Desteklenen Kulaklıklar:
 - Galaxy Buds 4 Pro (Baş Jestleri dahil tam destek)
 - Galaxy Buds 3 Pro (Destekleniyor, ancak Baş Jestleri mevcut değil)
+- Galaxy Buds 3 (Destekleniyor, ancak Baş Jestleri mevcut değil)
+- Galaxy Buds 2 Pro (Baş Jestleri dahil tam destek)
+- Galaxy Buds 2 (Baş Jestleri dahil tam destek)
 
 Teşekkürler:
 Kulaklıkların Bluetooth baytları üzerinden kontrol edilme yaklaşımı, GalaxyBudsClient projesinde (https://github.com/timschneeb/GalaxyBudsClient) yapılan harika çalışmalardan öğrenilmiştir.

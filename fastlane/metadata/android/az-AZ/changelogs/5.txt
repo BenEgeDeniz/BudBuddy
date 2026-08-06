@@ -1,0 +1,7 @@
+✨ v1.3.0
+- Buds2, Buds2 Pro üçün tam dəstək əlavə edildi.
+- Buds3 üçün qismən dəstək əlavə edildi.
+- Səs-küy Nəzarətinin sürətlə dəyişdirilməsinin istifadəçi interfeysində sinxronizasiyanın pozulmasına səbəb olduğu problem həll edildi.
+- Manual Qulaqlıq Modelinin bütün cihazlara səhvən tətbiq olunması problemi düzəldildi.
+- Türk dili tərcümələri və interfeys mətnlərindəki boşluqlar yaxşılaşdırıldı.
+- Azərbaycan dili tərcüməsi əlavə edildi (@southstar21angel, GitHub təşəkkürlər)

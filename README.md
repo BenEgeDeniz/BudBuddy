@@ -18,6 +18,9 @@ Bud Buddy is an improved, open-source alternative to the Samsung Galaxy Buds Man
 
 - **Galaxy Buds 4 Pro:** Full support, including Head Gestures.
 - **Galaxy Buds 3 Pro:** Supported, but Head Gestures are not available.
+- **Galaxy Buds 3:** Supported, but Head Gestures are not available.
+- **Galaxy Buds 2 Pro:** Full support, including Head Gestures.
+- **Galaxy Buds 2:** Full support, including Head Gestures.
 
 ## Building from Source
 
