@@ -616,8 +616,14 @@ class BudsController(private val context: Context) {
                                         if (currentModel == BudsModel.BUDS_2 || currentModel == BudsModel.BUDS_2_PRO) {
                                             // The IMU in Buds 2/Pro is mounted rotated 90 degrees around the X-axis
                                             // compared to Buds Live/Pro. We must swap Y and Z to fix Yaw and Roll.
-                                            val tempY = -z
-                                            val tempZ = y
+                                            var tempY = -z
+                                            var tempZ = y
+                                            
+                                            if (!invertPitch.value) {
+                                                tempY = z
+                                                tempZ = -y
+                                            }
+
                                             outY = tempY
                                             outZ = tempZ
                                         }
