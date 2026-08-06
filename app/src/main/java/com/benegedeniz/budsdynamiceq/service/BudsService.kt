@@ -292,11 +292,11 @@ class BudsService : Service() {
             var isHandoffInProgress = false
             var expectedPitchSignFlip = false
             var lastPitch = 0f
+            var longTermMetric = 0f
             var prevLWearing = budsController.placementL.value == com.benegedeniz.budsdynamiceq.data.model.PlacementState.WEARING
             var prevRWearing = budsController.placementR.value == com.benegedeniz.budsdynamiceq.data.model.PlacementState.WEARING
             var isImuForced = false
             var smoothedZ = 0f
-            var longTermVx = 0f
             var lastRawSample: QuaternionSample? = null
 
             fun getPitch(q: QuaternionSample): Float {
@@ -329,17 +329,18 @@ class BudsService : Service() {
 
                     val isBuds2 = budsController.effectiveModel.value == com.benegedeniz.budsdynamiceq.bluetooth.BudsModel.BUDS_2 || budsController.effectiveModel.value == com.benegedeniz.budsdynamiceq.bluetooth.BudsModel.BUDS_2_PRO
                     
-                    // For Buds 2, Gx is perfectly mirrored (<-0.4 for Left, >0.4 for Right).
-                    // For Buds 4 Pro, Gx crosses 0 during Pitch, but Vx is decent when looking forward (~0.4 for Left, ~-0.3 for Right).
-                    val detectionMetric = if (isBuds2) hardwareGx else hardwareVx
+                    val metric = hardwareGx
                     val rightSign = if (isBuds2) -1f else 1f
+                    val detectionMetric = metric * rightSign
                     
-                    val normalizedMetric = detectionMetric * rightSign
+                    val normalizedMetric = detectionMetric
 
                     smoothedZ = if (smoothedZ == 0f) detectionMetric else (smoothedZ * 0.95f) + (detectionMetric * 0.05f)
-                    longTermVx = if (longTermVx == 0f) detectionMetric else (longTermVx * 0.985f) + (detectionMetric * 0.015f)
                     
-                    val normalizedLongTermMetric = longTermVx * rightSign
+                    // Update moving average (alpha=0.002 -> ~8 seconds at 60Hz)
+                    val expectedSign = if (activeImu == ImuSide.LEFT) 1f else -1f
+                    val normalizedSign = detectionMetric * expectedSign
+                    longTermMetric = if (longTermMetric == 0f) normalizedSign else (longTermMetric * 0.998f) + (normalizedSign * 0.002f)
 
                     if (activeImu == ImuSide.UNKNOWN) {
                         // For Buds 2, threshold is 0.3. For Buds 4 Pro, it's 0.2 (since baseline is ~0.3).
@@ -358,56 +359,54 @@ class BudsService : Service() {
                     } else if (!isHandoffInProgress && prevLWearing && prevRWearing && !isImuForced) {
                         // A true IMU hijack is a physical swap of sensors that are mounted 180 degrees apart.
                         // This causes an INSTANTANEOUS jump in the quaternion.
-                        // A human cannot rotate their head by >90 degrees in 15ms, so if dot product is < 0.5,
+                        // A human cannot rotate their head by >90 degrees in 15ms, so if dot product is < 0.92,
                         // it is absolute mathematical proof of a hardware IMU swap, perfectly immune to lying down.
                         val dot = lastRawSample?.let {
                             it.rawX * sample.rawX + it.rawY * sample.rawY + it.rawZ * sample.rawZ + it.rawW * sample.rawW
                         } ?: 1f
 
-                        if (abs(dot) < 0.5f) {
+                        if (abs(dot) < 0.92f) {
                             if (activeImu == ImuSide.RIGHT && normalizedMetric > 0f) {
                                 Log.w(TAG, "Hardware spontaneous IMU hijack to LEFT detected! (dot = \$dot). Correcting.")
                                 activeImu = ImuSide.LEFT
                                 budsController.setActiveImuSide(activeImu, getString(R.string.hardware_imu_hijack))
                                 expectedPitchSignFlip = true
-                                longTermVx = detectionMetric // Reset to prevent self-healing from fighting the correction
+                                longTermMetric = 0f // Reset to prevent self-healing from fighting the correction
                             } else if (activeImu == ImuSide.LEFT && normalizedMetric < 0f) {
                                 Log.w(TAG, "Hardware spontaneous IMU hijack to RIGHT detected! (dot = \$dot). Correcting.")
                                 activeImu = ImuSide.RIGHT
                                 budsController.setActiveImuSide(activeImu, getString(R.string.hardware_imu_hijack))
                                 expectedPitchSignFlip = true
-                                longTermVx = detectionMetric // Reset to prevent self-healing from fighting the correction
+                                longTermMetric = 0f // Reset to prevent self-healing from fighting the correction
                             }
                         }
 
-                        // Subtle drift self-healing. ONLY for Buds 2 because Gx is truly invariant.
-                        // For Buds 4 Pro, Vx can cross 0 during extreme Yaw, making this dangerous.
-                        if (isBuds2) {
-                            if (activeImu == ImuSide.RIGHT && normalizedLongTermMetric > 0.1f) {
-                                Log.w(TAG, "Self-healing auto-corrected IMU side to LEFT from normalizedLongTermMetric=\$normalizedLongTermMetric")
-                                activeImu = ImuSide.LEFT
-                                budsController.setActiveImuSide(activeImu, getString(R.string.self_healing_imu))
-                            } else if (activeImu == ImuSide.LEFT && normalizedLongTermMetric < -0.1f) {
-                                Log.w(TAG, "Self-healing auto-corrected IMU side to RIGHT from normalizedLongTermMetric=\$normalizedLongTermMetric")
-                                activeImu = ImuSide.RIGHT
-                                budsController.setActiveImuSide(activeImu, getString(R.string.self_healing_imu))
-                            }
-                        }
                     }
                     
                     // UNIVERSAL SAFETY NET: Instant absolute correction for impossible metrics.
                     // ONLY safe for Buds 2 because Gx is mathematically rock solid.
-                    if (isBuds2 && isImuForced == false) {
+                    if (isBuds2 && !isImuForced) {
                         if (activeImu == ImuSide.RIGHT && normalizedMetric > 0.3f) {
                             Log.w(TAG, "Instant auto-correction to LEFT from normalizedMetric=\$normalizedMetric")
                             activeImu = ImuSide.LEFT
-                            isImuForced = false
                             budsController.setActiveImuSide(activeImu, getString(R.string.self_healing_imu))
+                            longTermMetric = 0f
                         } else if (activeImu == ImuSide.LEFT && normalizedMetric < -0.3f) {
                             Log.w(TAG, "Instant auto-correction to RIGHT from normalizedMetric=\$normalizedMetric")
                             activeImu = ImuSide.RIGHT
-                            isImuForced = false
                             budsController.setActiveImuSide(activeImu, getString(R.string.self_healing_imu))
+                            longTermMetric = 0f
+                        }
+                    }
+
+                    // LONG-TERM SELF-HEALING (Enabled for all devices via stable Gx)
+                    if (!isHandoffInProgress && !isImuForced && longTermMetric != 0f) {
+                        if (longTermMetric < -0.25f) {
+                            Log.w(TAG, "Self-Healing activated! Metric settled heavily backwards (\$longTermMetric). Flipping active side.")
+                            activeImu = if (activeImu == ImuSide.LEFT) ImuSide.RIGHT else ImuSide.LEFT
+                            expectedPitchSignFlip = true
+                            budsController.setActiveImuSide(activeImu, getString(R.string.self_healing_imu) + " (Long-Term)")
+                            longTermMetric = 0f
                         }
                     }
                     
