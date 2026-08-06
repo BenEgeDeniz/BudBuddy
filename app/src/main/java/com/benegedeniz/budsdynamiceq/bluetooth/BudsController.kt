@@ -259,13 +259,21 @@ class BudsController(private val context: Context) {
     val activeNoiseControl: StateFlow<NoiseControlMode?> = _activeNoiseControl.asStateFlow()
 
     private var targetDevice: BluetoothDevice? = null
-    private val packetQueue = Channel<ByteArray>(Channel.UNLIMITED)
+    class QueuedPacket(val data: ByteArray, val isNc: Boolean = false, val ncMode: com.benegedeniz.budsdynamiceq.data.model.NoiseControlMode? = null)
+    private val _packetQueue = Channel<QueuedPacket>(Channel.UNLIMITED)
+    private val packetQueue = object {
+        fun trySend(data: ByteArray) = _packetQueue.trySend(QueuedPacket(data))
+    }
 
     init {
         scope.launch(Dispatchers.IO) {
-            for (packet in packetQueue) {
+            for (packet in _packetQueue) {
+                if (packet.isNc && packet.ncMode != lastSentNcMode) {
+                    Log.i(TAG, "Skipping obsolete NC packet: ${packet.ncMode}")
+                    continue
+                }
                 try {
-                    socket?.outputStream?.write(packet)
+                    socket?.outputStream?.write(packet.data)
                     delay(250) // Hardware processing buffer time
                 } catch (e: Exception) {
                     Log.e(TAG, "Failed to send queued packet: ${e.message}")
@@ -479,10 +487,13 @@ class BudsController(private val context: Context) {
                                 if (payloadSize > 12) {
                                     val ncModeVal = payload[12].toInt() and 0xFF
                                     val ncMode = NoiseControlMode.entries.find { it.payloadByte.toInt() == ncModeVal }
-                                    if (ncMode != null && _activeNoiseControl.value != ncMode) {
-                                        if (System.currentTimeMillis() - lastNcSendTimestamp > 1500L && ncJob?.isActive != true) {
-                                            _activeNoiseControl.value = ncMode
-                                            lastSentNcMode = ncMode // keep in sync
+                                    if (ncMode != null) {
+                                        lastConfirmedNcMode = ncMode
+                                        if (_activeNoiseControl.value != ncMode) {
+                                            if (System.currentTimeMillis() - lastNcSendTimestamp > 1500L) {
+                                                _activeNoiseControl.value = ncMode
+                                                lastSentNcMode = ncMode // keep in sync
+                                            }
                                         }
                                     }
                                 }
@@ -578,10 +589,13 @@ class BudsController(private val context: Context) {
                                 if (payloadSize > 0) {
                                     val ncModeVal = payload[0].toInt() and 0xFF
                                     val ncMode = NoiseControlMode.entries.find { it.payloadByte.toInt() == ncModeVal }
-                                    if (ncMode != null && _activeNoiseControl.value != ncMode) {
-                                        if (System.currentTimeMillis() - lastNcSendTimestamp > 1500L && ncJob?.isActive != true) {
-                                            _activeNoiseControl.value = ncMode
-                                            lastSentNcMode = ncMode // keep in sync
+                                    if (ncMode != null) {
+                                        lastConfirmedNcMode = ncMode
+                                        if (_activeNoiseControl.value != ncMode) {
+                                            if (System.currentTimeMillis() - lastNcSendTimestamp > 1500L) {
+                                                _activeNoiseControl.value = ncMode
+                                                lastSentNcMode = ncMode // keep in sync
+                                            }
                                         }
                                     }
                                 }
@@ -694,6 +708,7 @@ class BudsController(private val context: Context) {
         _fitTestResultL.value = FitTestResult.UNKNOWN
         _fitTestResultR.value = FitTestResult.UNKNOWN
         _activeImuSide.value = ImuSide.UNKNOWN
+        lastConfirmedNcMode = null
     }
 
     private fun closeSocket() {
@@ -710,7 +725,8 @@ class BudsController(private val context: Context) {
     private var lastSentEq: EqPreset? = null
     private var lastSentNcMode: com.benegedeniz.budsdynamiceq.data.model.NoiseControlMode? = null
     private var lastNcSendTimestamp: Long = 0
-    private var ncJob: Job? = null
+    @Volatile private var lastConfirmedNcMode: com.benegedeniz.budsdynamiceq.data.model.NoiseControlMode? = null
+    private var ncRetryJob: Job? = null
     /** Milliseconds since epoch of the last app-sent NC command. Used externally to distinguish app vs hardware NC changes. */
     val lastAppNcSendTimestamp: Long get() = lastNcSendTimestamp
 
@@ -736,20 +752,41 @@ class BudsController(private val context: Context) {
         // Optimistically update the UI instantly
         _activeNoiseControl.value = mode
 
-        ncJob?.cancel()
-        ncJob = CoroutineScope(Dispatchers.IO).launch {
-            val delayTime = 1500L - (System.currentTimeMillis() - lastNcSendTimestamp)
-            if (delayTime > 0) {
-                delay(delayTime)
-            }
-            if (mode == lastSentNcMode) return@launch
-            lastSentNcMode = mode
-            lastNcSendTimestamp = System.currentTimeMillis()
+        if (mode == lastSentNcMode) return
+        lastSentNcMode = mode
+        lastConfirmedNcMode = null // Clear stale confirmations so we don't abort prematurely
+        lastNcSendTimestamp = System.currentTimeMillis()
 
-            val payload = byteArrayOf(mode.payloadByte)
-            val packet = SppPacketEncoder.buildPacket(SppPacketEncoder.MSG_ID_NOISE_CONTROLS, payload)
-            packetQueue.trySend(packet)
-            Log.i(TAG, "Queued Noise Control: ${mode.name} (byte: 0x%02X) with delay ${if(delayTime > 0) delayTime else 0}ms")
+        val payload = byteArrayOf(mode.payloadByte)
+        val packet = SppPacketEncoder.buildPacket(SppPacketEncoder.MSG_ID_NOISE_CONTROLS, payload)
+        
+        ncRetryJob?.cancel()
+        ncRetryJob = CoroutineScope(Dispatchers.IO).launch {
+            for (attempt in 1..5) {
+                // If it was confirmed by periodic 0x61 packets, we can stop retrying early.
+                if (attempt > 1 && lastConfirmedNcMode == mode) {
+                    Log.i(TAG, "Noise Control ${mode.name} confirmed, stopping retries.")
+                    break
+                }
+                
+                try {
+                    if (attempt == 1) {
+                        // The user requested immediate, unthrottled sending for the first tap
+                        socket?.outputStream?.write(packet)
+                        socket?.outputStream?.flush()
+                        Log.i(TAG, "Sent Noise Control directly without throttle: ${mode.name} (attempt 1)")
+                    } else {
+                        // For retries, queue it to respect the 250ms hardware buffer and prevent corruption
+                        _packetQueue.trySend(QueuedPacket(packet, isNc = true, ncMode = mode))
+                        Log.i(TAG, "Sent Noise Control to queue: ${mode.name} (attempt $attempt/5)")
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Send failed: ${e.message}")
+                }
+                
+                delay(1000)
+                if (mode != lastSentNcMode) break // Abort tries if user switched
+            }
         }
     }
 
