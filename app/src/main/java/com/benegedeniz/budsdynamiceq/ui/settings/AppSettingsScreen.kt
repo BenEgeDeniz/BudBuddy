@@ -84,13 +84,15 @@ fun AppSettingsScreen(
     val languageOptions = listOf(
         Triple("system", "🌐", stringResource(R.string.system_default)),
         Triple("en", "🇺🇸", "English"),
-        Triple("tr", "🇹🇷", "Türkçe")
+        Triple("tr", "🇹🇷", "Türkçe"),
+        Triple("az", "🇦🇿", "Azərbaycanca")
     )
 
     val currentLangLabel = remember(selectedLang) {
         when (selectedLang) {
             "en" -> "🇺🇸 English"
             "tr" -> "🇹🇷 Türkçe"
+            "az" -> "🇦🇿 Azərbaycanca"
             else -> "🌐 ${context.getString(R.string.system_default)}"
         }
     }
