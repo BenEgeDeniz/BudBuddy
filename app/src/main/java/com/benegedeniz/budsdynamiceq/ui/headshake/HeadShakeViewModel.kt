@@ -95,6 +95,9 @@ class HeadShakeViewModel(application: Application) : AndroidViewModel(applicatio
     private val _spatialAudioConflict = MutableStateFlow(false)
     val spatialAudioConflict: StateFlow<Boolean> = _spatialAudioConflict.asStateFlow()
 
+    private val _doubleTapEdgeConflict = MutableStateFlow(false)
+    val doubleTapEdgeConflict: StateFlow<Boolean> = _doubleTapEdgeConflict.asStateFlow()
+
     private val _recordingState = MutableStateFlow(RecordingState.IDLE)
     val recordingState: StateFlow<RecordingState> = _recordingState.asStateFlow()
 
@@ -126,6 +129,14 @@ class HeadShakeViewModel(application: Application) : AndroidViewModel(applicatio
     init {
         viewModelScope.launch {
             gestureRepo.loadGestures()
+        }
+        viewModelScope.launch {
+            budsController.doubleTapEdgeEnabled.collect { enabled ->
+                _doubleTapEdgeConflict.value = enabled
+                if (enabled && _headShakeEnabled.value) {
+                    toggleHeadShake(false)
+                }
+            }
         }
         viewModelScope.launch {
             globalDetector.detectedGesture.collect { gesture ->
@@ -220,6 +231,7 @@ class HeadShakeViewModel(application: Application) : AndroidViewModel(applicatio
     private val _selectedAction = MutableStateFlow<FlowAction?>(null)
 
     var isMovementCancellingScreenOpen by androidx.compose.runtime.mutableStateOf(false)
+    var isSensorDebugScreenOpen by androidx.compose.runtime.mutableStateOf(false)
 
     fun startNewGesture() {
         _editingGesture.value = null

@@ -438,4 +438,64 @@
     <string name="buds_left">L</string>
     <string name="buds_right">R</string>
     <string name="buds_balanced">Balanced</string>
+    <string name="debug_next_phase">Next Phase</string>
+    <string name="debug_prev_phase">Previous Phase</string>
+    <string name="debug_rerecord">Re-record</string>
+    <string name="debug_start">START</string>
+    <string name="debug_done">DONE</string>
+    <string name="debug_record_prerequisite_left">To record this phase, please wear ONLY the LEFT earbud, and put the RIGHT earbud in the closed case.</string>
+    <string name="debug_record_prerequisite_right">To record this phase, please wear ONLY the RIGHT earbud, and put the LEFT earbud in the closed case.</string>
+    <string name="debug_record_prerequisite_disconnected">No earbuds are connected.</string>
+    <string name="debug_how_to_record">How to Record:</string>
+    <string name="debug_step1">1. Move your head to the target position.</string>
+    <string name="debug_step2">2. Wait 1 second to stabilize.</string>
+    <string name="debug_step3">3. Tap START.</string>
+    <string name="debug_step4_static">4. Hold perfectly still while recording.</string>
+    <string name="debug_step4_motion">4. Continuously perform the motion while recording.</string>
+    <string name="debug_step5">5. Tap DONE.</string>
+    <string name="debug_collection_complete">Calibration Data Collection Complete!</string>
+    <string name="debug_export_msg">Please export this data and send the generated file to the developer. This data is critical for calculating the exact IMU orientation matrix for your earbud model.</string>
+    <string name="debug_export_button">Export &amp; Share Data</string>
+    <string name="debug_recorded_samples">Recorded %1$d samples.</string>
+    <string name="debug_recording_samples">Recording... %1$d samples</string>    <string name="debug_title">Collect IMU Data (Debug)</string>
+    <string name="debug_phase_x_of_n">Phase %1$d of %2$d</string>
+
+    <string name="debug_left_center_name">Left Earbud - Center</string>
+    <string name="debug_left_center_desc">Wear ONLY LEFT bud. Look straight ahead.</string>
+
+    <string name="debug_left_right_name">Left Earbud - Looking Right</string>
+    <string name="debug_left_right_desc">Wear ONLY LEFT bud. Turn head right.</string>
+
+    <string name="debug_left_left_name">Left Earbud - Looking Left</string>
+    <string name="debug_left_left_desc">Wear ONLY LEFT bud. Turn head left.</string>
+
+    <string name="debug_left_up_name">Left Earbud - Looking Up</string>
+    <string name="debug_left_up_desc">Wear ONLY LEFT bud. Look up.</string>
+
+    <string name="debug_left_down_name">Left Earbud - Looking Down</string>
+    <string name="debug_left_down_desc">Wear ONLY LEFT bud. Look down.</string>
+
+    <string name="debug_left_cw_name">Left Earbud - Head Roll</string>
+    <string name="debug_left_cw_desc">Wear ONLY LEFT bud. Look straight ahead and roll head clockwise.</string>
+
+    <string name="debug_right_center_name">Right Earbud - Center</string>
+    <string name="debug_right_center_desc">Wear ONLY RIGHT bud. Look straight ahead.</string>
+
+    <string name="debug_right_right_name">Right Earbud - Looking Right</string>
+    <string name="debug_right_right_desc">Wear ONLY RIGHT bud. Turn head right.</string>
+
+    <string name="debug_right_left_name">Right Earbud - Looking Left</string>
+    <string name="debug_right_left_desc">Wear ONLY RIGHT bud. Turn head left.</string>
+
+    <string name="debug_right_up_name">Right Earbud - Looking Up</string>
+    <string name="debug_right_up_desc">Wear ONLY RIGHT bud. Look up.</string>
+
+    <string name="debug_right_down_name">Right Earbud - Looking Down</string>
+    <string name="debug_right_down_desc">Wear ONLY RIGHT bud. Look down.</string>
+
+    <string name="debug_right_cw_name">Right Earbud - Head Roll</string>
+    <string name="debug_right_cw_desc">Wear ONLY RIGHT bud. Look straight ahead and roll head clockwise.</string>
+    <string name="double_tap_earbud_edge">Double tap earbud edge</string>
+    <string name="double_tap_earbud_edge_desc">Double tap the edge of your earbuds to turn the volume up or down.</string>
+    <string name="gestures_is_disabled_double_tap_edge">Double tap earbud edge must be disabled to use head gestures. The IMU sensor is hijacked by the earbuds.</string>
 </resources>

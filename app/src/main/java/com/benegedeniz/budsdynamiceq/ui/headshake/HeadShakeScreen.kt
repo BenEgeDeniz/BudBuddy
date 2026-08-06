@@ -62,6 +62,7 @@ fun HeadShakeScreen(
     val isConnected by viewModel.isConnected.collectAsState()
     val recordingState by viewModel.recordingState.collectAsState()
     val spatialAudioConflict by viewModel.spatialAudioConflict.collectAsState()
+    val doubleTapEdgeConflict by viewModel.doubleTapEdgeConflict.collectAsState()
     val lastDetectedGesture by viewModel.lastDetectedGesture.collectAsState()
     val isMutedByNoise = lastDetectedGesture?.isNoiseProfile == true && lastDetectedGesture?.blockGesturesOnMatch == true
 
@@ -157,7 +158,7 @@ fun HeadShakeScreen(
                                     viewModel.toggleHeadShake(false)
                                 }
                             },
-                            enabled = !spatialAudioConflict,
+                            enabled = !spatialAudioConflict && !doubleTapEdgeConflict,
                             colors = SwitchDefaults.colors(
                                 checkedThumbColor = Color.White,
                                 checkedTrackColor = MaterialTheme.colorScheme.primary
@@ -207,6 +208,34 @@ fun HeadShakeScreen(
                 }
             }
 
+            if (doubleTapEdgeConflict && isConnected && !spatialAudioConflict) {
+                item {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp)
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    Icons.Default.Warning,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onErrorContainer
+                                )
+                                Spacer(Modifier.width(16.dp))
+                                Text(stringResource(R.string.gestures_is_disabled_double_tap_edge),
+                                    color = MaterialTheme.colorScheme.onErrorContainer,
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                            }
+                        }
+                    }
+                }
+            }
 
             item {
                 Card(
@@ -508,6 +537,14 @@ fun HeadShakeScreen(
         )
     }
 
+    if (viewModel.isSensorDebugScreenOpen) {
+        val budsController = com.benegedeniz.budsdynamiceq.di.ServiceLocator.provideBudsController(context)
+        SensorDebugScreen(
+            budsController = budsController,
+            onNavigateBack = { viewModel.isSensorDebugScreenOpen = false }
+        )
+    }
+
     // removed nested LivePreviewSection    
     
     if (recordingState != RecordingState.IDLE) {
@@ -627,12 +664,12 @@ fun GestureCard(
                         text = if (gesture.actions.size > 1) stringResource(R.string.headshake_steps, gesture.actions.size) else {
                             when(val action = gesture.actions.firstOrNull()) {
                                 is com.benegedeniz.budsdynamiceq.data.model.FlowAction.SystemAction -> action.action.getDisplayName()
-                                is com.benegedeniz.budsdynamiceq.data.model.FlowAction.AppAction -> if (action.appName.isNotBlank() && action.appName != "Select App") action.appName else stringResource(R.string.action_start_application)
-                                is com.benegedeniz.budsdynamiceq.data.model.FlowAction.DelayAction -> "Delay"
+                                is com.benegedeniz.budsdynamiceq.data.model.FlowAction.AppAction -> if (action.appName.isNotBlank() && action.appName != stringResource(R.string.select_app_short)) action.appName else stringResource(R.string.action_start_application)
+                                is com.benegedeniz.budsdynamiceq.data.model.FlowAction.DelayAction -> stringResource(R.string.delay)
                                 is com.benegedeniz.budsdynamiceq.data.model.FlowAction.VolumeAction -> stringResource(R.string.action_set_volume_to, action.percentage)
                                 is com.benegedeniz.budsdynamiceq.data.model.FlowAction.ModifyVolumeAction -> if (action.increase) stringResource(R.string.action_increase_vol, action.percentage) else stringResource(R.string.action_decrease_vol, action.percentage)
                                 is com.benegedeniz.budsdynamiceq.data.model.FlowAction.TtsAction -> stringResource(R.string.action_speak_out_loud)
-                                else -> "No Action"
+                                else -> stringResource(R.string.action_none)
                             }
                         },
                         style = MaterialTheme.typography.bodySmall,
@@ -826,6 +863,14 @@ fun LivePreviewSection(
                 fontWeight = FontWeight.Medium
             )
                 }
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            OutlinedButton(
+                onClick = { viewModel.isSensorDebugScreenOpen = true },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(stringResource(R.string.debug_title))
             }
         }
     }

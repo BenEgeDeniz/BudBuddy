@@ -8,5 +8,9 @@ data class QuaternionSample(
     val x: Float,
     val y: Float,
     val z: Float,
-    val w: Float
+    val w: Float,
+    val rawX: Float = 0f,
+    val rawY: Float = 0f,
+    val rawZ: Float = 0f,
+    val rawW: Float = 0f
 )

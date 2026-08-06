@@ -20,6 +20,7 @@ import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.SwapHoriz
+import androidx.compose.material.icons.filled.TouchApp
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.RecordVoiceOver
@@ -88,6 +89,7 @@ fun BudsScreen(
     val oneEarbudNoiseControlEnabled by viewModel.oneEarbudNoiseControlEnabled.collectAsState()
     val useAmbientSoundDuringCalls by viewModel.useAmbientSoundDuringCalls.collectAsState()
     val inEarDetectionForCalls by viewModel.inEarDetectionForCalls.collectAsState()
+    val doubleTapEdgeEnabled by viewModel.doubleTapEdgeEnabled.collectAsState()
     val stereoBalance by viewModel.stereoBalance.collectAsState()
     val pauseMediaOnConversation by viewModel.pauseMediaOnConversationEnabled.collectAsState()
     val pairedDevices by viewModel.pairedDevices.collectAsState()
@@ -634,6 +636,62 @@ fun BudsScreen(
                                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 2.dp),
                                 color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
                             )
+                            
+                            // Double Tap Earbud Edge (only Buds 2 / Buds 2 Pro)
+                            val currentModel = connectedModel.takeIf { it != com.benegedeniz.budsdynamiceq.bluetooth.BudsModel.UNKNOWN } ?: effectiveModel
+                            if (currentModel == com.benegedeniz.budsdynamiceq.bluetooth.BudsModel.BUDS_2 || currentModel == com.benegedeniz.budsdynamiceq.bluetooth.BudsModel.BUDS_2_PRO) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 16.dp, vertical = 6.dp)
+                                        .alpha(if (isConnected) 1f else 0.5f),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Row(
+                                        modifier = Modifier.weight(1f).padding(end = 12.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.TouchApp,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(12.dp))
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text(
+                                                text = stringResource(R.string.double_tap_earbud_edge),
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                color = MaterialTheme.colorScheme.onSurface,
+                                                softWrap = true
+                                            )
+                                            Spacer(modifier = Modifier.height(2.dp))
+                                            Text(
+                                                text = stringResource(R.string.double_tap_earbud_edge_desc),
+                                                style = MaterialTheme.typography.bodySmall,
+                                                fontSize = 11.sp,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f),
+                                                softWrap = true
+                                            )
+                                        }
+                                    }
+                                    Switch(
+                                        checked = doubleTapEdgeEnabled,
+                                        onCheckedChange = {
+                                            haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
+                                            viewModel.setDoubleTapEdgeEnabled(it)
+                                        },
+                                        enabled = isConnected,
+                                        modifier = Modifier.scale(0.85f)
+                                    )
+                                }
+                                
+                                HorizontalDivider(
+                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 2.dp),
+                                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                                )
+                            }
                             
                             // 4. Left/Right Sound Balance
                             var isDraggingBalance by remember { mutableStateOf(false) }

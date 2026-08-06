@@ -438,4 +438,64 @@
     <string name="buds_left">Sol</string>
     <string name="buds_right">Sağ</string>
     <string name="buds_balanced">Balanslaşdırılmış</string>
+    <string name="debug_next_phase">Növbəti Mərhələ</string>
+    <string name="debug_prev_phase">Əvvəlki Mərhələ</string>
+    <string name="debug_rerecord">Yenidən Qeyd Et</string>
+    <string name="debug_start">BAŞLA</string>
+    <string name="debug_done">BİTDİ</string>
+    <string name="debug_record_prerequisite_left">Bu mərhələni qeyd etmək üçün lütfən YALNIZ SOL qulaqlığı taxın və SAĞ qulaqlığı qutusuna qoyub qapağını bağlayın.</string>
+    <string name="debug_record_prerequisite_right">Bu mərhələni qeyd etmək üçün lütfən YALNIZ SAĞ qulaqlığı taxın və SOL qulaqlığı qutusuna qoyub qapağını bağlayın.</string>
+    <string name="debug_record_prerequisite_disconnected">Heç bir qulaqlıq qoşulmayıb.</string>
+    <string name="debug_how_to_record">Necə Qeyd Etməli:</string>
+    <string name="debug_step1">1. Başınızı hədəf mövqeyinə gətirin.</string>
+    <string name="debug_step2">2. Sabitləşmək üçün 1 saniyə gözləyin.</string>
+    <string name="debug_step3">3. BAŞLA düyməsinə toxunun.</string>
+    <string name="debug_step4_static">4. Qeyd zamanı tamamilə hərəkətsiz qalın.</string>
+    <string name="debug_step4_motion">4. Qeyd boyunca hərəkəti davamlı olaraq edin.</string>
+    <string name="debug_step5">5. BİTDİ düyməsinə toxunun.</string>
+    <string name="debug_collection_complete">Kalibrləmə Məlumatının Toplanması Tamamlandı!</string>
+    <string name="debug_export_msg">Zəhmət olmasa bu məlumatı ixrac edin və yaranan faylı tərtibatçıya göndərin. Bu məlumat, qulaqlıq modeliniz üçün dəqiq IMU oriyentasiya matrisini hesablamaq üçün çox vacibdir.</string>
+    <string name="debug_export_button">İxrac Et və Paylaş</string>
+    <string name="debug_recorded_samples">%1$d nümunə qeyd edildi.</string>
+    <string name="debug_recording_samples">Qeyd edilir... %1$d nümunə</string>    <string name="debug_title">IMU Məlumatı Topla (Sazlama)</string>
+    <string name="debug_phase_x_of_n">Mərhələ %1$d / %2$d</string>
+
+    <string name="debug_left_center_name">Sol Qulaqlıq - Mərkəz</string>
+    <string name="debug_left_center_desc">YALNIZ SOL qulaqlığı taxın. Düz irəli baxın.</string>
+
+    <string name="debug_left_right_name">Sol Qulaqlıq - Sağa Bax</string>
+    <string name="debug_left_right_desc">YALNIZ SOL qulaqlığı taxın. Başınızı sağa çevirin.</string>
+
+    <string name="debug_left_left_name">Sol Qulaqlıq - Sola Bax</string>
+    <string name="debug_left_left_desc">YALNIZ SOL qulaqlığı taxın. Başınızı sola çevirin.</string>
+
+    <string name="debug_left_up_name">Sol Qulaqlıq - Yuxarı Bax</string>
+    <string name="debug_left_up_desc">YALNIZ SOL qulaqlığı taxın. Yuxarı baxın.</string>
+
+    <string name="debug_left_down_name">Sol Qulaqlıq - Aşağı Bax</string>
+    <string name="debug_left_down_desc">YALNIZ SOL qulaqlığı taxın. Aşağı baxın.</string>
+
+    <string name="debug_left_cw_name">Sol Qulaqlıq - Baş Çevirmə</string>
+    <string name="debug_left_cw_desc">YALNIZ SOL qulaqlığı taxın. Düz baxın və başınızı saat əqrəbi istiqamətində çevirin.</string>
+
+    <string name="debug_right_center_name">Sağ Qulaqlıq - Mərkəz</string>
+    <string name="debug_right_center_desc">YALNIZ SAĞ qulaqlığı taxın. Düz irəli baxın.</string>
+
+    <string name="debug_right_right_name">Sağ Qulaqlıq - Sağa Bax</string>
+    <string name="debug_right_right_desc">YALNIZ SAĞ qulaqlığı taxın. Başınızı sağa çevirin.</string>
+
+    <string name="debug_right_left_name">Sağ Qulaqlıq - Sola Bax</string>
+    <string name="debug_right_left_desc">YALNIZ SAĞ qulaqlığı taxın. Başınızı sola çevirin.</string>
+
+    <string name="debug_right_up_name">Sağ Qulaqlıq - Yuxarı Bax</string>
+    <string name="debug_right_up_desc">YALNIZ SAĞ qulaqlığı taxın. Yuxarı baxın.</string>
+
+    <string name="debug_right_down_name">Sağ Qulaqlıq - Aşağı Bax</string>
+    <string name="debug_right_down_desc">YALNIZ SAĞ qulaqlığı taxın. Aşağı baxın.</string>
+
+    <string name="debug_right_cw_name">Sağ Qulaqlıq - Baş Çevirmə</string>
+    <string name="debug_right_cw_desc">YALNIZ SAĞ qulaqlığı taxın. Düz baxın və başınızı saat əqrəbi istiqamətində çevirin.</string>
+    <string name="double_tap_earbud_edge">Qulaqlığın kənarına iki dəfə toxunma</string>
+    <string name="double_tap_earbud_edge_desc">Səsi artırmaq və ya azaltmaq üçün qulaqlığınızın kənarına iki dəfə toxunun.</string>
+    <string name="gestures_is_disabled_double_tap_edge">Baş hərəkətlərini istifadə etmək üçün Qulaqlığın kənarına iki dəfə toxunma funksiyası söndürülməlidir. Akselerometr sensoru hal-hazırda qulaqlıqlar tərəfindən istifadə olunur.</string>
 </resources>

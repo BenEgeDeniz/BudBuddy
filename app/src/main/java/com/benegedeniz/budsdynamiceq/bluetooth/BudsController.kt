@@ -173,6 +173,9 @@ class BudsController(private val context: Context) {
     )
     val spatialDataFlow: SharedFlow<QuaternionSample> = _spatialDataFlow.asSharedFlow()
 
+    private val _rawSpatialDataFlow = MutableSharedFlow<QuaternionSample>(extraBufferCapacity = 64)
+    val rawSpatialDataFlow: SharedFlow<QuaternionSample> = _rawSpatialDataFlow.asSharedFlow()
+
     private val _batteryL = MutableStateFlow(-1)
     val batteryL: StateFlow<Int> = _batteryL.asStateFlow()
 
@@ -233,10 +236,15 @@ class BudsController(private val context: Context) {
     private val _inEarDetectionForCalls = MutableStateFlow(true)
     val inEarDetectionForCalls: StateFlow<Boolean> = _inEarDetectionForCalls.asStateFlow()
 
+    private val _doubleTapEdgeEnabled = MutableStateFlow(false)
+    val doubleTapEdgeEnabled: StateFlow<Boolean> = _doubleTapEdgeEnabled.asStateFlow()
+
     private val _stereoBalance = MutableStateFlow(16) // Default to center
     val stereoBalance: StateFlow<Int> = _stereoBalance.asStateFlow()
 
     private var keepAliveJob: Job? = null
+
+    private var lastConnectedTime = 0L
 
     private val _lastMatchedRule = MutableStateFlow<EqRule?>(null)
     val lastMatchedRule: StateFlow<EqRule?> = _lastMatchedRule.asStateFlow()
@@ -362,6 +370,7 @@ class BudsController(private val context: Context) {
                     
                     _isConnected.value = true
                     _isConnecting.value = false
+                    lastConnectedTime = System.currentTimeMillis()
                     Log.i(TAG, "Connected to Galaxy Buds.")
 
                     // Immediately poll debug info upon connection to determine model and temperature
@@ -489,6 +498,12 @@ class BudsController(private val context: Context) {
                                 if (payloadSize > 34) {
                                     _inEarDetectionForCalls.value = payload[34].toInt() == 0
                                 }
+                                if (payloadSize > 32) {
+                                    val currentModel = _connectedModel.value
+                                    if (currentModel == BudsModel.BUDS_2 || currentModel == BudsModel.BUDS_2_PRO) {
+                                        _doubleTapEdgeEnabled.value = payload[32].toInt() == 1
+                                    }
+                                }
                                 
                                 var hearingEnhancementIndex = -1
                                 if (payloadSize == 62) {
@@ -595,14 +610,25 @@ class BudsController(private val context: Context) {
                                         var outZ = z
                                         var outW = w
 
+                                        _rawSpatialDataFlow.tryEmit(QuaternionSample(System.currentTimeMillis(), x, y, z, w))
+
+                                        val currentModel = effectiveModel.value
+                                        if (currentModel == BudsModel.BUDS_2 || currentModel == BudsModel.BUDS_2_PRO) {
+                                            // The IMU in Buds 2/Pro is mounted rotated 90 degrees around the X-axis
+                                            // compared to Buds Live/Pro. We must swap Y and Z to fix Yaw and Roll.
+                                            val tempY = -z
+                                            val tempZ = y
+                                            outY = tempY
+                                            outZ = tempZ
+                                        }
+
                                         if (invertPitch.value) {
                                             // Left earbud is physically rotated 180 degrees around the Y axis
                                             // Negating X (Pitch) and Z (Roll) mirrors the local frame properly.
-                                            outX = -x
-                                            outZ = -z
+                                            outX = -outX
+                                            outZ = -outZ
                                         }
-                                        
-                                        _spatialDataFlow.tryEmit(QuaternionSample(System.currentTimeMillis(), outX, outY, outZ, outW))
+                                        _spatialDataFlow.tryEmit(QuaternionSample(System.currentTimeMillis(), outX, outY, outZ, outW, x, y, z, w))
                                     }
                                 }
                             }
@@ -776,6 +802,16 @@ class BudsController(private val context: Context) {
         packetQueue.trySend(packet)
     }
 
+    fun setDoubleTapEdgeEnabled(enabled: Boolean) {
+        if (!isConnected.value) return
+        _doubleTapEdgeEnabled.value = enabled
+        val packet = SppPacketEncoder.buildPacket(
+            149.toByte(), // SET_TOUCHPAD_OPTION or OUTSIDE_DOUBLE_TAP
+            byteArrayOf(if (enabled) 1 else 0)
+        )
+        packetQueue.trySend(packet)
+    }
+
     fun setStereoBalance(value: Int) {
         val clamped = value.coerceIn(0, 32)
         _stereoBalance.value = clamped
@@ -817,7 +853,11 @@ class BudsController(private val context: Context) {
                 attempts++
             }
             
-
+            val timeSinceConnect = System.currentTimeMillis() - lastConnectedTime
+            if (timeSinceConnect < 1500) {
+                delay(1500 - timeSinceConnect)
+            }
+            
             val wasActive = _isSpatialActive.value
             _isSpatialActive.value = true
             Log.i(TAG, "Starting spatial sensor for consumer: $consumer (wasActive=$wasActive)")

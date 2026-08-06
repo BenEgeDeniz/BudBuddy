@@ -231,7 +231,7 @@ class MainActivity : ComponentActivity() {
                         }
                         
                         androidx.compose.animation.AnimatedVisibility(
-                            visible = !showFitTest && !showWearState && !showSoundBalanceTest && !showAppSettings,
+                            visible = !showFitTest && !showWearState && !showSoundBalanceTest && !showAppSettings && !headShakeViewModel.isSensorDebugScreenOpen,
                             modifier = Modifier.align(androidx.compose.ui.Alignment.BottomCenter).fillMaxWidth(),
                             enter = androidx.compose.animation.slideInVertically(initialOffsetY = { it }),
                             exit = androidx.compose.animation.slideOutVertically(targetOffsetY = { it })

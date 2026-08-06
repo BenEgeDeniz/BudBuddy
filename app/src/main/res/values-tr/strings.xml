@@ -438,4 +438,65 @@
     <string name="buds_left">Sol</string>
     <string name="buds_right">Sağ</string>
     <string name="buds_balanced">Dengeli</string>
+    <string name="debug_next_phase">Sonraki Aşama</string>
+    <string name="debug_prev_phase">Önceki Aşama</string>
+    <string name="debug_rerecord">Yeniden Kaydet</string>
+    <string name="debug_start">BAŞLAT</string>
+    <string name="debug_done">BİTTİ</string>
+    
+    <string name="debug_record_prerequisite_left">Bu aşamayı kaydetmek için lütfen SADECE SOL kulaklığı takın ve SAĞ kulaklığı kutusuna koyup kapağını kapatın.</string>
+    <string name="debug_record_prerequisite_right">Bu aşamayı kaydetmek için lütfen SADECE SAĞ kulaklığı takın ve SOL kulaklığı kutusuna koyup kapağını kapatın.</string>
+    <string name="debug_record_prerequisite_disconnected">Hiçbir kulaklık bağlı değil.</string>
+    <string name="debug_how_to_record">Nasıl Kaydedilir:</string>
+    <string name="debug_step1">1. Başınızı hedeflenen konuma getirin.</string>
+    <string name="debug_step2">2. Sabitlenmek için 1 saniye bekleyin.</string>
+    <string name="debug_step3">3. BAŞLAT\'a dokunun.</string>
+    <string name="debug_step4_static">4. Kayıt sırasında tamamen hareketsiz kalın.</string>
+    <string name="debug_step4_motion">4. Kayıt boyunca hareketi sürekli olarak yapın.</string>
+    <string name="debug_step5">5. BİTTİ\'ye dokunun.</string>
+    <string name="debug_collection_complete">Kalibrasyon Verisi Toplama Tamamlandı!</string>
+    <string name="debug_export_msg">Lütfen bu veriyi dışa aktarın ve oluşturulan dosyayı geliştiriciye gönderin. Bu veri, kulaklık modelinizin tam IMU yönelim matrisini hesaplamak için kritik öneme sahiptir.</string>
+    <string name="debug_export_button">Dışa Aktar ve Paylaş</string>
+    <string name="debug_recorded_samples">%1$d örnek kaydedildi.</string>
+    <string name="debug_recording_samples">Kaydediliyor... %1$d örnek</string>    <string name="debug_title">IMU Verisi Topla (Hata Ayıklama)</string>
+    <string name="debug_phase_x_of_n">Aşama %1$d / %2$d</string>
+
+    <string name="debug_left_center_name">Sol Kulaklık - Merkez</string>
+    <string name="debug_left_center_desc">SADECE SOL kulaklığı takın. Düz ileriye bakın.</string>
+
+    <string name="debug_left_right_name">Sol Kulaklık - Sağa Bak</string>
+    <string name="debug_left_right_desc">SADECE SOL kulaklığı takın. Başınızı sağa çevirin.</string>
+
+    <string name="debug_left_left_name">Sol Kulaklık - Sola Bak</string>
+    <string name="debug_left_left_desc">SADECE SOL kulaklığı takın. Başınızı sola çevirin.</string>
+
+    <string name="debug_left_up_name">Sol Kulaklık - Yukarı Bak</string>
+    <string name="debug_left_up_desc">SADECE SOL kulaklığı takın. Yukarı bakın.</string>
+
+    <string name="debug_left_down_name">Sol Kulaklık - Aşağı Bak</string>
+    <string name="debug_left_down_desc">SADECE SOL kulaklığı takın. Aşağı bakın.</string>
+
+    <string name="debug_left_cw_name">Sol Kulaklık - Baş Çevirme</string>
+    <string name="debug_left_cw_desc">SADECE SOL kulaklığı takın. Düz bakın ve başınızı saat yönünde çevirin.</string>
+
+    <string name="debug_right_center_name">Sağ Kulaklık - Merkez</string>
+    <string name="debug_right_center_desc">SADECE SAĞ kulaklığı takın. Düz ileriye bakın.</string>
+
+    <string name="debug_right_right_name">Sağ Kulaklık - Sağa Bak</string>
+    <string name="debug_right_right_desc">SADECE SAĞ kulaklığı takın. Başınızı sağa çevirin.</string>
+
+    <string name="debug_right_left_name">Sağ Kulaklık - Sola Bak</string>
+    <string name="debug_right_left_desc">SADECE SAĞ kulaklığı takın. Başınızı sola çevirin.</string>
+
+    <string name="debug_right_up_name">Sağ Kulaklık - Yukarı Bak</string>
+    <string name="debug_right_up_desc">SADECE SAĞ kulaklığı takın. Yukarı bakın.</string>
+
+    <string name="debug_right_down_name">Sağ Kulaklık - Aşağı Bak</string>
+    <string name="debug_right_down_desc">SADECE SAĞ kulaklığı takın. Aşağı bakın.</string>
+
+    <string name="debug_right_cw_name">Sağ Kulaklık - Baş Çevirme</string>
+    <string name="debug_right_cw_desc">SADECE SAĞ kulaklığı takın. Düz bakın ve başınızı saat yönünde çevirin.</string>
+    <string name="double_tap_earbud_edge">Kulaklık ucuna çift dokunma</string>
+    <string name="double_tap_earbud_edge_desc">Sesi açmak veya kısmak için kulaklığınızın ucuna çift dokunun.</string>
+    <string name="gestures_is_disabled_double_tap_edge">Baş hareketlerini kullanmak için Kulaklık ucuna çift dokunma özelliği kapatılmalıdır. İvmeölçer sensörü şu an kulaklıklar tarafından kullanılıyor.</string>
 </resources>

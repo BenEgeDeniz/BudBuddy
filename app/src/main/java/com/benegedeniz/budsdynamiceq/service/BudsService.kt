@@ -321,37 +321,39 @@ class BudsService : Service() {
                     lastPitch = currentPitch
                     
 
-                    // Calculate the local X projection of the world Z axis (Gravity).
-                    // vx = 2 * (x*z + w*y)
-                    // This value is mathematically INVARIANT to Yaw (turning around) and Pitch (looking up/down)!
-                    // Furthermore, because invertPitch negates BOTH X and Z, (-x)*(-z) = x*z, meaning this value 
-                    // is completely unaffected by our software inversion state. It is an absolute hardware truth!
-                    // Right Earbud ≈ -0.68
-                    // Left Earbud ≈ +0.69
-                    val hardwareVx = 2 * (sample.x * sample.z + sample.w * sample.y)
-                    smoothedZ = if (smoothedZ == 0f) hardwareVx else (smoothedZ * 0.95f) + (hardwareVx * 0.05f)
-                    
-                    // Alpha 0.015f gives roughly a 1-second time constant at 15ms sampling rate.
-                    // This is slow enough to ignore quick head shakes/nods, but fast enough to auto-correct
-                    // a bad initial guess shortly after the user looks straight ahead.
-                    longTermVx = if (longTermVx == 0f) hardwareVx else (longTermVx * 0.985f) + (hardwareVx * 0.015f)
-                    
+                    // Calculate the projection metrics.
+                    // hardwareVx = 2*(xz + wy) is the Z projection of World X (Yaw dependent).
+                    // hardwareGx = 2*(xz - wy) is the X projection of World Z (Pitch invariant for Buds 2).
+                    val hardwareVx = 2 * (sample.rawX * sample.rawZ + sample.rawW * sample.rawY)
+                    val hardwareGx = 2 * (sample.rawX * sample.rawZ - sample.rawW * sample.rawY)
+
                     val isBuds2 = budsController.effectiveModel.value == com.benegedeniz.budsdynamiceq.bluetooth.BudsModel.BUDS_2 || budsController.effectiveModel.value == com.benegedeniz.budsdynamiceq.bluetooth.BudsModel.BUDS_2_PRO
+                    
+                    // For Buds 2, Gx is perfectly mirrored (<-0.4 for Left, >0.4 for Right).
+                    // For Buds 4 Pro, Gx crosses 0 during Pitch, but Vx is decent when looking forward (~0.4 for Left, ~-0.3 for Right).
+                    val detectionMetric = if (isBuds2) hardwareGx else hardwareVx
                     val rightSign = if (isBuds2) -1f else 1f
                     
+                    val normalizedMetric = detectionMetric * rightSign
+
+                    smoothedZ = if (smoothedZ == 0f) detectionMetric else (smoothedZ * 0.95f) + (detectionMetric * 0.05f)
+                    longTermVx = if (longTermVx == 0f) detectionMetric else (longTermVx * 0.985f) + (detectionMetric * 0.015f)
+                    
+                    val normalizedLongTermMetric = longTermVx * rightSign
+
                     if (activeImu == ImuSide.UNKNOWN) {
-                        // require very strong baseline to avoid false detection if user is looking down when app opens.
-                        // Right earbud upright is -0.68. If they look down 15 degrees it's -0.48.
-                        if (hardwareVx * rightSign > 0.55f) {
-                            Log.i(TAG, "Auto-detected LEFT earbud as primary IMU from baseline vx=\$hardwareVx")
+                        // For Buds 2, threshold is 0.3. For Buds 4 Pro, it's 0.2 (since baseline is ~0.3).
+                        val threshold = if (isBuds2) 0.3f else 0.2f
+                        if (normalizedMetric > threshold) {
+                            Log.i(TAG, "Auto-detected LEFT earbud as primary IMU from baseline metric=\$normalizedMetric")
                             activeImu = ImuSide.LEFT
                             budsController.setActiveImuSide(activeImu, getString(R.string.auto_detected_left_imu))
-                            smoothedZ = hardwareVx
-                        } else if (hardwareVx * rightSign < -0.55f) {
-                            Log.i(TAG, "Auto-detected RIGHT earbud as primary IMU from baseline vx=\$hardwareVx")
+                            smoothedZ = detectionMetric
+                        } else if (normalizedMetric < -threshold) {
+                            Log.i(TAG, "Auto-detected RIGHT earbud as primary IMU from baseline metric=\$normalizedMetric")
                             activeImu = ImuSide.RIGHT
                             budsController.setActiveImuSide(activeImu, getString(R.string.auto_detected_right_imu))
-                            smoothedZ = hardwareVx
+                            smoothedZ = detectionMetric
                         }
                     } else if (!isHandoffInProgress && prevLWearing && prevRWearing && !isImuForced) {
                         // A true IMU hijack is a physical swap of sensors that are mounted 180 degrees apart.
@@ -359,49 +361,54 @@ class BudsService : Service() {
                         // A human cannot rotate their head by >90 degrees in 15ms, so if dot product is < 0.5,
                         // it is absolute mathematical proof of a hardware IMU swap, perfectly immune to lying down.
                         val dot = lastRawSample?.let {
-                            it.x * sample.x + it.y * sample.y + it.z * sample.z + it.w * sample.w
+                            it.rawX * sample.rawX + it.rawY * sample.rawY + it.rawZ * sample.rawZ + it.rawW * sample.rawW
                         } ?: 1f
 
                         if (abs(dot) < 0.5f) {
-                            if (activeImu == ImuSide.RIGHT && hardwareVx * rightSign > 0f) {
+                            if (activeImu == ImuSide.RIGHT && normalizedMetric > 0f) {
                                 Log.w(TAG, "Hardware spontaneous IMU hijack to LEFT detected! (dot = \$dot). Correcting.")
                                 activeImu = ImuSide.LEFT
                                 budsController.setActiveImuSide(activeImu, getString(R.string.hardware_imu_hijack))
                                 expectedPitchSignFlip = true
-                                longTermVx = hardwareVx // Reset to prevent self-healing from fighting the correction
-                            } else if (activeImu == ImuSide.LEFT && hardwareVx * rightSign < 0f) {
+                                longTermVx = detectionMetric // Reset to prevent self-healing from fighting the correction
+                            } else if (activeImu == ImuSide.LEFT && normalizedMetric < 0f) {
                                 Log.w(TAG, "Hardware spontaneous IMU hijack to RIGHT detected! (dot = \$dot). Correcting.")
                                 activeImu = ImuSide.RIGHT
                                 budsController.setActiveImuSide(activeImu, getString(R.string.hardware_imu_hijack))
                                 expectedPitchSignFlip = true
-                                longTermVx = hardwareVx // Reset to prevent self-healing from fighting the correction
+                                longTermVx = detectionMetric // Reset to prevent self-healing from fighting the correction
                             }
                         }
 
-                        // Subtle drift self-healing
-                        if (activeImu == ImuSide.RIGHT && longTermVx > 0.1f) {
-                            Log.w(TAG, "Self-healing auto-corrected IMU side to LEFT from longTermVx=\$longTermVx")
-                            activeImu = ImuSide.LEFT
-                            budsController.setActiveImuSide(activeImu, getString(R.string.self_healing_imu))
-                        } else if (activeImu == ImuSide.LEFT && longTermVx < -0.1f) {
-                            Log.w(TAG, "Self-healing auto-corrected IMU side to RIGHT from longTermVx=\$longTermVx")
-                            activeImu = ImuSide.RIGHT
-                            budsController.setActiveImuSide(activeImu, getString(R.string.self_healing_imu))
+                        // Subtle drift self-healing. ONLY for Buds 2 because Gx is truly invariant.
+                        // For Buds 4 Pro, Vx can cross 0 during extreme Yaw, making this dangerous.
+                        if (isBuds2) {
+                            if (activeImu == ImuSide.RIGHT && normalizedLongTermMetric > 0.1f) {
+                                Log.w(TAG, "Self-healing auto-corrected IMU side to LEFT from normalizedLongTermMetric=\$normalizedLongTermMetric")
+                                activeImu = ImuSide.LEFT
+                                budsController.setActiveImuSide(activeImu, getString(R.string.self_healing_imu))
+                            } else if (activeImu == ImuSide.LEFT && normalizedLongTermMetric < -0.1f) {
+                                Log.w(TAG, "Self-healing auto-corrected IMU side to RIGHT from normalizedLongTermMetric=\$normalizedLongTermMetric")
+                                activeImu = ImuSide.RIGHT
+                                budsController.setActiveImuSide(activeImu, getString(R.string.self_healing_imu))
+                            }
                         }
                     }
                     
-                    // UNIVERSAL SAFETY NET: Instant absolute correction for impossible hardwareVx
-                    // This is disabled when isImuForced is true (e.g. only one bud worn) to prevent false positives when lying down sideways.
-                    if (activeImu == ImuSide.RIGHT && hardwareVx > 0.3f && isImuForced == false) {
-                        Log.w(TAG, "Instant auto-correction to LEFT from hardwareVx=\$hardwareVx")
-                        activeImu = ImuSide.LEFT
-                        isImuForced = false
-                        budsController.setActiveImuSide(activeImu, getString(R.string.self_healing_imu))
-                    } else if (activeImu == ImuSide.LEFT && hardwareVx < -0.3f && isImuForced == false) {
-                        Log.w(TAG, "Instant auto-correction to RIGHT from hardwareVx=\$hardwareVx")
-                        activeImu = ImuSide.RIGHT
-                        isImuForced = false
-                        budsController.setActiveImuSide(activeImu, getString(R.string.self_healing_imu))
+                    // UNIVERSAL SAFETY NET: Instant absolute correction for impossible metrics.
+                    // ONLY safe for Buds 2 because Gx is mathematically rock solid.
+                    if (isBuds2 && isImuForced == false) {
+                        if (activeImu == ImuSide.RIGHT && normalizedMetric > 0.3f) {
+                            Log.w(TAG, "Instant auto-correction to LEFT from normalizedMetric=\$normalizedMetric")
+                            activeImu = ImuSide.LEFT
+                            isImuForced = false
+                            budsController.setActiveImuSide(activeImu, getString(R.string.self_healing_imu))
+                        } else if (activeImu == ImuSide.LEFT && normalizedMetric < -0.3f) {
+                            Log.w(TAG, "Instant auto-correction to RIGHT from normalizedMetric=\$normalizedMetric")
+                            activeImu = ImuSide.RIGHT
+                            isImuForced = false
+                            budsController.setActiveImuSide(activeImu, getString(R.string.self_healing_imu))
+                        }
                     }
                     
                     lastRawSample = sample
