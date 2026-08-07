@@ -24,16 +24,23 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Build Debug APK (Staging)
+      - name: Build Debug & Unsigned Release APKs (Staging)
         if: github.ref == 'refs/heads/staging'
-        run: ./gradlew assembleDebug
+        run: ./gradlew assembleDebug assembleRelease
 
       - name: Upload Debug APK
         if: github.ref == 'refs/heads/staging'
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v4
         with:
           name: app-debug
           path: app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Upload Unsigned Release APK
+        if: github.ref == 'refs/heads/staging'
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-unsigned
+          path: app/build/outputs/apk/release/app-release-unsigned.apk
 
       - name: Decode Keystore (Master)
         if: github.ref == 'refs/heads/master'
@@ -57,7 +64,7 @@ jobs:
 
       - name: Upload Release APK
         if: github.ref == 'refs/heads/master'
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v4
         with:
           name: app-release
           path: app/build/outputs/apk/release/app-release.apk
