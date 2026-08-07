@@ -869,15 +869,14 @@ fun LivePreviewSection(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontWeight = FontWeight.Medium
             )
-                }
-            }
-            
             Spacer(modifier = Modifier.height(16.dp))
             OutlinedButton(
                 onClick = { viewModel.isSensorDebugScreenOpen = true },
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(stringResource(R.string.debug_title))
+            }
+                }
             }
         }
     }
