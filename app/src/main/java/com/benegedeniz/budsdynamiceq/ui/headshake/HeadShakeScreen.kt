@@ -90,13 +90,14 @@ fun HeadShakeScreen(
         }
     }
 
-    androidx.compose.animation.AnimatedVisibility(
-        visible = !viewModel.isMovementCancellingScreenOpen,
-        enter = androidx.compose.animation.slideInHorizontally(animationSpec = androidx.compose.animation.core.tween(300)) { -it } + androidx.compose.animation.fadeIn(animationSpec = androidx.compose.animation.core.tween(300)),
-        exit = androidx.compose.animation.slideOutHorizontally(animationSpec = androidx.compose.animation.core.tween(300)) { -it } + androidx.compose.animation.fadeOut(animationSpec = androidx.compose.animation.core.tween(300))
-    ) {
-        Box(modifier = modifier.fillMaxSize()) {
-            LazyColumn(
+    Box(modifier = modifier.fillMaxSize()) {
+        androidx.compose.animation.AnimatedVisibility(
+            visible = !viewModel.isMovementCancellingScreenOpen,
+            enter = androidx.compose.animation.slideInHorizontally(animationSpec = androidx.compose.animation.core.tween(300)) { -it } + androidx.compose.animation.fadeIn(animationSpec = androidx.compose.animation.core.tween(300)),
+            exit = androidx.compose.animation.slideOutHorizontally(animationSpec = androidx.compose.animation.core.tween(300)) { -it } + androidx.compose.animation.fadeOut(animationSpec = androidx.compose.animation.core.tween(300))
+        ) {
+            Box(modifier = Modifier.fillMaxSize()) {
+                LazyColumn(
                 state = listState,
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(bottom = 120.dp, top = 140.dp)
@@ -553,7 +554,7 @@ fun HeadShakeScreen(
         }
         GestureRecordingScreen(viewModel = viewModel)
     }
-
+    } // Close root Box
 }
 
 @Composable

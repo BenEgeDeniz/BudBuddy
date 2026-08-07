@@ -89,6 +89,7 @@ fun SensorDebugScreen(
     }
 
     Scaffold(
+        modifier = Modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.debug_title)) },

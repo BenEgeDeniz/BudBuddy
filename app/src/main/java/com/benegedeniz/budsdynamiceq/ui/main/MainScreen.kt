@@ -3,9 +3,12 @@ package com.benegedeniz.budsdynamiceq.ui.main
 import android.content.Context
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -43,6 +46,7 @@ import com.benegedeniz.budsdynamiceq.ui.rules.RulesScreen
 import com.benegedeniz.budsdynamiceq.ui.rules.RulesViewModel
 import com.benegedeniz.budsdynamiceq.ui.wearstate.WearStateScreen
 import com.benegedeniz.budsdynamiceq.ui.wearstate.WearStateViewModel
+import kotlinx.coroutines.launch
 
 sealed class Screen(val route: String, val tabIndex: Int = -1) {
     object Home : Screen("home", 0)
@@ -61,63 +65,19 @@ fun MainScreen() {
     val rulesViewModel: RulesViewModel = viewModel()
     
     val navController = rememberNavController()
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = navBackStackEntry?.destination?.route
-    
-    val selectedTab = when (currentRoute) {
-        Screen.Rules.route -> 1
-        Screen.Gestures.route -> 2
-        else -> 0
-    }
-    
-    var showGesturesDisabledDialog by remember { mutableStateOf(false) }
-    var showNoDeviceDialog by remember { mutableStateOf(false) }
-    
-    val appContext = LocalContext.current
-    val budsController = ServiceLocator.provideBudsController(appContext)
-    val savedMac by budsController.savedDeviceMac.collectAsState()
-    val prefs = appContext.getSharedPreferences("BudsPrefs", Context.MODE_PRIVATE)
-    var experimentalGesturesEnabled by remember(savedMac) { 
-        mutableStateOf(prefs.getBoolean("experimental_gestures_enabled_${savedMac ?: ""}", false)) 
-    }
-    
-    val locked = headShakeViewModel.isUiLocked.collectAsState().value
-    val effectiveModel = rulesViewModel.effectiveModel.collectAsState().value
-    val isSensorDebugScreenOpen = headShakeViewModel.isSensorDebugScreenOpen
-    
-    LaunchedEffect(effectiveModel, experimentalGesturesEnabled) {
-        if (effectiveModel.isExperimentalGestures && !experimentalGesturesEnabled && selectedTab == 2) {
-            navController.navigate(Screen.Home.route) {
-                popUpTo(0)
-            }
-        }
-    }
     
     Box(modifier = Modifier.fillMaxSize()) {
         NavHost(
             navController = navController,
-            startDestination = Screen.Home.route,
-            modifier = Modifier.fillMaxSize(),
-            enterTransition = { fadeIn(animationSpec = tween(300)) },
-            exitTransition = { fadeOut(animationSpec = tween(300)) },
-            popEnterTransition = { fadeIn(animationSpec = tween(300)) },
-            popExitTransition = { fadeOut(animationSpec = tween(300)) }
+            startDestination = "main_tabs",
+            modifier = Modifier.fillMaxSize()
         ) {
-            composable(Screen.Home.route) {
-                BudsScreen(
-                    viewModel = rulesViewModel,
-                    onFitTestClick = { navController.navigate(Screen.FitTest.route) },
-                    onWearStateClick = { navController.navigate(Screen.WearState.route) },
-                    onSoundBalanceTestClick = { navController.navigate(Screen.SoundBalance.route) },
-                    onSettingsClick = { navController.navigate(Screen.Settings.route) },
-                    modifier = Modifier.fillMaxSize()
+            composable("main_tabs") {
+                MainTabsScreen(
+                    navController = navController,
+                    headShakeViewModel = headShakeViewModel,
+                    rulesViewModel = rulesViewModel
                 )
-            }
-            composable(Screen.Rules.route) {
-                RulesScreen(viewModel = rulesViewModel, modifier = Modifier.fillMaxSize())
-            }
-            composable(Screen.Gestures.route) {
-                HeadShakeScreen(viewModel = headShakeViewModel, modifier = Modifier.fillMaxSize())
             }
             
             // Sub-screens of Home
@@ -149,8 +109,66 @@ fun MainScreen() {
                 )
             }
         }
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun MainTabsScreen(
+    navController: NavHostController,
+    headShakeViewModel: HeadShakeViewModel,
+    rulesViewModel: RulesViewModel
+) {
+    val pagerState = rememberPagerState(
+        initialPage = 0,
+        pageCount = { 3 }
+    )
+    val coroutineScope = rememberCoroutineScope()
+    val selectedTab = pagerState.currentPage
+    
+    var showGesturesDisabledDialog by remember { mutableStateOf(false) }
+    var showNoDeviceDialog by remember { mutableStateOf(false) }
+    
+    val appContext = LocalContext.current
+    val budsController = ServiceLocator.provideBudsController(appContext)
+    val savedMac by budsController.savedDeviceMac.collectAsState()
+    val prefs = appContext.getSharedPreferences("BudsPrefs", Context.MODE_PRIVATE)
+    var experimentalGesturesEnabled by remember(savedMac) { 
+        mutableStateOf(prefs.getBoolean("experimental_gestures_enabled_${savedMac ?: ""}", false)) 
+    }
+    
+    val locked = headShakeViewModel.isUiLocked.collectAsState().value
+    val effectiveModel = rulesViewModel.effectiveModel.collectAsState().value
+    val isSensorDebugScreenOpen = headShakeViewModel.isSensorDebugScreenOpen
+    
+    LaunchedEffect(effectiveModel, experimentalGesturesEnabled) {
+        if (effectiveModel.isExperimentalGestures && !experimentalGesturesEnabled && selectedTab == 2) {
+            pagerState.scrollToPage(0)
+        }
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        HorizontalPager(
+            state = pagerState,
+            beyondViewportPageCount = 2,
+            userScrollEnabled = false,
+            modifier = Modifier.fillMaxSize()
+        ) { page ->
+            when (page) {
+                0 -> BudsScreen(
+                    viewModel = rulesViewModel,
+                    onFitTestClick = { navController.navigate(Screen.FitTest.route) },
+                    onWearStateClick = { navController.navigate(Screen.WearState.route) },
+                    onSoundBalanceTestClick = { navController.navigate(Screen.SoundBalance.route) },
+                    onSettingsClick = { navController.navigate(Screen.Settings.route) },
+                    modifier = Modifier.fillMaxSize()
+                )
+                1 -> RulesScreen(viewModel = rulesViewModel, modifier = Modifier.fillMaxSize())
+                2 -> HeadShakeScreen(viewModel = headShakeViewModel, modifier = Modifier.fillMaxSize())
+            }
+        }
         
-        val showBottomBar = currentRoute in listOf(Screen.Home.route, Screen.Rules.route, Screen.Gestures.route) && !isSensorDebugScreenOpen
+        val showBottomBar = !isSensorDebugScreenOpen
         
         AnimatedVisibility(
             visible = showBottomBar,
@@ -169,17 +187,9 @@ fun MainScreen() {
                             showGesturesDisabledDialog = true
                         }
                     } else {
-                        val route = when (targetTabIndex) {
-                            1 -> Screen.Rules.route
-                            2 -> Screen.Gestures.route
-                            else -> Screen.Home.route
-                        }
-                        navController.navigate(route) {
-                            popUpTo(navController.graph.startDestinationId) {
-                                saveState = true
-                            }
-                            launchSingleTop = true
-                            restoreState = true
+                        coroutineScope.launch {
+                            // Instant scroll avoids visual glitches on heavy screens
+                            pagerState.scrollToPage(targetTabIndex)
                         }
                     }
                 },
@@ -212,11 +222,7 @@ fun MainScreen() {
                             .apply()
                         experimentalGesturesEnabled = true
                         showGesturesDisabledDialog = false 
-                        navController.navigate(Screen.Gestures.route) {
-                            popUpTo(navController.graph.startDestinationId) { saveState = true }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
+                        coroutineScope.launch { pagerState.scrollToPage(2) }
                     }) {
                         Text(stringResource(R.string.enable))
                     }
