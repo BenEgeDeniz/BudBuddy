@@ -91,8 +91,21 @@ fun MainScreen() {
         if (activeSubScreen != SubScreen.NONE) lastVisibleSubScreen = activeSubScreen
     }
 
+    val context = LocalContext.current
+    var backPressedTime by remember { mutableLongStateOf(0L) }
+    
     BackHandler(enabled = activeSubScreen != SubScreen.NONE) {
         activeSubScreen = SubScreen.NONE
+    }
+
+    BackHandler(enabled = activeSubScreen == SubScreen.NONE) {
+        val currentTime = System.currentTimeMillis()
+        if (currentTime - backPressedTime < 2000) {
+            (context as? android.app.Activity)?.finish()
+        } else {
+            backPressedTime = currentTime
+            android.widget.Toast.makeText(context, context.getString(R.string.press_back_again_to_exit), android.widget.Toast.LENGTH_SHORT).show()
+        }
     }
 
     Box(modifier = Modifier.fillMaxSize()) {

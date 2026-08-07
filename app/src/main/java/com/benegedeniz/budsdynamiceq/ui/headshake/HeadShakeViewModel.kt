@@ -403,9 +403,8 @@ class HeadShakeViewModel(application: Application) : AndroidViewModel(applicatio
             _recordedTemplates.value = templates
             
             if (templates.isEmpty()) {
-                // Not enough movement, just return to ready state with a warning
+                consistencyWarning.value = R.string.no_significant_movement_detected
                 _recordingState.value = RecordingState.READY_FOR_SAMPLE
-                consistencyWarning.value = getApplication<Application>().getString(R.string.no_significant_movement_detected)
                 return@launch
             }
             
@@ -481,7 +480,7 @@ class HeadShakeViewModel(application: Application) : AndroidViewModel(applicatio
                 val refDur = templates[prevIndex].last().timestampMs - templates[prevIndex].first().timestampMs
                 val dist = DtwEngine.computeDtw(refFeatures, newFeatures, refDur, newDur)
                 if (dist > 0.75f) {
-                    consistencyWarning.value = getApplication<Application>().getString(R.string.gesture_looks_different)
+                    consistencyWarning.value = R.string.gesture_looks_different
                 } else {
                     consistencyWarning.value = null
                 }
@@ -503,7 +502,7 @@ class HeadShakeViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
-    val consistencyWarning = MutableStateFlow<String?>(null)
+    val consistencyWarning = MutableStateFlow<Int?>(null)
 
     fun redoLastRecording() {
         startRecording()

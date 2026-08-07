@@ -631,7 +631,7 @@ fun RecordingStep(viewModel: HeadShakeViewModel) {
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
             ) {
                 Text(
-                    text = consistencyWarning!!,
+                    text = stringResource(consistencyWarning!!),
                     color = MaterialTheme.colorScheme.onErrorContainer,
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(16.dp),
