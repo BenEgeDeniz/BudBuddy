@@ -667,7 +667,7 @@ fun RuleEditScreen(
                                         titleSelected = !titleSelected
                                         updateKeywordFromBadges()
                                     },
-                                    label = { Text(stringResource(R.string.title_format, title)) }
+                                    label = { Text(stringResource(R.string.title_format, title), maxLines = 1, modifier = Modifier.basicMarquee()) }
                                 )
                             }
                             currentMetadata?.artist?.takeIf { it.isNotBlank() }?.let { artist ->
@@ -677,7 +677,7 @@ fun RuleEditScreen(
                                         artistSelected = !artistSelected
                                         updateKeywordFromBadges()
                                     },
-                                    label = { Text(stringResource(R.string.artist_format, artist)) }
+                                    label = { Text(stringResource(R.string.artist_format, artist), maxLines = 1, modifier = Modifier.basicMarquee()) }
                                 )
                             }
                             when (currentMetadata?.genreFetchState) {
@@ -697,7 +697,7 @@ fun RuleEditScreen(
                                                 genreSelected = !genreSelected
                                                 updateKeywordFromBadges()
                                             },
-                                            label = { Text(stringResource(R.string.genre_format, genre)) }
+                                            label = { Text(stringResource(R.string.genre_format, genre), maxLines = 1, modifier = Modifier.basicMarquee()) }
                                         )
                                     }
                                 }
@@ -769,8 +769,8 @@ fun RuleEditScreen(
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         Column {
-                                            Text(text = song.title ?: stringResource(R.string.unknown_title), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
-                                            Text(text = song.artist ?: stringResource(R.string.unknown_artist), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                            Text(text = song.title ?: stringResource(R.string.unknown_title), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                                            Text(text = song.artist ?: stringResource(R.string.unknown_artist), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                                         }
                                     }
                                 }
