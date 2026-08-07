@@ -240,7 +240,11 @@ fun SetupScreen(onPermissionsGranted: () -> Unit) {
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .height(56.dp),
-                                shape = RoundedCornerShape(28.dp)
+                                shape = RoundedCornerShape(28.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.secondary,
+                                    contentColor = MaterialTheme.colorScheme.onSecondary
+                                )
                             ) {
                                 Text(stringResource(R.string.grant_notification_access), style = MaterialTheme.typography.titleMedium)
                             }
