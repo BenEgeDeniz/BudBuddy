@@ -420,7 +420,7 @@ class BudsController(
                     Log.e(TAG, "Send failed: ${e.message}")
                 }
                 
-                delay(1000)
+                delay(3000) // Wait for ANC chime to finish before retrying
                 if (mode != lastSentNcMode) break
             }
         }
