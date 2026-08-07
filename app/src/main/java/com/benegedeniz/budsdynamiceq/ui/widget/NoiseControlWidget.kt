@@ -117,7 +117,18 @@ fun WidgetContent(
 
             controls.forEach { mode ->
                 val isSelected = activeNoiseControl == mode
-                val isModeEnabled = isConnected && anyInEar && (bothInEar || oneEarbudNoiseControlEnabled || (mode != NoiseControlMode.ADAPTIVE && mode != NoiseControlMode.NOISE_CANCELLATION && mode != NoiseControlMode.TRANSPARENT))
+                val isBudsTransparencyAllowed = effectiveModel == com.benegedeniz.budsdynamiceq.bluetooth.BudsModel.BUDS_3_PRO || effectiveModel == com.benegedeniz.budsdynamiceq.bluetooth.BudsModel.BUDS_4_PRO
+                val isModeEnabled = if (!isConnected || !anyInEar) {
+                    false
+                } else if (bothInEar || oneEarbudNoiseControlEnabled) {
+                    true
+                } else {
+                    if (isBudsTransparencyAllowed) {
+                        mode == NoiseControlMode.OFF || mode == NoiseControlMode.TRANSPARENT
+                    } else {
+                        mode == NoiseControlMode.OFF
+                    }
+                }
 
                 val iconRes = when (mode) {
                     NoiseControlMode.NOISE_CANCELLATION -> R.drawable.ic_noise_cancellation

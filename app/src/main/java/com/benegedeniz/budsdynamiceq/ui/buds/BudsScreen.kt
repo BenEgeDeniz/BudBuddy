@@ -402,9 +402,20 @@ fun BudsScreen(
                         }
                         val bothInEar = isConnected && placementL == com.benegedeniz.budsdynamiceq.data.model.PlacementState.WEARING && placementR == com.benegedeniz.budsdynamiceq.data.model.PlacementState.WEARING
                         val anyInEar = isConnected && (placementL == com.benegedeniz.budsdynamiceq.data.model.PlacementState.WEARING || placementR == com.benegedeniz.budsdynamiceq.data.model.PlacementState.WEARING)
+                        val isBudsTransparencyAllowed = effectiveModel == com.benegedeniz.budsdynamiceq.bluetooth.BudsModel.BUDS_3_PRO || effectiveModel == com.benegedeniz.budsdynamiceq.bluetooth.BudsModel.BUDS_4_PRO
                         controls.forEach { mode ->
                             val isSelected = activeNoiseControl == mode
-                            val isModeEnabled = isConnected && anyInEar && (bothInEar || oneEarbudNoiseControlEnabled || (mode != NoiseControlMode.ADAPTIVE && mode != NoiseControlMode.NOISE_CANCELLATION && mode != NoiseControlMode.TRANSPARENT))
+                            val isModeEnabled = if (!isConnected || !anyInEar) {
+                                false
+                            } else if (bothInEar || oneEarbudNoiseControlEnabled) {
+                                true
+                            } else {
+                                if (isBudsTransparencyAllowed) {
+                                    mode == NoiseControlMode.OFF || mode == NoiseControlMode.TRANSPARENT
+                                } else {
+                                    mode == NoiseControlMode.OFF
+                                }
+                            }
                             
                             val bgColor by androidx.compose.animation.animateColorAsState(
                                 targetValue = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
