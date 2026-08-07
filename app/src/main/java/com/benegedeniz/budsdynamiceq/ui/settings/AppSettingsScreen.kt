@@ -107,8 +107,7 @@ fun AppSettingsScreen(
                         onClick = {
                             haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                             onBack()
-                        },
-                        modifier = Modifier.bounceClick()
+                        }
                     ) {
                         Icon(Icons.Default.Close, contentDescription = stringResource(R.string.close))
                     }

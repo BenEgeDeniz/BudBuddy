@@ -1,6 +1,7 @@
 package com.benegedeniz.budsdynamiceq.ui.main
 
 import android.content.Context
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -17,7 +18,6 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Sensors
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -31,123 +31,69 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
 import com.benegedeniz.budsdynamiceq.R
 import com.benegedeniz.budsdynamiceq.di.ServiceLocator
+import com.benegedeniz.budsdynamiceq.ui.balance.SoundBalanceTestScreen
 import com.benegedeniz.budsdynamiceq.ui.buds.BudsScreen
 import com.benegedeniz.budsdynamiceq.ui.fittest.FitTestScreen
 import com.benegedeniz.budsdynamiceq.ui.headshake.HeadShakeScreen
 import com.benegedeniz.budsdynamiceq.ui.headshake.HeadShakeViewModel
 import com.benegedeniz.budsdynamiceq.ui.rules.RulesScreen
 import com.benegedeniz.budsdynamiceq.ui.rules.RulesViewModel
+import com.benegedeniz.budsdynamiceq.ui.settings.AppSettingsScreen
 import com.benegedeniz.budsdynamiceq.ui.wearstate.WearStateScreen
 import com.benegedeniz.budsdynamiceq.ui.wearstate.WearStateViewModel
 import kotlinx.coroutines.launch
 
-sealed class Screen(val route: String, val tabIndex: Int = -1) {
-    object Home : Screen("home", 0)
-    object Rules : Screen("rules", 1)
-    object Gestures : Screen("gestures", 2)
-    object FitTest : Screen("fit_test")
-    object WearState : Screen("wear_state")
-    object SoundBalance : Screen("sound_balance")
-    object Settings : Screen("settings")
-}
+// Sub-screen enum for flag-based navigation (no NavHost lifecycle transitions)
+private enum class SubScreen { NONE, FIT_TEST, WEAR_STATE, SOUND_BALANCE, SETTINGS }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MainScreen() {
     val headShakeViewModel: HeadShakeViewModel = viewModel()
     val wearStateViewModel: WearStateViewModel = viewModel()
     val rulesViewModel: RulesViewModel = viewModel()
-    
-    val navController = rememberNavController()
-    
-    Box(modifier = Modifier.fillMaxSize()) {
-        NavHost(
-            navController = navController,
-            startDestination = "main_tabs",
-            modifier = Modifier.fillMaxSize()
-        ) {
-            composable("main_tabs") {
-                MainTabsScreen(
-                    navController = navController,
-                    headShakeViewModel = headShakeViewModel,
-                    rulesViewModel = rulesViewModel
-                )
-            }
-            
-            // Sub-screens of Home
-            composable(Screen.FitTest.route) {
-                FitTestScreen(
-                    viewModel = rulesViewModel,
-                    onBack = { navController.popBackStack() },
-                    modifier = Modifier.fillMaxSize()
-                )
-            }
-            composable(Screen.WearState.route) {
-                WearStateScreen(
-                    viewModel = wearStateViewModel,
-                    onBack = { navController.popBackStack() },
-                    modifier = Modifier.fillMaxSize()
-                )
-            }
-            composable(Screen.SoundBalance.route) {
-                com.benegedeniz.budsdynamiceq.ui.balance.SoundBalanceTestScreen(
-                    viewModel = rulesViewModel,
-                    onBack = { navController.popBackStack() },
-                    modifier = Modifier.fillMaxSize()
-                )
-            }
-            composable(Screen.Settings.route) {
-                com.benegedeniz.budsdynamiceq.ui.settings.AppSettingsScreen(
-                    onBack = { navController.popBackStack() },
-                    modifier = Modifier.fillMaxSize()
-                )
-            }
-        }
-    }
-}
 
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-fun MainTabsScreen(
-    navController: NavHostController,
-    headShakeViewModel: HeadShakeViewModel,
-    rulesViewModel: RulesViewModel
-) {
-    val pagerState = rememberPagerState(
-        initialPage = 0,
-        pageCount = { 3 }
-    )
+    val pagerState = rememberPagerState(initialPage = 0, pageCount = { 3 })
     val coroutineScope = rememberCoroutineScope()
     val selectedTab = pagerState.currentPage
-    
+
     var showGesturesDisabledDialog by remember { mutableStateOf(false) }
     var showNoDeviceDialog by remember { mutableStateOf(false) }
-    
+
     val appContext = LocalContext.current
     val budsController = ServiceLocator.provideBudsController(appContext)
     val savedMac by budsController.savedDeviceMac.collectAsState()
     val prefs = appContext.getSharedPreferences("BudsPrefs", Context.MODE_PRIVATE)
-    var experimentalGesturesEnabled by remember(savedMac) { 
-        mutableStateOf(prefs.getBoolean("experimental_gestures_enabled_${savedMac ?: ""}", false)) 
+    var experimentalGesturesEnabled by remember(savedMac) {
+        mutableStateOf(prefs.getBoolean("experimental_gestures_enabled_${savedMac ?: ""}", false))
     }
-    
+
     val locked = headShakeViewModel.isUiLocked.collectAsState().value
     val effectiveModel = rulesViewModel.effectiveModel.collectAsState().value
     val isSensorDebugScreenOpen = headShakeViewModel.isSensorDebugScreenOpen
-    
+
     LaunchedEffect(effectiveModel, experimentalGesturesEnabled) {
         if (effectiveModel.isExperimentalGestures && !experimentalGesturesEnabled && selectedTab == 2) {
-            pagerState.scrollToPage(0)
+            pagerState.animateScrollToPage(0)
         }
     }
 
+    // Sub-screen state — no NavHost, no lifecycle transitions
+    var activeSubScreen by remember { mutableStateOf(SubScreen.NONE) }
+    // Tracks the last real sub-screen so exit animation has content to slide out
+    var lastVisibleSubScreen by remember { mutableStateOf(SubScreen.NONE) }
+    LaunchedEffect(activeSubScreen) {
+        if (activeSubScreen != SubScreen.NONE) lastVisibleSubScreen = activeSubScreen
+    }
+
+    BackHandler(enabled = activeSubScreen != SubScreen.NONE) {
+        activeSubScreen = SubScreen.NONE
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
+        // ── Main pager (always alive, never unmounted) ─────────────────────
         HorizontalPager(
             state = pagerState,
             beyondViewportPageCount = 2,
@@ -157,19 +103,19 @@ fun MainTabsScreen(
             when (page) {
                 0 -> BudsScreen(
                     viewModel = rulesViewModel,
-                    onFitTestClick = { navController.navigate(Screen.FitTest.route) },
-                    onWearStateClick = { navController.navigate(Screen.WearState.route) },
-                    onSoundBalanceTestClick = { navController.navigate(Screen.SoundBalance.route) },
-                    onSettingsClick = { navController.navigate(Screen.Settings.route) },
+                    onFitTestClick = { activeSubScreen = SubScreen.FIT_TEST },
+                    onWearStateClick = { activeSubScreen = SubScreen.WEAR_STATE },
+                    onSoundBalanceTestClick = { activeSubScreen = SubScreen.SOUND_BALANCE },
+                    onSettingsClick = { activeSubScreen = SubScreen.SETTINGS },
                     modifier = Modifier.fillMaxSize()
                 )
                 1 -> RulesScreen(viewModel = rulesViewModel, modifier = Modifier.fillMaxSize())
                 2 -> HeadShakeScreen(viewModel = headShakeViewModel, modifier = Modifier.fillMaxSize())
             }
         }
-        
-        val showBottomBar = !isSensorDebugScreenOpen
-        
+
+        // ── Bottom bar ─────────────────────────────────────────────────────
+        val showBottomBar = !isSensorDebugScreenOpen && activeSubScreen == SubScreen.NONE
         AnimatedVisibility(
             visible = showBottomBar,
             modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth(),
@@ -179,7 +125,7 @@ fun MainTabsScreen(
             GlassyBottomNavBar(
                 selectedTab = selectedTab,
                 disabledTabs = if (effectiveModel.isExperimentalGestures && !experimentalGesturesEnabled) listOf(2) else emptyList(),
-                onTabSelected = { targetTabIndex -> 
+                onTabSelected = { targetTabIndex ->
                     if (targetTabIndex == 2 && effectiveModel.isExperimentalGestures && !experimentalGesturesEnabled) {
                         if (savedMac == null) {
                             showNoDeviceDialog = true
@@ -188,8 +134,7 @@ fun MainTabsScreen(
                         }
                     } else {
                         coroutineScope.launch {
-                            // Instant scroll avoids visual glitches on heavy screens
-                            pagerState.scrollToPage(targetTabIndex)
+                            pagerState.animateScrollToPage(targetTabIndex)
                         }
                     }
                 },
@@ -209,20 +154,54 @@ fun MainTabsScreen(
                 }
             )
         }
-        
+
+        // ── Sub-screen overlays (flag-based, no NavHost) ───────────────────
+        AnimatedVisibility(
+            visible = activeSubScreen != SubScreen.NONE,
+            enter = slideInHorizontally(initialOffsetX = { it }, animationSpec = tween(220)) + fadeIn(animationSpec = tween(220)),
+            exit = slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(200)) + fadeOut(animationSpec = tween(200))
+        ) {
+            Box(modifier = Modifier.fillMaxSize()) {
+                // Use lastVisibleSubScreen so content stays rendered during exit animation
+                when (lastVisibleSubScreen) {
+                    SubScreen.FIT_TEST -> FitTestScreen(
+                        viewModel = rulesViewModel,
+                        onBack = { activeSubScreen = SubScreen.NONE },
+                        modifier = Modifier.fillMaxSize()
+                    )
+                    SubScreen.WEAR_STATE -> WearStateScreen(
+                        viewModel = wearStateViewModel,
+                        onBack = { activeSubScreen = SubScreen.NONE },
+                        modifier = Modifier.fillMaxSize()
+                    )
+                    SubScreen.SOUND_BALANCE -> SoundBalanceTestScreen(
+                        viewModel = rulesViewModel,
+                        onBack = { activeSubScreen = SubScreen.NONE },
+                        modifier = Modifier.fillMaxSize()
+                    )
+                    SubScreen.SETTINGS -> AppSettingsScreen(
+                        onBack = { activeSubScreen = SubScreen.NONE },
+                        modifier = Modifier.fillMaxSize()
+                    )
+                    SubScreen.NONE -> {}
+                }
+            }
+        }
+
+        // ── Dialogs ────────────────────────────────────────────────────────
         if (showGesturesDisabledDialog) {
             AlertDialog(
                 onDismissRequest = { showGesturesDisabledDialog = false },
                 title = { Text(stringResource(R.string.gestures_not_supported)) },
                 text = { Text(stringResource(R.string.experimental_gestures_warning)) },
                 confirmButton = {
-                    TextButton(onClick = { 
+                    TextButton(onClick = {
                         prefs.edit()
                             .putBoolean("experimental_gestures_enabled_${savedMac ?: ""}", true)
                             .apply()
                         experimentalGesturesEnabled = true
-                        showGesturesDisabledDialog = false 
-                        coroutineScope.launch { pagerState.scrollToPage(2) }
+                        showGesturesDisabledDialog = false
+                        coroutineScope.launch { pagerState.animateScrollToPage(2) }
                     }) {
                         Text(stringResource(R.string.enable))
                     }
@@ -335,60 +314,56 @@ fun GlassyBottomNavBar(
                     }
                 }
 
-                // index 1: FAB
-                if (fabProgress > 0f) {
-                    FloatingActionButton(
-                        onClick = {
-                            if (fabProgress > 0.5f && fabEnabled) {
-                                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                onFabClick()
-                            }
+                // index 1: FAB — always in Layout so position can be interpolated
+                FloatingActionButton(
+                    onClick = {
+                        if (fabProgress > 0.5f && fabEnabled) {
+                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                            onFabClick()
+                        }
+                    },
+                    modifier = Modifier
+                        .size(64.dp)
+                        .graphicsLayer {
+                            scaleX = fabProgress
+                            scaleY = fabProgress
+                            alpha = if (fabEnabled) fabProgress else fabProgress * 0.5f
+                            shadowElevation = 6.dp.toPx()
+                            shape = CircleShape
                         },
-                        modifier = Modifier
-                            .size(64.dp)
-                            .graphicsLayer {
-                                scaleX = fabProgress
-                                scaleY = fabProgress
-                                alpha = if (fabEnabled) fabProgress else fabProgress * 0.5f
-                                shadowElevation = 6.dp.toPx()
-                                shape = CircleShape
-                            },
-                        shape = CircleShape,
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary,
-                        elevation = FloatingActionButtonDefaults.elevation(defaultElevation = 0.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = stringResource(R.string.add),
-                            modifier = Modifier.size(26.dp)
-                        )
-                    }
+                    shape = CircleShape,
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                    elevation = FloatingActionButtonDefaults.elevation(defaultElevation = 0.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = stringResource(R.string.add),
+                        modifier = Modifier.size(26.dp)
+                    )
                 }
             }
         ) { measurables, constraints ->
             val pillPlaceable = measurables[0].measure(constraints.copy(minWidth = 0))
-            val fabPlaceable = if (measurables.size > 1) measurables[1].measure(constraints.copy(minWidth = 0)) else null
-            
+            val fabPlaceable = measurables[1].measure(constraints.copy(minWidth = 0))
+
             val screenWidth = constraints.maxWidth
-            val fabWidth = fabPlaceable?.width ?: 0
             val spacingPx = 16.dp.roundToPx()
-            
-            // Fixed centered position for the pill when alone
+
             val centeredPillX = (screenWidth - pillPlaceable.width) / 2f
-            
-            // Shifted position when FAB is present so the entire group remains centered
-            val totalGroupWidth = pillPlaceable.width + spacingPx + fabWidth
+            val totalGroupWidth = pillPlaceable.width + spacingPx + fabPlaceable.width
             val groupCenteredPillX = (screenWidth - totalGroupWidth) / 2f
-            
-            val currentPillX = centeredPillX + (groupCenteredPillX - centeredPillX) * fabProgress
-            val fabX = currentPillX + pillPlaceable.width + (spacingPx * fabProgress)
-            
-            layout(screenWidth, pillPlaceable.height) {
-                pillPlaceable.placeRelative(currentPillX.toInt(), 0)
-                if (fabPlaceable != null && fabWidth > 0) {
-                    fabPlaceable.placeRelative(fabX.toInt(), (pillPlaceable.height - fabPlaceable.height) / 2)
-                }
+
+            // Interpolate pill position smoothly using fabProgress (0=centered, 1=grouped)
+            val pillX = groupCenteredPillX + (centeredPillX - groupCenteredPillX) * (1f - fabProgress)
+            val fabX = pillX + pillPlaceable.width + spacingPx
+
+            val pillY = (constraints.maxHeight - pillPlaceable.height) / 2f
+            val fabY = (constraints.maxHeight - fabPlaceable.height) / 2f
+
+            layout(constraints.maxWidth, constraints.maxHeight) {
+                pillPlaceable.placeRelative(pillX.toInt(), pillY.toInt())
+                fabPlaceable.placeRelative(fabX.toInt(), fabY.toInt())
             }
         }
     }

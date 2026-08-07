@@ -89,8 +89,7 @@ fun FitTestScreen(viewModel: RulesViewModel, onBack: () -> Unit, modifier: Modif
                         onClick = {
                             haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                             onBack()
-                        },
-                        modifier = Modifier.bounceClick()
+                        }
                     ) {
                         Icon(Icons.Default.Close, contentDescription = stringResource(R.string.close))
                     }
