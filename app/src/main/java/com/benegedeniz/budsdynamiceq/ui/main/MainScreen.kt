@@ -59,7 +59,7 @@ fun MainScreen() {
 
     val pagerState = rememberPagerState(initialPage = 0, pageCount = { 3 })
     val coroutineScope = rememberCoroutineScope()
-    val selectedTab = pagerState.currentPage
+    val selectedTab = pagerState.targetPage
 
     var showGesturesDisabledDialog by remember { mutableStateOf(false) }
     var showNoDeviceDialog by remember { mutableStateOf(false) }
@@ -87,8 +87,10 @@ fun MainScreen() {
     var activeSubScreen by remember { mutableStateOf(SubScreen.NONE) }
     // Tracks the last real sub-screen so exit animation has content to slide out
     var lastVisibleSubScreen by remember { mutableStateOf(SubScreen.NONE) }
-    LaunchedEffect(activeSubScreen) {
-        if (activeSubScreen != SubScreen.NONE) lastVisibleSubScreen = activeSubScreen
+    
+    // Update synchronously during composition to avoid "instant open" glitches
+    if (activeSubScreen != SubScreen.NONE) {
+        lastVisibleSubScreen = activeSubScreen
     }
 
     val context = LocalContext.current
@@ -174,8 +176,14 @@ fun MainScreen() {
         // ── Sub-screen overlays (flag-based, no NavHost) ───────────────────
         AnimatedVisibility(
             visible = activeSubScreen != SubScreen.NONE,
-            enter = slideInHorizontally(initialOffsetX = { it }, animationSpec = tween(220)) + fadeIn(animationSpec = tween(220)),
-            exit = slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(200)) + fadeOut(animationSpec = tween(200))
+            enter = slideInHorizontally(
+                initialOffsetX = { it },
+                animationSpec = spring(stiffness = Spring.StiffnessLow)
+            ) + fadeIn(),
+            exit = slideOutHorizontally(
+                targetOffsetX = { it },
+                animationSpec = spring(stiffness = Spring.StiffnessLow)
+            ) + fadeOut()
         ) {
             Box(modifier = Modifier.fillMaxSize()) {
                 // Use lastVisibleSubScreen so content stays rendered during exit animation
