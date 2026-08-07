@@ -487,4 +487,5 @@
 	<string name="double_tap_earbud_edge">Double tap earbud edge</string>
 	<string name="double_tap_earbud_edge_desc">Double tap the edge of your earbuds to turn the volume up or down.</string>
 	<string name="gestures_is_disabled_double_tap_edge">Double tap earbud edge must be disabled to use head gestures. The IMU sensor is hijacked by the earbuds.</string>
+	<string name="buds_auto_detect_failed">Bud Buddy couldn\'t determine the earbuds model. Please select an earbud model override.</string>
 </resources>

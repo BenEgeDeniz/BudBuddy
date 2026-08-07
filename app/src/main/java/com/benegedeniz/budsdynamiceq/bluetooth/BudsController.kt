@@ -350,8 +350,15 @@ class BudsController(
 
     fun disconnect(forget: Boolean = false) {
         if (forget) {
-            settingsRepo.clearMacAddress()
+            val mac = deviceState.savedDeviceMac.value
+            if (mac != null) {
+                settingsRepo.forgetDevice(mac)
+            } else {
+                settingsRepo.clearMacAddress()
+            }
             deviceState.savedDeviceMac.value = null
+            deviceState.connectedModel.value = BudsModel.UNKNOWN
+            deviceState.modelOverride.value = null
         }
         synchronized(spatialConsumers) { spatialConsumers.clear() }
         stopSpatialSensor()

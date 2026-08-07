@@ -24,6 +24,15 @@ class SettingsRepository(context: Context) {
         prefs.edit().remove(KEY_MAC_ADDRESS).apply()
     }
 
+    fun forgetDevice(mac: String) {
+        prefs.edit()
+            .remove(KEY_MAC_ADDRESS)
+            .remove("detected_model_$mac")
+            .remove("model_override_$mac")
+            .remove("experimental_gestures_enabled_$mac")
+            .apply()
+    }
+
     fun getDetectedModel(mac: String): BudsModel {
         val saved = prefs.getString("detected_model_$mac", null)
         return try {

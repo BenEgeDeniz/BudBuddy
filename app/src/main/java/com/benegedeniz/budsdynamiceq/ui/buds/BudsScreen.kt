@@ -135,6 +135,17 @@ fun BudsScreen(
     var showDeviceMenu by remember { mutableStateOf(false) }
     var showModelDialog by remember { mutableStateOf(false) }
 
+    val isModelUnknown = isConnected && effectiveModel == com.benegedeniz.budsdynamiceq.bluetooth.BudsModel.UNKNOWN
+
+    LaunchedEffect(isModelUnknown) {
+        if (isModelUnknown) {
+            kotlinx.coroutines.delay(3000)
+            showModelDialog = true
+        } else {
+            showModelDialog = false
+        }
+    }
+
     val listState = rememberLazyListState()
     val isScrolled by remember { derivedStateOf { listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > 20 } }
 
@@ -1117,7 +1128,11 @@ fun BudsScreen(
         AlertDialog(
             shape = RoundedCornerShape(28.dp),
             containerColor = MaterialTheme.colorScheme.surface,
-            onDismissRequest = { showModelDialog = false },
+            onDismissRequest = { 
+                if (!isModelUnknown) {
+                    showModelDialog = false 
+                }
+            },
             title = {
                 Text(stringResource(R.string.device_model), style = MaterialTheme.typography.titleLarge)
             },
@@ -1130,6 +1145,13 @@ fun BudsScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Spacer(modifier = Modifier.height(8.dp))
+                    } else if (isModelUnknown) {
+                        Text(
+                            text = stringResource(R.string.buds_auto_detect_failed),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
                     }
                     
                     // Auto-detect option
@@ -1139,7 +1161,9 @@ fun BudsScreen(
                             .clip(RoundedCornerShape(12.dp))
                             .clickable {
                                 viewModel.setModelOverride(null)
-                                showModelDialog = false
+                                if (connectedModel != com.benegedeniz.budsdynamiceq.bluetooth.BudsModel.UNKNOWN) {
+                                    showModelDialog = false
+                                }
                             }
                             .padding(12.dp),
                         verticalAlignment = Alignment.CenterVertically
@@ -1148,7 +1172,9 @@ fun BudsScreen(
                             selected = modelOverride == null,
                             onClick = {
                                 viewModel.setModelOverride(null)
-                                showModelDialog = false
+                                if (connectedModel != com.benegedeniz.budsdynamiceq.bluetooth.BudsModel.UNKNOWN) {
+                                    showModelDialog = false
+                                }
                             }
                         )
                         Spacer(modifier = Modifier.width(12.dp))
@@ -1205,8 +1231,10 @@ fun BudsScreen(
                 }
             },
             confirmButton = {
-                TextButton(onClick = { showModelDialog = false }) {
-                    Text(stringResource(R.string.close))
+                if (!isModelUnknown) {
+                    TextButton(onClick = { showModelDialog = false }) {
+                        Text(stringResource(R.string.close))
+                    }
                 }
             }
         )

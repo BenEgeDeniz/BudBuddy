@@ -487,4 +487,5 @@
 	<string name="double_tap_earbud_edge_desc">Sesi açmak veya kısmak için kulaklığınızın ucuna çift dokunun.</string>
 	<string name="gestures_is_disabled_double_tap_edge">Baş hareketlerini kullanmak için Kulaklık ucuna çift dokunma özelliği kapatılmalıdır. İvmeölçer sensörü şu an kulaklıklar tarafından kullanılıyor.</string>
 	<string name="press_back_again_to_exit">Çıkmak için tekrar geri basın</string>
+	<string name="buds_auto_detect_failed">Bud Buddy kulaklık modelini belirleyemedi. Lütfen bir kulaklık modeli seçin.</string>
 </resources>
