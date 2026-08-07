@@ -17,10 +17,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import com.benegedeniz.budsdynamiceq.data.model.FitTestResult
+import com.benegedeniz.budsdynamiceq.ui.state.RulesUiState
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class RulesViewModel(application: Application) : AndroidViewModel(application) {
@@ -28,46 +31,41 @@ class RulesViewModel(application: Application) : AndroidViewModel(application) {
     private val repository = ServiceLocator.provideRulesRepository(application)
     private val budsController = ServiceLocator.provideBudsController(application)
 
-    val rules: StateFlow<List<EqRule>> = repository.rules
-    var isEditScreenOpen by mutableStateOf(false)
-    val currentMetadata: StateFlow<com.benegedeniz.budsdynamiceq.media.SongMetadata?> = ServiceLocator.provideMediaObserver(application).currentMetadata
-    val recentHistory: StateFlow<List<com.benegedeniz.budsdynamiceq.media.SongMetadata>> = ServiceLocator.provideMediaObserver(application).recentHistory
-    val isConnected: StateFlow<Boolean> = budsController.isConnected
-    val isConnecting: StateFlow<Boolean> = budsController.isConnecting
-    val savedDeviceMac: StateFlow<String?> = budsController.savedDeviceMac
+    var isEditScreenOpen by androidx.compose.runtime.mutableStateOf(false)
 
-    private val _pairedDevices = MutableStateFlow<List<android.bluetooth.BluetoothDevice>>(emptyList())
-    val pairedDevices: StateFlow<List<android.bluetooth.BluetoothDevice>> = _pairedDevices.asStateFlow()
-
-    val lastMatchedRule: StateFlow<EqRule?> = budsController.lastMatchedRule
-    val manualPreset: StateFlow<EqPreset?> = budsController.manualPreset
-    val manualNoiseControl: StateFlow<NoiseControlMode?> = budsController.manualNoiseControl
-    val activeNoiseControl: StateFlow<NoiseControlMode?> = budsController.activeNoiseControl
-
-    val batteryL: StateFlow<Int> = budsController.batteryL
-    val batteryR: StateFlow<Int> = budsController.batteryR
-    val batteryCase: StateFlow<Int> = budsController.batteryCase
-    val placementL: StateFlow<PlacementState> = budsController.placementL
-    val placementR: StateFlow<PlacementState> = budsController.placementR
-
-    val chargingL: StateFlow<Boolean> = budsController.chargingL
-    val chargingR: StateFlow<Boolean> = budsController.chargingR
-    val chargingCase: StateFlow<Boolean> = budsController.chargingCase
-    val temperatureL: StateFlow<Double?> = budsController.temperatureL
-    val temperatureR: StateFlow<Double?> = budsController.temperatureR
-
-    val conversationDetectionEnabled: StateFlow<Boolean> = budsController.conversationDetectionEnabled
-    val oneEarbudNoiseControlEnabled: StateFlow<Boolean> = budsController.oneEarbudNoiseControlEnabled
-    val useAmbientSoundDuringCalls: StateFlow<Boolean> = budsController.useAmbientSoundDuringCalls
-    val inEarDetectionForCalls: StateFlow<Boolean> = budsController.inEarDetectionForCalls
-    val doubleTapEdgeEnabled: StateFlow<Boolean> = budsController.doubleTapEdgeEnabled
-    val stereoBalance: StateFlow<Int> = budsController.stereoBalance
-    val fitTestResultL: StateFlow<FitTestResult> = budsController.fitTestResultL
-    val fitTestResultR: StateFlow<FitTestResult> = budsController.fitTestResultR
-    
-    val connectedModel: StateFlow<com.benegedeniz.budsdynamiceq.bluetooth.BudsModel> = budsController.connectedModel
-    val modelOverride: StateFlow<com.benegedeniz.budsdynamiceq.bluetooth.BudsModel?> = budsController.modelOverride
-    val effectiveModel: StateFlow<com.benegedeniz.budsdynamiceq.bluetooth.BudsModel> = budsController.effectiveModel
+    val uiState: StateFlow<RulesUiState> = combine(
+        combine(
+            repository.rules,
+            budsController.isConnected,
+            budsController.effectiveModel,
+            ServiceLocator.provideMediaObserver(application).currentMetadata
+        ) { r, conn, mod, meta ->
+            RulesGroup1(r, conn, mod, meta)
+        },
+        combine(
+            ServiceLocator.provideMediaObserver(application).recentHistory,
+            budsController.manualPreset,
+            budsController.manualNoiseControl,
+            budsController.lastMatchedRule
+        ) { hist, mPre, mNc, lMatch ->
+            RulesGroup2(hist, mPre, mNc, lMatch)
+        }
+    ) { group1, group2 ->
+        RulesUiState(
+            rules = group1.rules,
+            isConnected = group1.conn,
+            effectiveModel = group1.mod,
+            currentMetadata = group1.meta,
+            recentHistory = group2.hist,
+            manualPreset = group2.mPre,
+            manualNoiseControl = group2.mNc,
+            lastMatchedRule = group2.lMatch
+        )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = RulesUiState()
+    )
 
     fun setModelOverride(model: com.benegedeniz.budsdynamiceq.bluetooth.BudsModel?) {
         budsController.setModelOverride(model)
@@ -85,10 +83,7 @@ class RulesViewModel(application: Application) : AndroidViewModel(application) {
             repository.loadRules()
         }
 
-        // Just fetch paired devices for the UI
-        _pairedDevices.value = budsController.getPairedDevices()
-
-        // Load defaults for the UI
+        // Keep ServiceLocator in sync in case RulesViewModel is created before BudsService calls initFromPrefs
         val prefs = application.getSharedPreferences("BudsPrefs", android.content.Context.MODE_PRIVATE)
         _pauseMediaOnConversationEnabled.value = prefs.getBoolean("pause_media_on_conversation", false)
         // Keep ServiceLocator in sync in case RulesViewModel is created before BudsService calls initFromPrefs
@@ -119,7 +114,7 @@ class RulesViewModel(application: Application) : AndroidViewModel(application) {
 
     fun addRule(keyword: String, preset: EqPreset, ncMode: NoiseControlMode) {
         viewModelScope.launch {
-            val currentRules = rules.value
+            val currentRules = uiState.value.rules
             val nextPriority = (currentRules.maxOfOrNull { it.priority } ?: 0) + 1
             repository.addRule(EqRule(keyword = keyword, preset = preset, noiseControl = ncMode, priority = nextPriority))
         }
@@ -143,7 +138,7 @@ class RulesViewModel(application: Application) : AndroidViewModel(application) {
 
     fun reorderRules(fromIndex: Int, toIndex: Int) {
         viewModelScope.launch {
-            val currentList = rules.value.toMutableList()
+            val currentList = uiState.value.rules.toMutableList()
             if (fromIndex in currentList.indices && toIndex in currentList.indices) {
                 val item = currentList.removeAt(fromIndex)
                 currentList.add(toIndex, item)
@@ -266,7 +261,18 @@ class RulesViewModel(application: Application) : AndroidViewModel(application) {
         budsController.startAutoConnect()
     }
 
-    fun refreshPairedDevices() {
-        _pairedDevices.value = budsController.getPairedDevices()
-    }
 }
+
+// Internal data classes for grouped combine
+private data class RulesGroup1(
+    val rules: List<EqRule>,
+    val conn: Boolean,
+    val mod: com.benegedeniz.budsdynamiceq.bluetooth.BudsModel,
+    val meta: com.benegedeniz.budsdynamiceq.media.SongMetadata?
+)
+private data class RulesGroup2(
+    val hist: List<com.benegedeniz.budsdynamiceq.media.SongMetadata>,
+    val mPre: com.benegedeniz.budsdynamiceq.data.model.EqPreset?,
+    val mNc: com.benegedeniz.budsdynamiceq.data.model.NoiseControlMode?,
+    val lMatch: EqRule?
+)

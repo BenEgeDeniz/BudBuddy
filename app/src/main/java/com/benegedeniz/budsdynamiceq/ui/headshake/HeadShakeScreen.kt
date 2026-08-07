@@ -53,18 +53,24 @@ fun HeadShakeScreen(
     val prefs = context.getSharedPreferences("BudsPrefs", android.content.Context.MODE_PRIVATE)
     var hasSeenGesturesIntro by remember { mutableStateOf(prefs.getBoolean("has_seen_gestures_intro", false)) }
     
-    val gestures by viewModel.gestures.collectAsState()
-    val headShakeEnabled by viewModel.headShakeEnabled.collectAsState()
-    val isMissingEarbud by viewModel.isMissingEarbudForHeadshake.collectAsState()
-    
+    val uiState by viewModel.uiState.collectAsState()
+    val gestures = uiState.gestures
+    val headShakeEnabled = uiState.headShakeEnabled
+    val isMissingEarbud = uiState.isMissingEarbud
+    val isConnected = uiState.isConnected
+    val recordingState = uiState.recordingState
+    val spatialAudioConflict = uiState.spatialAudioConflict
+    val doubleTapEdgeConflict = uiState.doubleTapEdgeConflict
+    val isUiLocked = uiState.isUiLocked
+    val requireBothEarbuds = uiState.requireBothEarbuds
+    val lastDetectedGesture = uiState.lastDetectedGesture
+    val activeImuSide = uiState.activeImuSide
+    val activeImuReason = uiState.activeImuReason
+    val invertPitch = uiState.invertPitch
+    val isMutedByNoise = lastDetectedGesture?.isNoiseProfile == true && lastDetectedGesture?.blockGesturesOnMatch == true
+
     val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
     val effectiveEnabled = headShakeEnabled && !isMissingEarbud
-    val isConnected by viewModel.isConnected.collectAsState()
-    val recordingState by viewModel.recordingState.collectAsState()
-    val spatialAudioConflict by viewModel.spatialAudioConflict.collectAsState()
-    val doubleTapEdgeConflict by viewModel.doubleTapEdgeConflict.collectAsState()
-    val lastDetectedGesture by viewModel.lastDetectedGesture.collectAsState()
-    val isMutedByNoise = lastDetectedGesture?.isNoiseProfile == true && lastDetectedGesture?.blockGesturesOnMatch == true
 
     var showVisualizer by remember { mutableStateOf(false) }
     var showInfoDialog by remember { mutableStateOf(false) }
@@ -82,7 +88,7 @@ fun HeadShakeScreen(
     val listState = androidx.compose.foundation.lazy.rememberLazyListState()
     val isScrolled by remember { derivedStateOf { listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > 20 } }
     
-    val isUiLocked by viewModel.isUiLocked.collectAsState()
+
 
     LaunchedEffect(isConnected) {
         if (isConnected) {
@@ -346,7 +352,7 @@ fun HeadShakeScreen(
                             )
                             
                             Spacer(Modifier.height(8.dp))
-                            val requireBothEarbuds by viewModel.requireBothEarbuds.collectAsState()
+                            // requireBothEarbuds is accessed via uiState.requireBothEarbuds above
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -765,12 +771,12 @@ fun IMUVisualizerDialog(
 fun LivePreviewSection(
     viewModel: com.benegedeniz.budsdynamiceq.ui.headshake.HeadShakeViewModel
 ) {
+    val uiState by viewModel.uiState.collectAsState()
+    val lastDetectedGesture = uiState.lastDetectedGesture
+    val activeImuSide = uiState.activeImuSide
+    val activeImuReason = uiState.activeImuReason
+    val invertPitch = uiState.invertPitch
     val currentSample by viewModel.spatialDataFlow.collectAsState(initial = null)
-    val lastDetectedGesture by viewModel.lastDetectedGesture.collectAsState()
-    
-    val activeImuSide by viewModel.activeImuSide.collectAsState()
-    val activeImuReason by viewModel.activeImuReason.collectAsState()
-    val invertPitch by viewModel.invertPitch.collectAsState()
     
     Box(contentAlignment = Alignment.Center) {
         Head3DCanvas(

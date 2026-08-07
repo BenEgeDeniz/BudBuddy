@@ -84,13 +84,14 @@ import com.benegedeniz.budsdynamiceq.R
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RulesScreen(viewModel: RulesViewModel, modifier: Modifier = Modifier) {
-    val rules by viewModel.rules.collectAsState()
-    val currentMetadata by viewModel.currentMetadata.collectAsState()
-    val recentHistory by viewModel.recentHistory.collectAsState()
-    val isConnected by viewModel.isConnected.collectAsState()
-    val manualPreset by viewModel.manualPreset.collectAsState()
-    val manualNoiseControl by viewModel.manualNoiseControl.collectAsState()
-    val lastMatchedRule by viewModel.lastMatchedRule.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
+    val rules = uiState.rules
+    val currentMetadata = uiState.currentMetadata
+    val recentHistory = uiState.recentHistory
+    val isConnected = uiState.isConnected
+    val manualPreset = uiState.manualPreset
+    val manualNoiseControl = uiState.manualNoiseControl
+    val lastMatchedRule = uiState.lastMatchedRule
     val context = LocalContext.current
 
     var searchQuery by remember { mutableStateOf("") }
@@ -242,7 +243,7 @@ fun RulesScreen(viewModel: RulesViewModel, modifier: Modifier = Modifier) {
                                         onDismissRequest = { ncExpanded = false },
                                         modifier = Modifier.background(MaterialTheme.colorScheme.surface, RoundedCornerShape(16.dp))
                                     ) {
-                                        val effectiveModel = viewModel.effectiveModel.collectAsState().value
+                                        val effectiveModel = uiState.effectiveModel
                                         NoiseControlMode.entries.filter { it != NoiseControlMode.DEFAULT && (it != NoiseControlMode.ADAPTIVE || effectiveModel.supportsAdaptiveNC) && (it != NoiseControlMode.TRANSPARENT || effectiveModel.supportsTransparencyNC) }.forEach { ncMode ->
                                             DropdownMenuItem(
                                                 text = { Text(stringResource(ncMode.displayNameRes)) },

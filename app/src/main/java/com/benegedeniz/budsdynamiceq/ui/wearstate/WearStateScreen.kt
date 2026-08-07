@@ -46,8 +46,9 @@ fun WearStateScreen(
 ) {
     androidx.activity.compose.BackHandler { onBack() }
     val haptic = LocalHapticFeedback.current
-    val actions by viewModel.wearStateActions.collectAsState()
-    val isConnected by viewModel.isConnected.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
+    val actions = uiState.actions
+    val isConnected = uiState.isConnected
 
     var editingAction by remember { mutableStateOf<WearStateAction?>(null) }
     var showNewActionDialog by remember { mutableStateOf(false) }

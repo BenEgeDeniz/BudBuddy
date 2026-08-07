@@ -40,6 +40,7 @@ import com.benegedeniz.budsdynamiceq.ui.headshake.HeadShakeScreen
 import com.benegedeniz.budsdynamiceq.ui.headshake.HeadShakeViewModel
 import com.benegedeniz.budsdynamiceq.ui.rules.RulesScreen
 import com.benegedeniz.budsdynamiceq.ui.rules.RulesViewModel
+import com.benegedeniz.budsdynamiceq.ui.buds.BudsViewModel
 import com.benegedeniz.budsdynamiceq.ui.settings.AppSettingsScreen
 import com.benegedeniz.budsdynamiceq.ui.wearstate.WearStateScreen
 import com.benegedeniz.budsdynamiceq.ui.wearstate.WearStateViewModel
@@ -54,6 +55,7 @@ fun MainScreen() {
     val headShakeViewModel: HeadShakeViewModel = viewModel()
     val wearStateViewModel: WearStateViewModel = viewModel()
     val rulesViewModel: RulesViewModel = viewModel()
+    val budsViewModel: BudsViewModel = viewModel()
 
     val pagerState = rememberPagerState(initialPage = 0, pageCount = { 3 })
     val coroutineScope = rememberCoroutineScope()
@@ -71,7 +73,8 @@ fun MainScreen() {
     }
 
     val locked = headShakeViewModel.isUiLocked.collectAsState().value
-    val effectiveModel = rulesViewModel.effectiveModel.collectAsState().value
+    val uiState by rulesViewModel.uiState.collectAsState()
+    val effectiveModel = uiState.effectiveModel
     val isSensorDebugScreenOpen = headShakeViewModel.isSensorDebugScreenOpen
 
     LaunchedEffect(effectiveModel, experimentalGesturesEnabled) {
@@ -102,7 +105,7 @@ fun MainScreen() {
         ) { page ->
             when (page) {
                 0 -> BudsScreen(
-                    viewModel = rulesViewModel,
+                    viewModel = budsViewModel,
                     onFitTestClick = { activeSubScreen = SubScreen.FIT_TEST },
                     onWearStateClick = { activeSubScreen = SubScreen.WEAR_STATE },
                     onSoundBalanceTestClick = { activeSubScreen = SubScreen.SOUND_BALANCE },
@@ -165,7 +168,7 @@ fun MainScreen() {
                 // Use lastVisibleSubScreen so content stays rendered during exit animation
                 when (lastVisibleSubScreen) {
                     SubScreen.FIT_TEST -> FitTestScreen(
-                        viewModel = rulesViewModel,
+                        viewModel = budsViewModel,
                         onBack = { activeSubScreen = SubScreen.NONE },
                         modifier = Modifier.fillMaxSize()
                     )
@@ -175,7 +178,7 @@ fun MainScreen() {
                         modifier = Modifier.fillMaxSize()
                     )
                     SubScreen.SOUND_BALANCE -> SoundBalanceTestScreen(
-                        viewModel = rulesViewModel,
+                        viewModel = budsViewModel,
                         onBack = { activeSubScreen = SubScreen.NONE },
                         modifier = Modifier.fillMaxSize()
                     )

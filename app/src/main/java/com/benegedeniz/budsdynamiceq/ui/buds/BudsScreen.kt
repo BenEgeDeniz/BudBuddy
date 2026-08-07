@@ -69,31 +69,38 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.res.stringResource
 import com.benegedeniz.budsdynamiceq.R
 
+import com.benegedeniz.budsdynamiceq.ui.buds.BudsViewModel
+
 @Composable
 fun BudsScreen(
-    viewModel: RulesViewModel,
+    viewModel: BudsViewModel,
     onFitTestClick: () -> Unit = {},
     onWearStateClick: () -> Unit = {},
     onSoundBalanceTestClick: () -> Unit = {},
     onSettingsClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    val currentMetadata by viewModel.currentMetadata.collectAsState()
-    val isConnected by viewModel.isConnected.collectAsState()
-    val isConnecting by viewModel.isConnecting.collectAsState()
-    val lastMatchedRule by viewModel.lastMatchedRule.collectAsState()
-    val manualPreset by viewModel.manualPreset.collectAsState()
-    val manualNoiseControl by viewModel.manualNoiseControl.collectAsState()
-    val activeNoiseControl by viewModel.activeNoiseControl.collectAsState()
-    val conversationDetectionEnabled by viewModel.conversationDetectionEnabled.collectAsState()
-    val oneEarbudNoiseControlEnabled by viewModel.oneEarbudNoiseControlEnabled.collectAsState()
-    val useAmbientSoundDuringCalls by viewModel.useAmbientSoundDuringCalls.collectAsState()
-    val inEarDetectionForCalls by viewModel.inEarDetectionForCalls.collectAsState()
-    val doubleTapEdgeEnabled by viewModel.doubleTapEdgeEnabled.collectAsState()
-    val stereoBalance by viewModel.stereoBalance.collectAsState()
-    val pauseMediaOnConversation by viewModel.pauseMediaOnConversationEnabled.collectAsState()
-    val pairedDevices by viewModel.pairedDevices.collectAsState()
-    val savedDeviceMac by viewModel.savedDeviceMac.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
+    
+    val currentMetadata = uiState.currentMetadata
+    val isConnected = uiState.isConnected
+    val isConnecting = uiState.isConnecting
+    val lastMatchedRule = uiState.lastMatchedRule
+    val manualPreset = uiState.manualPreset
+    val manualNoiseControl = uiState.manualNoiseControl
+    val activeNoiseControl = uiState.activeNoiseControl
+    val conversationDetectionEnabled = uiState.conversationDetectionEnabled
+    val oneEarbudNoiseControlEnabled = uiState.oneEarbudNoiseControlEnabled
+    val useAmbientSoundDuringCalls = uiState.useAmbientSoundDuringCalls
+    val inEarDetectionForCalls = uiState.inEarDetectionForCalls
+    val doubleTapEdgeEnabled = uiState.doubleTapEdgeEnabled
+    val stereoBalance = uiState.stereoBalance
+    val pairedDevices = uiState.pairedDevices
+    val savedDeviceMac = uiState.savedDeviceMac
+    
+    val context = LocalContext.current
+    val prefsLocal = remember(context) { context.getSharedPreferences("BudsPrefs", android.content.Context.MODE_PRIVATE) }
+    var pauseMediaOnConversation by remember { androidx.compose.runtime.mutableStateOf(prefsLocal.getBoolean("pause_media_on_conversation", false)) }
     
     var isMoreSettingsExpanded by remember { mutableStateOf(false) }
     
@@ -104,23 +111,23 @@ fun BudsScreen(
         }
     }
     
-    val batteryL by viewModel.batteryL.collectAsState()
-    val batteryR by viewModel.batteryR.collectAsState()
-    val batteryCase by viewModel.batteryCase.collectAsState()
-    val placementL by viewModel.placementL.collectAsState()
-    val placementR by viewModel.placementR.collectAsState()
+    val batteryL = uiState.batteryL
+    val batteryR = uiState.batteryR
+    val batteryCase = uiState.batteryCase
+    val placementL = uiState.placementL
+    val placementR = uiState.placementR
 
-    val chargingL by viewModel.chargingL.collectAsState()
-    val chargingR by viewModel.chargingR.collectAsState()
-    val chargingCase by viewModel.chargingCase.collectAsState()
-    val temperatureL by viewModel.temperatureL.collectAsState()
-    val temperatureR by viewModel.temperatureR.collectAsState()
+    val chargingL = uiState.chargingL
+    val chargingR = uiState.chargingR
+    val chargingCase = uiState.chargingCase
+    val temperatureL = uiState.temperatureL
+    val temperatureR = uiState.temperatureR
 
-    val effectiveModel by viewModel.effectiveModel.collectAsState()
-    val modelOverride by viewModel.modelOverride.collectAsState()
-    val connectedModel by viewModel.connectedModel.collectAsState()
+    val effectiveModel = uiState.effectiveModel
+    val modelOverride = uiState.modelOverride
+    val connectedModel = uiState.connectedModel
 
-    val context = LocalContext.current
+
     val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
 
     var showDeviceDialog by remember { mutableStateOf(false) }
@@ -568,12 +575,12 @@ fun BudsScreen(
                                         )
                                     }
                                     Switch(
-                                        checked = useAmbientSoundDuringCalls,
+                                        checked = uiState.useAmbientSoundDuringCalls,
                                         onCheckedChange = {
                                             haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
                                             viewModel.setUseAmbientSoundDuringCalls(it)
                                         },
-                                        enabled = isConnected,
+                                        enabled = uiState.isConnected,
                                         modifier = Modifier.scale(0.85f)
                                     )
                                 }
@@ -907,7 +914,9 @@ fun BudsScreen(
                             checked = pauseMediaOnConversation,
                             onCheckedChange = {
                                 haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
-                                viewModel.setPauseMediaOnConversation(it)
+                                pauseMediaOnConversation = it
+                                prefsLocal.edit().putBoolean("pause_media_on_conversation", it).apply()
+                                com.benegedeniz.budsdynamiceq.di.ServiceLocator.setPauseMediaOnConversation(it)
                             },
                             enabled = isConnected
                         )

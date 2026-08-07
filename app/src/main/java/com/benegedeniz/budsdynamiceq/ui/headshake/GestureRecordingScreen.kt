@@ -44,7 +44,8 @@ import com.benegedeniz.budsdynamiceq.R
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GestureRecordingScreen(viewModel: HeadShakeViewModel) {
-    val state by viewModel.recordingState.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
+    val state = uiState.recordingState
     val isConnected by viewModel.isConnected.collectAsState()
     val isRecordingNoise by viewModel.isRecordingNoise.collectAsState()
     val blockGesturesOnMatch by viewModel.blockGesturesOnMatch.collectAsState()
@@ -457,7 +458,8 @@ fun SetupStep(
 
 @Composable
 fun RecordingStep(viewModel: HeadShakeViewModel) {
-    val state by viewModel.recordingState.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
+    val state = uiState.recordingState
     val index by viewModel.currentRecordingIndex.collectAsState()
     val countdown by viewModel.countdownSeconds.collectAsState()
     val liveSample by viewModel.spatialDataFlow.collectAsState(initial = null)
@@ -699,7 +701,8 @@ fun TestAndSaveStep(
     action: com.benegedeniz.budsdynamiceq.data.model.FlowAction
 ) {
     val testResult by viewModel.testResult.collectAsState()
-    val state by viewModel.recordingState.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
+    val state = uiState.recordingState
 
     val liveSample by viewModel.spatialDataFlow.collectAsState(initial = null)
 

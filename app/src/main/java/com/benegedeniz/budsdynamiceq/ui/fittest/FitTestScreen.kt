@@ -32,19 +32,22 @@ import com.benegedeniz.budsdynamiceq.data.model.PlacementState
 import com.benegedeniz.budsdynamiceq.ui.components.PageHeader
 import com.benegedeniz.budsdynamiceq.ui.components.bounceClick
 import com.benegedeniz.budsdynamiceq.ui.headshake.Head3DCanvas
-import com.benegedeniz.budsdynamiceq.ui.rules.RulesViewModel
 import com.benegedeniz.budsdynamiceq.ui.theme.StatusActiveGreen
 import com.benegedeniz.budsdynamiceq.ui.theme.StatusErrorRed
 import androidx.compose.ui.res.stringResource
 import com.benegedeniz.budsdynamiceq.R
+import com.benegedeniz.budsdynamiceq.ui.buds.BudsViewModel
 
 @Composable
-fun FitTestScreen(viewModel: RulesViewModel, onBack: () -> Unit, modifier: Modifier = Modifier) {
+fun FitTestScreen(
+    viewModel: BudsViewModel,
+    onBack: () -> Unit, modifier: Modifier = Modifier) {
     androidx.activity.compose.BackHandler { onBack() }
-    val placementL by viewModel.placementL.collectAsState()
-    val placementR by viewModel.placementR.collectAsState()
-    val fitTestResultL by viewModel.fitTestResultL.collectAsState()
-    val fitTestResultR by viewModel.fitTestResultR.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
+    val placementL = uiState.placementL
+    val placementR = uiState.placementR
+    val fitTestResultL = uiState.fitTestResultL
+    val fitTestResultR = uiState.fitTestResultR
     val haptic = LocalHapticFeedback.current
 
     val lInEar = placementL == PlacementState.WEARING
