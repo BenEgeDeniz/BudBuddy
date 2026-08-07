@@ -4,3 +4,4 @@
 - Şeffaflık Modu Geliştirmesi: Buds 3 Pro ve 4 Pro için tek kulaklık takılıyken aktif olma
 - Hata düzeltmeleri: Tür aramalarındaki sonsuz döngü, kural ekranındaki metin kesilmeleri ve cihazı unutma düzeltildi
 - Çıkmak için çift geri basma eklendi
+- Kulaklıklarımı Bul özelliği eklendi
