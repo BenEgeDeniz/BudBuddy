@@ -1,0 +1,6 @@
+✨ v1.4.0
+- Tam İnterfeys və Arxitektura Yenilənməsi: Daha sürətli və axıcı animasiyalar
+- Avtomatik Model Təyini Dəstəyi: Model təyin edilə bilmədikdə əllə seçim ekranı
+- Şəffaflıq Rejimi Təkmilləşdirməsi: Buds 3 Pro və 4 Pro üçün tək qulaqlıq taxıldıqda aktiv olma
+- Xəta düzəlişləri: Sonsuz janr axtarış dövrü, qaydalar ekranındakı mətn kəsilmələri və cihazı unutma düzəldildi
+- Çıxış üçün iki dəfə geri basma əlavə edildi

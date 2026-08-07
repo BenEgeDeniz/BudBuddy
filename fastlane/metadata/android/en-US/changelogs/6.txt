@@ -1,0 +1,6 @@
+✨ v1.4.0
+- Complete UI & Architecture Rewrite: Faster, smoother animations and transition speeds
+- Automatic Earbud Detection Fallback: Prompt if auto-detect fails
+- Transparency Mode Upgrade: Enabled for Buds 3 Pro & 4 Pro when one earbud is worn
+- Bug fixes: Genre loading loops, text truncations, and complete device forgetting
+- Added double-back press to exit
