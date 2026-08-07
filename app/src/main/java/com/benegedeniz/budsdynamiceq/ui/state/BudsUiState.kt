@@ -45,6 +45,10 @@ data class BudsUiState(
     val fitTestResultL: FitTestResult = FitTestResult.UNKNOWN,
     val fitTestResultR: FitTestResult = FitTestResult.UNKNOWN,
     
+    val isSearching: Boolean = false,
+    val isLeftMuted: Boolean = false,
+    val isRightMuted: Boolean = false,
+    
     val connectedModel: BudsModel = BudsModel.UNKNOWN,
     val modelOverride: BudsModel? = null,
     val effectiveModel: BudsModel = BudsModel.UNKNOWN

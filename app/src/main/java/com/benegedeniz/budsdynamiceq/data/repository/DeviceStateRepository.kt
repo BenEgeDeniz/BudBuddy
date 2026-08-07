@@ -55,6 +55,10 @@ class DeviceStateRepository {
     val inEarDetectionForCalls = MutableStateFlow(true)
     val doubleTapEdgeEnabled = MutableStateFlow(false)
     
+    val isSearching = MutableStateFlow(false)
+    val isLeftMuted = MutableStateFlow(false)
+    val isRightMuted = MutableStateFlow(false)
+    
     val stereoBalance = MutableStateFlow(16) // Default to center
     
     val lastMatchedRule = MutableStateFlow<EqRule?>(null)

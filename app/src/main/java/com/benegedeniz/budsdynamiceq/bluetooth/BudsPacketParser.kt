@@ -166,6 +166,13 @@ class BudsPacketParser(
                 deviceState.fitTestResultL.value = FitTestResult.fromId(payload[0].toInt() and 0xFF)
                 deviceState.fitTestResultR.value = FitTestResult.fromId(payload[1].toInt() and 0xFF)
             }
+        } else if (msgId == 161.toByte()) {
+            deviceState.isSearching.value = false
+        } else if (msgId == 163.toByte()) {
+            if (payloadSize >= 2) {
+                deviceState.isLeftMuted.value = payload[0].toInt() == 1
+                deviceState.isRightMuted.value = payload[1].toInt() == 1
+            }
         } else if (msgId == 0x77.toByte()) {
             if (payloadSize > 0) {
                 val ncModeVal = payload[0].toInt() and 0xFF

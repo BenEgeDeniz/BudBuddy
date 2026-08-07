@@ -43,6 +43,7 @@ enum class BudsModel(@androidx.annotation.StringRes val displayNameRes: Int) {
     val supportsConversationDetection: Boolean get() = this != BUDS_2 && this != BUDS_3
     val supportsFitTest: Boolean get() = this != BUDS_3
     val isExperimentalGestures: Boolean get() = this != BUDS_4_PRO && this != BUDS_2 && this != BUDS_2_PRO
+    val supportsFmgRingWhileWearing: Boolean get() = this == BUDS_2 || this == BUDS_2_PRO
 }
 
 class BudsController(
@@ -103,6 +104,11 @@ class BudsController(
     val fitTestResultL = deviceState.fitTestResultL.asStateFlow()
     val fitTestResultR = deviceState.fitTestResultR.asStateFlow()
     val isFitTestScreenOpen = deviceState.isFitTestScreenOpen.asStateFlow()
+    
+    val isSearching = deviceState.isSearching.asStateFlow()
+    val isLeftMuted = deviceState.isLeftMuted.asStateFlow()
+    val isRightMuted = deviceState.isRightMuted.asStateFlow()
+
     val conversationDetectionEnabled = deviceState.conversationDetectionEnabled.asStateFlow()
     val oneEarbudNoiseControlEnabled = deviceState.oneEarbudNoiseControlEnabled.asStateFlow()
     val useAmbientSoundDuringCalls = deviceState.useAmbientSoundDuringCalls.asStateFlow()
@@ -175,6 +181,29 @@ class BudsController(
     fun stopFitTest() {
         val payload = byteArrayOf(0)
         sendSppPacket(157.toByte(), payload)
+    }
+
+    fun startFindMyEarbuds(ringWhileWearing: Boolean) {
+        val msgId = if (ringWhileWearing) 166.toByte() else 160.toByte()
+        sendSppPacket(msgId, byteArrayOf())
+        deviceState.isSearching.value = true
+        deviceState.isLeftMuted.value = false
+        deviceState.isRightMuted.value = false
+    }
+
+    fun stopFindMyEarbuds() {
+        sendSppPacket(161.toByte(), byteArrayOf())
+        deviceState.isSearching.value = false
+    }
+
+    fun muteEarbud(leftMuted: Boolean, rightMuted: Boolean) {
+        val payload = byteArrayOf(
+            (if (leftMuted) 1 else 0).toByte(),
+            (if (rightMuted) 1 else 0).toByte()
+        )
+        sendSppPacket(162.toByte(), payload)
+        deviceState.isLeftMuted.value = leftMuted
+        deviceState.isRightMuted.value = rightMuted
     }
 
     private fun sendSppPacket(msgId: Byte, payload: ByteArray) {

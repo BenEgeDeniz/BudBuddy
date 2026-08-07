@@ -488,4 +488,13 @@
 	<string name="gestures_is_disabled_double_tap_edge">Baş hərəkətlərini istifadə etmək üçün Qulaqlığın kənarına iki dəfə toxunma funksiyası söndürülməlidir. Akselerometr sensoru hal-hazırda qulaqlıqlar tərəfindən istifadə olunur.</string>
 	<string name="press_back_again_to_exit">Çıxmaq üçün yenidən geriyə basın</string>
 	<string name="buds_auto_detect_failed">Bud Buddy qulaqlıq modelini təyin edə bilmədi. Qulaqlıq modelini əllə seçin.</string>
+	<string name="find_my_earbuds">Qulaqlıqları Tap</string>
+	<string name="fmg_desc">Qulaqlıqlarınızı tapmaq üçün onların səs çıxarmasını təmin edin. Bu funksiyadan qulaqlıqlar qulağınızda olarkən istifadə etməyin.</string>
+	<string name="fmg_warning_both">Lütfən hər iki qulaqlığı qulağınızdan çıxarın.</string>
+	<string name="fmg_warning_left">Lütfən sol qulaqlığı qulağınızdan çıxarın.</string>
+	<string name="fmg_warning_right">Lütfən sağ qulaqlığı qulağınızdan çıxarın.</string>
+	<string name="mute">Səssiz</string>
+	<string name="unmute">Səsi aç</string>
+	<string name="start_finding">Axtarmağa başla</string>
+	<string name="stop_finding">Axtarışı dayandır</string>
 </resources>

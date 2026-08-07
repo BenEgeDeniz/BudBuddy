@@ -488,4 +488,13 @@
 	<string name="gestures_is_disabled_double_tap_edge">Baş hareketlerini kullanmak için Kulaklık ucuna çift dokunma özelliği kapatılmalıdır. İvmeölçer sensörü şu an kulaklıklar tarafından kullanılıyor.</string>
 	<string name="press_back_again_to_exit">Çıkmak için tekrar geri basın</string>
 	<string name="buds_auto_detect_failed">Bud Buddy kulaklık modelini belirleyemedi. Lütfen bir kulaklık modeli seçin.</string>
+	<string name="find_my_earbuds">Kulaklıkları Bul</string>
+	<string name="fmg_desc">Kulaklıklarınızı bulabilmeniz için bip sesi çıkarmalarını sağlayın. Bu özelliği kulaklıklar kulağınızdayken kullanmayın.</string>
+	<string name="fmg_warning_both">Lütfen her iki kulaklığı da kulağınızdan çıkarın.</string>
+	<string name="fmg_warning_left">Lütfen sol kulaklığı kulağınızdan çıkarın.</string>
+	<string name="fmg_warning_right">Lütfen sağ kulaklığı kulağınızdan çıkarın.</string>
+	<string name="mute">Sessiz</string>
+	<string name="unmute">Sesi Aç</string>
+	<string name="start_finding">Bulmaya Başla</string>
+	<string name="stop_finding">Bulmayı Durdur</string>
 </resources>

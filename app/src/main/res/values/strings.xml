@@ -488,4 +488,13 @@
 	<string name="double_tap_earbud_edge_desc">Double tap the edge of your earbuds to turn the volume up or down.</string>
 	<string name="gestures_is_disabled_double_tap_edge">Double tap earbud edge must be disabled to use head gestures. The IMU sensor is hijacked by the earbuds.</string>
 	<string name="buds_auto_detect_failed">Bud Buddy couldn\'t determine the earbuds model. Please select an earbud model override.</string>
+	<string name="find_my_earbuds">Find My Earbuds</string>
+	<string name="fmg_desc">Make your earbuds beep so you can find them. Do not use this feature while wearing the earbuds.</string>
+	<string name="fmg_warning_both">Please remove both earbuds from your ears.</string>
+	<string name="fmg_warning_left">Please remove the left earbud from your ear.</string>
+	<string name="fmg_warning_right">Please remove the right earbud from your ear.</string>
+	<string name="mute">Mute</string>
+	<string name="unmute">Unmute</string>
+	<string name="start_finding">Start Finding</string>
+	<string name="stop_finding">Stop Finding</string>
 </resources>

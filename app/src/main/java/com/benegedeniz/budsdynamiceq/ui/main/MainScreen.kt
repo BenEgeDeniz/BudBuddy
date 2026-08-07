@@ -47,7 +47,7 @@ import com.benegedeniz.budsdynamiceq.ui.wearstate.WearStateViewModel
 import kotlinx.coroutines.launch
 
 // Sub-screen enum for flag-based navigation (no NavHost lifecycle transitions)
-private enum class SubScreen { NONE, FIT_TEST, WEAR_STATE, SOUND_BALANCE, SETTINGS }
+private enum class SubScreen { NONE, FIT_TEST, WEAR_STATE, SOUND_BALANCE, SETTINGS, FIND_MY_BUDS }
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -77,6 +77,8 @@ fun MainScreen() {
     val effectiveModel = uiState.effectiveModel
     val isSensorDebugScreenOpen = headShakeViewModel.isSensorDebugScreenOpen
 
+    val budsUiState by budsViewModel.uiState.collectAsState()
+
     LaunchedEffect(effectiveModel, experimentalGesturesEnabled) {
         if (effectiveModel.isExperimentalGestures && !experimentalGesturesEnabled && selectedTab == 2) {
             pagerState.animateScrollToPage(0)
@@ -91,6 +93,20 @@ fun MainScreen() {
     // Update synchronously during composition to avoid "instant open" glitches
     if (activeSubScreen != SubScreen.NONE) {
         lastVisibleSubScreen = activeSubScreen
+    }
+
+    LaunchedEffect(budsUiState.isConnected, budsUiState.placementL, budsUiState.placementR) {
+        val bothDisconnected = !budsUiState.isConnected || (
+            (budsUiState.placementL == com.benegedeniz.budsdynamiceq.data.model.PlacementState.DISCONNECTED || budsUiState.placementL == com.benegedeniz.budsdynamiceq.data.model.PlacementState.UNKNOWN) &&
+            (budsUiState.placementR == com.benegedeniz.budsdynamiceq.data.model.PlacementState.DISCONNECTED || budsUiState.placementR == com.benegedeniz.budsdynamiceq.data.model.PlacementState.UNKNOWN)
+        )
+        if (bothDisconnected) {
+            if (activeSubScreen == SubScreen.FIT_TEST || 
+                activeSubScreen == SubScreen.WEAR_STATE || 
+                activeSubScreen == SubScreen.FIND_MY_BUDS) {
+                activeSubScreen = SubScreen.NONE
+            }
+        }
     }
 
     val context = LocalContext.current
@@ -125,6 +141,7 @@ fun MainScreen() {
                     onWearStateClick = { activeSubScreen = SubScreen.WEAR_STATE },
                     onSoundBalanceTestClick = { activeSubScreen = SubScreen.SOUND_BALANCE },
                     onSettingsClick = { activeSubScreen = SubScreen.SETTINGS },
+                    onFindMyBudsClick = { activeSubScreen = SubScreen.FIND_MY_BUDS },
                     modifier = Modifier.fillMaxSize()
                 )
                 1 -> RulesScreen(viewModel = rulesViewModel, modifier = Modifier.fillMaxSize())
@@ -204,6 +221,11 @@ fun MainScreen() {
                         modifier = Modifier.fillMaxSize()
                     )
                     SubScreen.SETTINGS -> AppSettingsScreen(
+                        onBack = { activeSubScreen = SubScreen.NONE },
+                        modifier = Modifier.fillMaxSize()
+                    )
+                    SubScreen.FIND_MY_BUDS -> com.benegedeniz.budsdynamiceq.ui.findmybuds.FindMyBudsScreen(
+                        viewModel = budsViewModel,
                         onBack = { activeSubScreen = SubScreen.NONE },
                         modifier = Modifier.fillMaxSize()
                     )

@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.Bluetooth
 import androidx.compose.material.icons.filled.BluetoothConnected
 import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material.icons.filled.Hearing
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -78,6 +79,7 @@ fun BudsScreen(
     onWearStateClick: () -> Unit = {},
     onSoundBalanceTestClick: () -> Unit = {},
     onSettingsClick: () -> Unit = {},
+    onFindMyBudsClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -1038,6 +1040,47 @@ fun BudsScreen(
                     }
                 }
             }
+            }
+            
+            // Find My Earbuds Button
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .bounceClick(enabled = isConnected) { onFindMyBudsClick() },
+                    shape = RoundedCornerShape(24.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(24.dp)
+                            .alpha(if (isConnected) 1f else 0.5f),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = stringResource(R.string.find_my_earbuds),
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                }
             }
         }
 

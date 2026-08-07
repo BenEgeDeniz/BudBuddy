@@ -72,9 +72,14 @@ class BudsViewModel(application: Application) : AndroidViewModel(application) {
             budsController.temperatureR,
             budsController.fitTestResultL,
             budsController.fitTestResultR
-        ) { tR, fL, fR -> Triple(tR, fL, fR) }
-    ) { t1, t2 ->
-        HardwareGroup(t1.first, t1.second, t1.third, t2.first, t2.second, t2.third)
+        ) { tR, fL, fR -> Triple(tR, fL, fR) },
+        combine(
+            budsController.isSearching,
+            budsController.isLeftMuted,
+            budsController.isRightMuted
+        ) { search, lMute, rMute -> Triple(search, lMute, rMute) }
+    ) { t1, t2, t3 ->
+        HardwareGroup(t1.first, t1.second, t1.third, t2.first, t2.second, t2.third, t3.first, t3.second, t3.third)
     }
 
     private val featuresState = combine(
@@ -148,6 +153,10 @@ class BudsViewModel(application: Application) : AndroidViewModel(application) {
             
             fitTestResultL = hw.fitL,
             fitTestResultR = hw.fitR,
+            
+            isSearching = hw.isSearching,
+            isLeftMuted = hw.isLeftMuted,
+            isRightMuted = hw.isRightMuted,
             
             connectedModel = mod.connected,
             modelOverride = mod.override,
@@ -233,6 +242,20 @@ class BudsViewModel(application: Application) : AndroidViewModel(application) {
         budsController.setFitTestScreenOpen(isOpen)
     }
 
+    fun startFindMyEarbuds() {
+        val model = uiState.value.effectiveModel
+        val ringWhileWearing = model.supportsFmgRingWhileWearing
+        budsController.startFindMyEarbuds(ringWhileWearing)
+    }
+
+    fun stopFindMyEarbuds() {
+        budsController.stopFindMyEarbuds()
+    }
+
+    fun muteEarbud(leftMuted: Boolean, rightMuted: Boolean) {
+        budsController.muteEarbud(leftMuted, rightMuted)
+    }
+
     fun isBluetoothEnabled(): Boolean {
         return budsController.isBluetoothEnabled()
     }
@@ -274,7 +297,10 @@ private data class BatteryGroup(
 private data class HardwareGroup(
     val cR: Boolean, val cCase: Boolean, val tL: Double?, val tR: Double?,
     val fitL: com.benegedeniz.budsdynamiceq.data.model.FitTestResult,
-    val fitR: com.benegedeniz.budsdynamiceq.data.model.FitTestResult
+    val fitR: com.benegedeniz.budsdynamiceq.data.model.FitTestResult,
+    val isSearching: Boolean,
+    val isLeftMuted: Boolean,
+    val isRightMuted: Boolean
 )
 private data class FeaturesGroup(
     val convDet: Boolean, val oneEarNC: Boolean, val ambCall: Boolean, val inEarCall: Boolean, val doubleTap: Boolean, val balance: Int
