@@ -7,7 +7,18 @@ on:
     branches: [ "staging", "master" ]
 
 jobs:
+  policy:
+    name: PR Policy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Enforce Staging to Master Workflow
+        if: github.event_name == 'pull_request' && github.base_ref == 'master' && github.head_ref != 'staging'
+        run: |
+          echo "::error::Pull requests to 'master' MUST originate from the 'staging' branch. You are trying to merge from '${{ github.head_ref }}'."
+          exit 1
+
   build:
+    needs: policy
     runs-on: ubuntu-latest
 
     steps:
