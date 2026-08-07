@@ -41,8 +41,29 @@ class ImuManager(
     private var lastRawSample: QuaternionSample? = null
 
     fun start() {
+        startSideResetSync()
         startSpatialDataMonitor()
         startPlacementMonitor()
+    }
+
+    /**
+     * Keeps [activeImu] in sync with [DeviceStateRepository.activeImuSide].
+     * When the repository resets to UNKNOWN (e.g. on disconnect), the local
+     * field must also reset so auto-detection re-runs on reconnect. In master,
+     * activeImu was a local coroutine variable that naturally reset on each
+     * reconnect — the refactoring into a class field broke that invariant.
+     */
+    private fun startSideResetSync() {
+        scope.launch {
+            budsController.deviceState.activeImuSide.collect { side ->
+                if (side == ImuSide.UNKNOWN && activeImu != ImuSide.UNKNOWN) {
+                    Log.i(TAG, "activeImuSide reset to UNKNOWN externally — syncing local activeImu")
+                    activeImu = ImuSide.UNKNOWN
+                    longTermMetric = 0f
+                    smoothedZ = 0f
+                }
+            }
+        }
     }
 
     private fun getPitch(q: QuaternionSample): Float {
@@ -88,12 +109,12 @@ class ImuManager(
                     // For Buds 2, threshold is 0.3. For Buds 4 Pro, it's 0.2 (since baseline is ~0.3).
                     val threshold = if (isBuds2) 0.3f else 0.2f
                     if (normalizedMetric > threshold) {
-                        Log.i(TAG, "Auto-detected LEFT earbud as primary IMU from baseline metric=\$normalizedMetric")
+                        Log.i(TAG, "Auto-detected LEFT earbud as primary IMU from baseline metric=$normalizedMetric")
                         activeImu = ImuSide.LEFT
                         budsController.setActiveImuSide(activeImu, context.getString(R.string.auto_detected_left_imu))
                         smoothedZ = detectionMetric
                     } else if (normalizedMetric < -threshold) {
-                        Log.i(TAG, "Auto-detected RIGHT earbud as primary IMU from baseline metric=\$normalizedMetric")
+                        Log.i(TAG, "Auto-detected RIGHT earbud as primary IMU from baseline metric=$normalizedMetric")
                         activeImu = ImuSide.RIGHT
                         budsController.setActiveImuSide(activeImu, context.getString(R.string.auto_detected_right_imu))
                         smoothedZ = detectionMetric
