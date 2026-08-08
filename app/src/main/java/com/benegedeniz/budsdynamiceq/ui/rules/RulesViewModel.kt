@@ -32,6 +32,7 @@ class RulesViewModel(application: Application) : AndroidViewModel(application) {
     private val budsController = ServiceLocator.provideBudsController(application)
 
     var isEditScreenOpen by androidx.compose.runtime.mutableStateOf(false)
+    var editingRule by androidx.compose.runtime.mutableStateOf<EqRule?>(null)
 
     val uiState: StateFlow<RulesUiState> = combine(
         combine(
@@ -77,6 +78,12 @@ class RulesViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _pauseMediaOnConversationEnabled = MutableStateFlow(false)
     val pauseMediaOnConversationEnabled: StateFlow<Boolean> = _pauseMediaOnConversationEnabled.asStateFlow()
+
+    fun setPauseMediaOnConversation(enabled: Boolean, prefs: android.content.SharedPreferences) {
+        _pauseMediaOnConversationEnabled.value = enabled
+        prefs.edit().putBoolean("pause_media_on_conversation", enabled).apply()
+        ServiceLocator.setPauseMediaOnConversation(enabled)
+    }
 
     init {
         viewModelScope.launch {

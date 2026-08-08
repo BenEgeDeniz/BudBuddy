@@ -80,10 +80,23 @@ import com.benegedeniz.budsdynamiceq.ui.components.bounceClick
 import com.benegedeniz.budsdynamiceq.service.BudsService
 import androidx.compose.ui.res.stringResource
 import com.benegedeniz.budsdynamiceq.R
+import com.benegedeniz.budsdynamiceq.ui.rules.components.*
+
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.unit.Velocity
+import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.ui.graphics.graphicsLayer
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RulesScreen(viewModel: RulesViewModel, modifier: Modifier = Modifier) {
+fun RulesScreen(
+    viewModel: RulesViewModel,
+    onOpenSearch: () -> Unit = {},
+    modifier: Modifier = Modifier
+) {
     val uiState by viewModel.uiState.collectAsState()
     val rules = uiState.rules
     val currentMetadata = uiState.currentMetadata
@@ -117,9 +130,43 @@ fun RulesScreen(viewModel: RulesViewModel, modifier: Modifier = Modifier) {
     )
 
     var showInfoDialog by remember { mutableStateOf(false) }
-    var editingRule by remember { mutableStateOf<EqRule?>(null) }
+
 
     val isScrolled by remember { derivedStateOf { listState.listState.firstVisibleItemIndex > 0 || listState.listState.firstVisibleItemScrollOffset > 20 } }
+
+    var overscrollAmount by remember { mutableFloatStateOf(0f) }
+
+    val nestedScrollConnection = remember {
+        object : NestedScrollConnection {
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                if (source == NestedScrollSource.UserInput) {
+                    if (available.y > 0 && !listState.listState.canScrollBackward) {
+                        overscrollAmount += available.y
+                        return Offset(0f, available.y)
+                    } else if (overscrollAmount > 0 && available.y < 0) {
+                        val consumed = minOf(overscrollAmount, -available.y)
+                        overscrollAmount -= consumed
+                        return Offset(0f, -consumed)
+                    }
+                }
+                return Offset.Zero
+            }
+            override fun onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource): Offset {
+                return Offset.Zero
+            }
+            override suspend fun onPreFling(available: Velocity): Velocity {
+                if (overscrollAmount > 250f) {
+                    onOpenSearch()
+                }
+                overscrollAmount = 0f
+                return super.onPreFling(available)
+            }
+            override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity {
+                overscrollAmount = 0f
+                return super.onPostFling(consumed, available)
+            }
+        }
+    }
 
     Box(
         modifier = modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)
@@ -129,135 +176,58 @@ fun RulesScreen(viewModel: RulesViewModel, modifier: Modifier = Modifier) {
         ) {
             LazyColumn(
                 state = listState.listState,
-                modifier = Modifier.fillMaxSize().reorderable(listState),
+                modifier = Modifier.fillMaxSize().reorderable(listState).nestedScroll(nestedScrollConnection),
                 contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 140.dp, bottom = 120.dp)
             ) {
                 item {
+                    val searchThreshold = 250f
+                    val isReadyToSearch = overscrollAmount > searchThreshold
+                    
+                    val rotation by androidx.compose.animation.core.animateFloatAsState(targetValue = if (isReadyToSearch) 180f else 0f)
+                    
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 16.dp),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowDownward,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(16.dp).graphicsLayer { rotationZ = rotation }
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = if (isReadyToSearch) stringResource(R.string.release_to_search_app_wide) else stringResource(R.string.pull_down_to_search),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+
+                item {
                     // Active Rule Sub-bar
                     if (isConnected || manualPreset != null) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(16.dp))
-                                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
-                                .padding(16.dp)
-                        ) {
-                            val activeRuleStr = lastMatchedRule?.keyword ?: stringResource(R.string.eq_default)
-                            val appliedEq = if (lastMatchedRule?.preset == EqPreset.DEFAULT || lastMatchedRule == null) manualPreset?.let { stringResource(it.displayNameRes) } ?: stringResource(R.string.none) else lastMatchedRule?.preset?.let { stringResource(it.displayNameRes) } ?: stringResource(R.string.none)
-                            val appliedNc = if (lastMatchedRule?.noiseControl == NoiseControlMode.DEFAULT || lastMatchedRule == null) manualNoiseControl?.let { stringResource(it.displayNameRes) } ?: stringResource(R.string.none) else lastMatchedRule?.noiseControl?.let { stringResource(it.displayNameRes) } ?: stringResource(R.string.none)
-
-                            Column {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(Icons.Default.MusicNote, contentDescription = null, modifier = Modifier.size(18.dp), tint = MaterialTheme.colorScheme.primary)
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text(
-                                        text = stringResource(R.string.rules_active_rule, activeRuleStr), 
-                                        style = MaterialTheme.typography.titleMedium, 
-                                        color = MaterialTheme.colorScheme.onSurface,
-                                        maxLines = 1,
-                                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
-                                    )
-                                }
-                                Spacer(modifier = Modifier.height(12.dp))
-                                Row(modifier = Modifier.fillMaxWidth()) {
-                                    Column(modifier = Modifier.weight(1f)) {
-                                        Text(text = stringResource(R.string.equalizer_text), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                        Spacer(modifier = Modifier.height(2.dp))
-                                        Text(text = appliedEq, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
-                                    }
-                                    Column(modifier = Modifier.weight(1f)) {
-                                        Text(text = stringResource(R.string.noise_control_text), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                        Spacer(modifier = Modifier.height(2.dp))
-                                        Text(text = appliedNc, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
-                                    }
-                                }
-                            }
-                        }
+                        ActiveRuleCard(
+                            isConnected = isConnected,
+                            lastMatchedRule = lastMatchedRule,
+                            manualPreset = manualPreset,
+                            manualNoiseControl = manualNoiseControl
+                        )
                     }
                 }
                 
                 item {
-                    Text(
-                        text = stringResource(R.string.global_defaults),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(start = 8.dp, bottom = 8.dp, top = 24.dp)
+                    GlobalDefaultsCard(
+                        isConnected = isConnected,
+                        effectiveModel = uiState.effectiveModel,
+                        manualPreset = manualPreset,
+                        manualNoiseControl = manualNoiseControl,
+                        onSetManualPreset = { viewModel.setManualPreset(it) },
+                        onSetManualNoiseControl = { viewModel.setManualNoiseControl(it) }
                     )
-                    Card(
-                        modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp),
-                        shape = RoundedCornerShape(24.dp),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-                    ) {
-                        Column(modifier = Modifier.padding(20.dp)) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(12.dp)
-                            ) {
-                                // Default Preset Dropdown
-                                var expanded by remember { mutableStateOf(false) }
-                                Box(modifier = Modifier.weight(1f)) {
-                                    OutlinedButton(
-                                        onClick = { expanded = true },
-                                        modifier = Modifier.fillMaxWidth().alpha(if (isConnected) 1f else 0.5f),
-                                        shape = RoundedCornerShape(16.dp),
-                                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 12.dp),
-                                        enabled = isConnected
-                                    ) {
-                                        Icon(Icons.Default.GraphicEq, contentDescription = null, modifier = Modifier.size(18.dp))
-                                        Spacer(modifier = Modifier.width(8.dp))
-                                        Text(manualPreset?.let { stringResource(it.displayNameRes) } ?: stringResource(R.string.preset), maxLines = 1)
-                                    }
-                                    DropdownMenu(
-                                        expanded = expanded, 
-                                        onDismissRequest = { expanded = false },
-                                        modifier = Modifier.background(MaterialTheme.colorScheme.surface, RoundedCornerShape(16.dp))
-                                    ) {
-                                        EqPreset.entries.filter { it != EqPreset.DEFAULT }.forEach { preset ->
-                                            DropdownMenuItem(
-                                                text = { Text(stringResource(preset.displayNameRes)) },
-                                                onClick = {
-                                                    viewModel.setManualPreset(preset)
-                                                    expanded = false
-                                                }
-                                            )
-                                        }
-                                    }
-                                }
-                                
-                                // Default NC Dropdown
-                                var ncExpanded by remember { mutableStateOf(false) }
-                                Box(modifier = Modifier.weight(1f)) {
-                                    OutlinedButton(
-                                        onClick = { ncExpanded = true },
-                                        modifier = Modifier.fillMaxWidth().alpha(if (isConnected) 1f else 0.5f),
-                                        shape = RoundedCornerShape(16.dp),
-                                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 12.dp),
-                                        enabled = isConnected
-                                    ) {
-                                        Icon(Icons.Default.Hearing, contentDescription = null, modifier = Modifier.size(18.dp))
-                                        Spacer(modifier = Modifier.width(8.dp))
-                                        Text(manualNoiseControl?.let { stringResource(it.displayNameRes) } ?: stringResource(R.string.nc_mode), maxLines = 1)
-                                    }
-                                    DropdownMenu(
-                                        expanded = ncExpanded, 
-                                        onDismissRequest = { ncExpanded = false },
-                                        modifier = Modifier.background(MaterialTheme.colorScheme.surface, RoundedCornerShape(16.dp))
-                                    ) {
-                                        val effectiveModel = uiState.effectiveModel
-                                        NoiseControlMode.entries.filter { it != NoiseControlMode.DEFAULT && (it != NoiseControlMode.ADAPTIVE || effectiveModel.supportsAdaptiveNC) && (it != NoiseControlMode.TRANSPARENT || effectiveModel.supportsTransparencyNC) }.forEach { ncMode ->
-                                            DropdownMenuItem(
-                                                text = { Text(stringResource(ncMode.displayNameRes)) },
-                                                onClick = {
-                                                    viewModel.setManualNoiseControl(ncMode)
-                                                    ncExpanded = false
-                                                }
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
                 }
                 
                 item {
@@ -317,7 +287,7 @@ fun RulesScreen(viewModel: RulesViewModel, modifier: Modifier = Modifier) {
                                 dragModifier = if (searchQuery.isBlank()) Modifier.detectReorder(listState) else Modifier,
                                 isMatched = isMatched,
                                 onToggle = { enabled -> viewModel.toggleRule(rule, enabled) },
-                                onEdit = { editingRule = rule },
+                                onEdit = { viewModel.editingRule = rule },
                                 onDelete = { viewModel.deleteRule(rule.id) }
                             )
                         }
@@ -345,23 +315,23 @@ fun RulesScreen(viewModel: RulesViewModel, modifier: Modifier = Modifier) {
         }
     }
 
-    if (viewModel.isEditScreenOpen || editingRule != null) {
+    if (viewModel.isEditScreenOpen || viewModel.editingRule != null) {
         RuleEditScreen(
-            initialRule = editingRule,
-            currentMetadata = currentMetadata,
-            recentHistory = recentHistory,
+            initialRule = viewModel.editingRule,
+            currentMetadata = uiState.currentMetadata,
+            recentHistory = uiState.recentHistory,
             onDismiss = { 
                 viewModel.isEditScreenOpen = false
-                editingRule = null
+                viewModel.editingRule = null
             },
             onSave = { keyword, preset, ncMode ->
-                if (editingRule != null) {
-                    viewModel.updateRule(editingRule!!.copy(keyword = keyword, preset = preset, noiseControl = ncMode))
+                if (viewModel.editingRule != null) {
+                    viewModel.updateRule(viewModel.editingRule!!.copy(keyword = keyword, preset = preset, noiseControl = ncMode))
                 } else {
                     viewModel.addRule(keyword, preset, ncMode)
                 }
                 viewModel.isEditScreenOpen = false
-                editingRule = null
+                viewModel.editingRule = null
             }
         )
     }
@@ -393,9 +363,11 @@ fun RuleItem(
     rule: EqRule,
     dragModifier: Modifier = Modifier,
     isMatched: Boolean = false,
+    showDragHandle: Boolean = true,
     onToggle: (Boolean) -> Unit,
     onEdit: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val bgColor by androidx.compose.animation.animateColorAsState(
         targetValue = if (isMatched) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
@@ -414,7 +386,7 @@ fun RuleItem(
     )
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(
             containerColor = bgColor
@@ -472,12 +444,16 @@ fun RuleItem(
                 horizontalArrangement = Arrangement.Start,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    imageVector = Icons.Default.DragHandle, 
-                    contentDescription = stringResource(R.string.drag_to_reorder), 
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = dragModifier.padding(8.dp)
-                )
+                if (showDragHandle) {
+                    Icon(
+                        imageVector = Icons.Default.DragHandle, 
+                        contentDescription = stringResource(R.string.drag_to_reorder), 
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = dragModifier.padding(8.dp)
+                    )
+                } else {
+                    Spacer(modifier = Modifier.width(40.dp))
+                }
                 Spacer(modifier = Modifier.weight(1f))
                 IconButton(onClick = onEdit) {
                     Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.edit), tint = MaterialTheme.colorScheme.onSurfaceVariant)

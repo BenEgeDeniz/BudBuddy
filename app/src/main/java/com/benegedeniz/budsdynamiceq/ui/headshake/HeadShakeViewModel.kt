@@ -159,6 +159,8 @@ class HeadShakeViewModel(application: Application) : AndroidViewModel(applicatio
     private val _editingGesture = MutableStateFlow<HeadGesture?>(null)
     val editingGesture: StateFlow<HeadGesture?> = _editingGesture.asStateFlow()
 
+    var editingFlowForGesture by androidx.compose.runtime.mutableStateOf<HeadGesture?>(null)
+
     private val _countdownSeconds = MutableStateFlow(3)
     val countdownSeconds: StateFlow<Int> = _countdownSeconds.asStateFlow()
 

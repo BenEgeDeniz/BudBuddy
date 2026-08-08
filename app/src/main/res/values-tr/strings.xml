@@ -498,4 +498,9 @@
 	<string name="unmute">Sesi Aç</string>
 	<string name="start_finding">Bulmaya Başla</string>
 	<string name="stop_finding">Bulmayı Durdur</string>
+	<string name="pull_down_to_search">Uygulama genelinde aramak için aşağı çekin</string>
+	<string name="release_to_search_app_wide">Uygulama genelinde aramak için bırakın</string>
+	<string name="search_app_wide">Arayın...</string>
+    <string name="start_typing_to_search">Aramak için yazmaya başlayın...</string>
+    <string name="no_results_found">Sonuç bulunamadı.</string>
 </resources>
