@@ -122,8 +122,8 @@ class BudsPacketParser(
         } else if (msgId == 0x26.toByte()) { // DEBUG_GET_ALL_DATA
             var swLength = 3
             if (payloadSize >= 22) {
-                val isBuds3 = payload[2] == 0x52.toByte() && payload[3] == 0x36.toByte() && (payload[4] == 0x34.toByte() || payload[4] == 0x33.toByte()) // "R64" or "R63"
-                if (isBuds3) {
+                val isNewGen = payload[2] == 0x52.toByte() && (payload[3] == 0x36.toByte() || payload[3] == 0x35.toByte()) // "R6x" or "R5x"
+                if (isNewGen) {
                     swLength = 20
                 }
                 
@@ -134,6 +134,7 @@ class BudsPacketParser(
                 val detected = when {
                     prefix.startsWith("R64") -> BudsModel.BUDS_4_PRO
                     prefix.startsWith("R63") -> BudsModel.BUDS_3_PRO
+                    prefix.startsWith("R54") -> BudsModel.BUDS_4
                     prefix.startsWith("R53") -> BudsModel.BUDS_3
                     prefix.startsWith("R51") -> BudsModel.BUDS_2_PRO
                     prefix.startsWith("R17") -> BudsModel.BUDS_2

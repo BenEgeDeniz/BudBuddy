@@ -36,14 +36,16 @@ enum class BudsModel(@androidx.annotation.StringRes val displayNameRes: Int) {
     BUDS_3(com.benegedeniz.budsdynamiceq.R.string.model_buds_3),
     BUDS_3_PRO(com.benegedeniz.budsdynamiceq.R.string.model_buds_3_pro),
     BUDS_4_PRO(com.benegedeniz.budsdynamiceq.R.string.model_buds_4_pro),
+    BUDS_4(com.benegedeniz.budsdynamiceq.R.string.model_buds_4),
     UNKNOWN(com.benegedeniz.budsdynamiceq.R.string.model_buds_unknown);
     
-    val supportsAdaptiveNC: Boolean get() = this != BUDS_2 && this != BUDS_2_PRO && this != BUDS_3
-    val supportsTransparencyNC: Boolean get() = this != BUDS_3
-    val supportsConversationDetection: Boolean get() = this != BUDS_2 && this != BUDS_3
-    val supportsFitTest: Boolean get() = this != BUDS_3
-    val isExperimentalGestures: Boolean get() = this != BUDS_4_PRO && this != BUDS_2 && this != BUDS_2_PRO
+    val supportsAdaptiveNC: Boolean get() = this != BUDS_2 && this != BUDS_2_PRO && this != BUDS_3 && this != BUDS_4
+    val supportsTransparencyNC: Boolean get() = this != BUDS_3 && this != BUDS_4
+    val supportsConversationDetection: Boolean get() = this != BUDS_2 && this != BUDS_3 && this != BUDS_4
+    val supportsFitTest: Boolean get() = this != BUDS_3 && this != BUDS_4
+    val isExperimentalGestures: Boolean get() = this != BUDS_4_PRO && this != BUDS_4 && this != BUDS_2 && this != BUDS_2_PRO
     val supportsFmgRingWhileWearing: Boolean get() = this == BUDS_2 || this == BUDS_2_PRO
+    val supportsDoubleTapEdge: Boolean get() = this == BUDS_2 || this == BUDS_2_PRO
 }
 
 class BudsController(
@@ -284,6 +286,7 @@ class BudsController(
             val name = device.name ?: ""
             savedModel = when {
                 name.contains("Buds4 Pro", ignoreCase = true) -> BudsModel.BUDS_4_PRO
+                name.contains("Buds4", ignoreCase = true) -> BudsModel.BUDS_4
                 name.contains("Buds3 Pro", ignoreCase = true) -> BudsModel.BUDS_3_PRO
                 name.contains("Buds3", ignoreCase = true) -> BudsModel.BUDS_3
                 name.contains("Buds2 Pro", ignoreCase = true) -> BudsModel.BUDS_2_PRO

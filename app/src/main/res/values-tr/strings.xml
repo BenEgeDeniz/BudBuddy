@@ -336,6 +336,7 @@
 	<string name="model_buds_2_pro">Galaxy Buds2 Pro</string>
 	<string name="model_buds_3">Galaxy Buds3</string>
 	<string name="model_buds_3_pro">Galaxy Buds3 Pro</string>
+	<string name="model_buds_4">Galaxy Buds4</string>
 	<string name="model_buds_4_pro">Galaxy Buds4 Pro</string>
 	<string name="model_buds_unknown">Galaxy Buds (Bilinmiyor)</string>
 	<string name="setup_gestures_supported">Jestler destekleniyor</string>

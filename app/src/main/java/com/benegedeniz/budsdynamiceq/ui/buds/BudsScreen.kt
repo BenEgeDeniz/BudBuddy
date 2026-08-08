@@ -668,9 +668,8 @@ fun BudsScreen(
                                 color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
                             )
                             
-                            // Double Tap Earbud Edge (only Buds 2 / Buds 2 Pro)
-                            val currentModel = connectedModel.takeIf { it != com.benegedeniz.budsdynamiceq.bluetooth.BudsModel.UNKNOWN } ?: effectiveModel
-                            if (currentModel == com.benegedeniz.budsdynamiceq.bluetooth.BudsModel.BUDS_2 || currentModel == com.benegedeniz.budsdynamiceq.bluetooth.BudsModel.BUDS_2_PRO) {
+                            // Double Tap Earbud Edge
+                            if (effectiveModel.supportsDoubleTapEdge) {
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
@@ -992,59 +991,59 @@ fun BudsScreen(
             }
 
             // Fit Test Button
-            if (connectedModel.supportsFitTest) {
+            if (effectiveModel.supportsFitTest) {
                 item {
-                val fitTestEnabled = isConnected && placementL == com.benegedeniz.budsdynamiceq.data.model.PlacementState.WEARING && placementR == com.benegedeniz.budsdynamiceq.data.model.PlacementState.WEARING
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .bounceClick(enabled = fitTestEnabled) { onFitTestClick() },
-                    shape = RoundedCornerShape(24.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-                ) {
-                    Row(
+                    val fitTestEnabled = isConnected && placementL == com.benegedeniz.budsdynamiceq.data.model.PlacementState.WEARING && placementR == com.benegedeniz.budsdynamiceq.data.model.PlacementState.WEARING
+                    Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(24.dp)
-                            .alpha(if (fitTestEnabled) 1f else 0.5f),
-                        verticalAlignment = Alignment.CenterVertically
+                            .bounceClick(enabled = fitTestEnabled) { onFitTestClick() },
+                        shape = RoundedCornerShape(24.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Hearing,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(24.dp)
-                        )
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = stringResource(R.string.earbud_fit_test),
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.onSurface
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(24.dp)
+                                .alpha(if (fitTestEnabled) 1f else 0.5f),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Hearing,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(24.dp)
                             )
-                            if (!fitTestEnabled && isConnected) {
-                                Spacer(modifier = Modifier.height(4.dp))
+                            Spacer(modifier = Modifier.width(16.dp))
+                            Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = stringResource(R.string.requires_both_earbuds_to_be_worn),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.error
+                                    text = stringResource(R.string.earbud_fit_test),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
+                                if (!fitTestEnabled && isConnected) {
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        text = stringResource(R.string.requires_both_earbuds_to_be_worn),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.error
+                                    )
+                                }
                             }
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(24.dp)
+                            )
                         }
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(24.dp)
-                        )
                     }
+                    Spacer(modifier = Modifier.height(16.dp))
                 }
-            }
             }
             
             // Find My Earbuds Button
             item {
-                Spacer(modifier = Modifier.height(16.dp))
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -1240,6 +1239,7 @@ fun BudsScreen(
                     // Manual model options
                     val models = listOf(
                         com.benegedeniz.budsdynamiceq.bluetooth.BudsModel.BUDS_4_PRO,
+                        com.benegedeniz.budsdynamiceq.bluetooth.BudsModel.BUDS_4,
                         com.benegedeniz.budsdynamiceq.bluetooth.BudsModel.BUDS_3_PRO,
                         com.benegedeniz.budsdynamiceq.bluetooth.BudsModel.BUDS_3,
                         com.benegedeniz.budsdynamiceq.bluetooth.BudsModel.BUDS_2_PRO,
