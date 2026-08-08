@@ -153,8 +153,8 @@ fun SetupScreen(onPermissionsGranted: () -> Unit) {
                             Pair(stringResource(R.string.model_buds_4), stringResource(R.string.setup_gestures_supported)),
                             Pair(stringResource(R.string.model_buds_3_pro), stringResource(R.string.setup_gestures_not_supported)),
                             Pair(stringResource(R.string.model_buds_3), stringResource(R.string.setup_gestures_not_supported)),
-                            Pair(stringResource(R.string.model_buds_2_pro), stringResource(R.string.setup_gestures_supported)),
-                            Pair(stringResource(R.string.model_buds_2), stringResource(R.string.setup_gestures_supported))
+                            Pair(stringResource(R.string.model_buds_2_pro), stringResource(R.string.setup_gestures_not_supported)),
+                            Pair(stringResource(R.string.model_buds_2), stringResource(R.string.setup_gestures_not_supported))
                         )
                         
                         val scrollState = rememberScrollState()

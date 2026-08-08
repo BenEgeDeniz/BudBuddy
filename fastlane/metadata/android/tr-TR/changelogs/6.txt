@@ -7,3 +7,4 @@
 - Kulaklıklarımı Bul özelliği eklendi
 - Galaxy Buds 4 desteği eklendi
 - Uygulama içi arama özelliği (aşağı çekerek) eklendi
+- Kod altyapısının yenilenmesi sebebiyle Buds 2 serisi için jest desteği deneysel olarak yeniden sınıflandırıldı (v1.3.0, Buds 2 cihazları için hala kararlıdır)

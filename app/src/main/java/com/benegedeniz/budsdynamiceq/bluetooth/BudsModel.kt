@@ -16,7 +16,7 @@ enum class BudsModel(
         supportsTransparencyNC = true,
         supportsConversationDetection = false,
         supportsFitTest = true,
-        isExperimentalGestures = false,
+        isExperimentalGestures = true,
         supportsFmgRingWhileWearing = true,
         supportsDoubleTapEdge = true
     ),
@@ -26,7 +26,7 @@ enum class BudsModel(
         supportsTransparencyNC = true,
         supportsConversationDetection = true,
         supportsFitTest = true,
-        isExperimentalGestures = false,
+        isExperimentalGestures = true,
         supportsFmgRingWhileWearing = true,
         supportsDoubleTapEdge = true
     ),

@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <resources>
 	<string name="app_name">Bud Buddy</string>
-	<string name="gestures_not_supported">Gestures Not Supported</string>
+	<string name="gestures_not_supported">Gestures Are Experimental</string>
 	<string name="experimental_gestures_warning">Gesture support for the currently connected Galaxy Buds model is highly unstable and experimental. Would you like to enable this feature for testing purposes?</string>
 	<string name="enable">Enable</string>
 	<string name="got_it">Got It</string>

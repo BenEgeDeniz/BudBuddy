@@ -7,3 +7,4 @@
 - Qulaqlıqlarımı Tap xüsusiyyəti əlavə edildi
 - Galaxy Buds 4 dəstəyi əlavə edildi
 - Tətbiq daxilində axtarış xüsusiyyəti (aşağı çəkərək) əlavə edildi
+- Kod arxitekturasının yenilənməsi səbəbindən Buds 2 seriyası üçün jest dəstəyi eksperimental olaraq yenidən təsnif edildi (v1.3.0, Buds 2 cihazları üçün hələ də sabitdir)
