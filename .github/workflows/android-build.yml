@@ -35,9 +35,32 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Build Debug & Unsigned Release APKs (Staging)
+      - name: Decode Staging Keystore (Staging)
         if: github.ref == 'refs/heads/staging' || github.base_ref == 'staging'
-        run: ./gradlew assembleDebug assembleRelease
+        env:
+          STAGING_KEYSTORE_BASE64: ${{ secrets.STAGING_KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$STAGING_KEYSTORE_BASE64" ]; then
+            echo $STAGING_KEYSTORE_BASE64 | base64 --decode > ${{ github.workspace }}/staging-keystore.jks
+          fi
+
+      - name: Build Debug & Signed Release APKs (Staging)
+        if: github.ref == 'refs/heads/staging' || github.base_ref == 'staging'
+        env:
+          STAGING_KEY_ALIAS: ${{ secrets.STAGING_KEY_ALIAS }}
+          STAGING_KEY_PASSWORD: ${{ secrets.STAGING_KEY_PASSWORD }}
+          STAGING_STORE_PASSWORD: ${{ secrets.STAGING_STORE_PASSWORD }}
+        run: |
+          if [ -f "${{ github.workspace }}/staging-keystore.jks" ]; then
+            ./gradlew assembleDebug assembleRelease \
+              -Pandroid.injected.signing.store.file=${{ github.workspace }}/staging-keystore.jks \
+              -Pandroid.injected.signing.store.password=$STAGING_STORE_PASSWORD \
+              -Pandroid.injected.signing.key.alias=$STAGING_KEY_ALIAS \
+              -Pandroid.injected.signing.key.password=$STAGING_KEY_PASSWORD
+          else
+            # Fallback to unsigned if secrets are missing during PR from fork
+            ./gradlew assembleDebug assembleRelease
+          fi
 
       - name: Upload Debug APK
         if: github.ref == 'refs/heads/staging' || github.base_ref == 'staging'
@@ -46,12 +69,12 @@ jobs:
           name: app-debug
           path: app/build/outputs/apk/debug/app-debug.apk
 
-      - name: Upload Unsigned Release APK
+      - name: Upload Staging Release APK
         if: github.ref == 'refs/heads/staging' || github.base_ref == 'staging'
         uses: actions/upload-artifact@v4
         with:
-          name: app-release-unsigned
-          path: app/build/outputs/apk/release/app-release-unsigned.apk
+          name: app-staging-release
+          path: app/build/outputs/apk/release/app-release*.apk
 
       - name: Decode Keystore (Master)
         if: github.ref == 'refs/heads/master' || github.base_ref == 'master'
