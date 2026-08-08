@@ -30,24 +30,6 @@ import kotlinx.coroutines.flow.asSharedFlow
 import java.io.IOException
 import java.util.UUID
 
-enum class BudsModel(@androidx.annotation.StringRes val displayNameRes: Int) {
-    BUDS_2(com.benegedeniz.budsdynamiceq.R.string.model_buds_2),
-    BUDS_2_PRO(com.benegedeniz.budsdynamiceq.R.string.model_buds_2_pro),
-    BUDS_3(com.benegedeniz.budsdynamiceq.R.string.model_buds_3),
-    BUDS_3_PRO(com.benegedeniz.budsdynamiceq.R.string.model_buds_3_pro),
-    BUDS_4_PRO(com.benegedeniz.budsdynamiceq.R.string.model_buds_4_pro),
-    BUDS_4(com.benegedeniz.budsdynamiceq.R.string.model_buds_4),
-    UNKNOWN(com.benegedeniz.budsdynamiceq.R.string.model_buds_unknown);
-    
-    val supportsAdaptiveNC: Boolean get() = this != BUDS_2 && this != BUDS_2_PRO && this != BUDS_3 && this != BUDS_4
-    val supportsTransparencyNC: Boolean get() = this != BUDS_3 && this != BUDS_4
-    val supportsConversationDetection: Boolean get() = this != BUDS_2 && this != BUDS_3 && this != BUDS_4
-    val supportsFitTest: Boolean get() = this != BUDS_3 && this != BUDS_4
-    val isExperimentalGestures: Boolean get() = this != BUDS_4_PRO && this != BUDS_4 && this != BUDS_2 && this != BUDS_2_PRO
-    val supportsFmgRingWhileWearing: Boolean get() = this == BUDS_2 || this == BUDS_2_PRO
-    val supportsDoubleTapEdge: Boolean get() = this == BUDS_2 || this == BUDS_2_PRO
-}
-
 class BudsController(
     private val context: Context,
     val deviceState: DeviceStateRepository,

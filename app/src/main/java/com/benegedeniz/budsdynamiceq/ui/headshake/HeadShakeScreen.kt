@@ -11,9 +11,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.automirrored.filled.VolumeUp
-import androidx.compose.material.icons.automirrored.filled.TrendingUp
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import kotlinx.coroutines.delay
@@ -637,7 +635,7 @@ fun GestureCard(
                                         GestureAction.PREVIOUS_TRACK -> Icons.Default.SkipPrevious
                                         GestureAction.ANNOUNCE_TRACK -> Icons.Default.MusicNote
                                         GestureAction.NC_TOGGLE -> Icons.Default.Hearing
-                                        GestureAction.NC_ACTIVE -> Icons.Default.VolumeOff
+                                        GestureAction.NC_ACTIVE -> Icons.AutoMirrored.Filled.VolumeOff
                                         GestureAction.NC_OFF -> Icons.Default.Close
                                         GestureAction.NC_TRANSPARENT -> Icons.Default.Hearing
                                         GestureAction.NC_ADAPTIVE -> Icons.Default.AutoAwesome
@@ -647,17 +645,17 @@ fun GestureCard(
                                         GestureAction.READ_NOTIFICATIONS -> Icons.Default.Notifications
                                         GestureAction.SPEAK_TEXT -> Icons.Default.RecordVoiceOver
                                         GestureAction.LAUNCH_APP -> Icons.Default.Apps
-                                        GestureAction.SET_VOLUME -> Icons.Default.VolumeUp
-                                        GestureAction.MODIFY_VOLUME_INCREASE -> Icons.Default.VolumeUp
-                                        GestureAction.MODIFY_VOLUME_DECREASE -> Icons.Default.VolumeDown
+                                        GestureAction.SET_VOLUME -> Icons.AutoMirrored.Filled.VolumeUp
+                                        GestureAction.MODIFY_VOLUME_INCREASE -> Icons.AutoMirrored.Filled.VolumeUp
+                                        GestureAction.MODIFY_VOLUME_DECREASE -> Icons.AutoMirrored.Filled.VolumeDown
                                         GestureAction.FIT_TEST -> Icons.Default.CheckCircle
                                         GestureAction.NO_ACTION -> Icons.Default.Cancel
                                     }
                                 }
                                 is com.benegedeniz.budsdynamiceq.data.model.FlowAction.AppAction -> Icons.Default.Apps
                                 is com.benegedeniz.budsdynamiceq.data.model.FlowAction.DelayAction -> Icons.Default.Timer
-                                is com.benegedeniz.budsdynamiceq.data.model.FlowAction.VolumeAction -> Icons.Default.VolumeUp
-                                is com.benegedeniz.budsdynamiceq.data.model.FlowAction.ModifyVolumeAction -> if (action.increase) Icons.Default.VolumeUp else Icons.Default.VolumeDown
+                                is com.benegedeniz.budsdynamiceq.data.model.FlowAction.VolumeAction -> Icons.AutoMirrored.Filled.VolumeUp
+                                is com.benegedeniz.budsdynamiceq.data.model.FlowAction.ModifyVolumeAction -> if (action.increase) Icons.AutoMirrored.Filled.VolumeUp else Icons.AutoMirrored.Filled.VolumeDown
                                 is com.benegedeniz.budsdynamiceq.data.model.FlowAction.TtsAction -> Icons.Default.RecordVoiceOver
                                 else -> Icons.Default.HeadsetOff
                             }

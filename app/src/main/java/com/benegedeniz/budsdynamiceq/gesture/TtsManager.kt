@@ -40,7 +40,7 @@ class TtsManager(private val context: Context) : TextToSpeech.OnInitListener {
                 android.content.res.Resources.getSystem().configuration.locale
             }
         } else {
-            java.util.Locale(lang)
+            java.util.Locale.forLanguageTag(lang)
         }
         tts?.language = locale
     }

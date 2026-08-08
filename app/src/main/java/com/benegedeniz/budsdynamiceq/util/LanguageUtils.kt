@@ -19,7 +19,7 @@ object LanguageUtils {
                 Resources.getSystem().configuration.locale
             }
         } else {
-            Locale(lang)
+            Locale.forLanguageTag(lang)
         }
 
         Locale.setDefault(locale)
