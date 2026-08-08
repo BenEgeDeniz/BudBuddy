@@ -40,7 +40,8 @@ You can download the latest stable version of Bud Buddy from our [GitHub Release
 
 If you are feeling adventurous and want to try out the newest unreleased features, you can download the [staging testing builds](https://github.com/BenEgeDeniz/BudBuddy/actions?query=branch%3Astaging) from the Actions tab. These builds are vetted release candidates and are generally safe to use.
 
-If you *really* want to live on the bleeding edge, [development builds](https://github.com/BenEgeDeniz/BudBuddy/actions?query=branch%3Adev) are also available. **Be warned:** these builds can be incredibly unstable and potentially insecure, as anyone can trigger a debug APK build by creating a pull request! Download at your own risk.
+If you *really* want to live on the bleeding edge, [development builds](https://github.com/BenEgeDeniz/BudBuddy/actions?query=branch%3Adev) are also available.
+**Be warned:** these builds can be incredibly unstable and potentially insecure, as anyone can trigger a debug APK build by creating a pull request! Download at your own risk.
 
 ## Contributing
 
