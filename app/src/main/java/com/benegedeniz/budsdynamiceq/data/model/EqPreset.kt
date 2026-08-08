@@ -3,7 +3,7 @@ package com.benegedeniz.budsdynamiceq.data.model
 import androidx.annotation.StringRes
 import com.benegedeniz.budsdynamiceq.R
 
-enum class EqPreset(@StringRes val displayNameRes: Int, val payloadByte: Byte) {
+enum class EqPreset(@param:StringRes val displayNameRes: Int, val payloadByte: Byte) {
     DEFAULT(R.string.eq_default, -2),
     IGNORE(R.string.eq_ignore, -1),
     NORMAL(R.string.eq_normal, 0x00),

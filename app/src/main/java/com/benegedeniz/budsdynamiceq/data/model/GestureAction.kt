@@ -8,7 +8,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.benegedeniz.budsdynamiceq.di.ServiceLocator
 
-enum class GestureAction(@StringRes val displayNameRes: Int, @StringRes val groupRes: Int) {
+enum class GestureAction(@param:StringRes val displayNameRes: Int, @param:StringRes val groupRes: Int) {
     PLAY_PAUSE(R.string.action_play_pause, R.string.group_media),
     PLAY(R.string.action_play, R.string.group_media),
     PAUSE(R.string.action_pause, R.string.group_media),

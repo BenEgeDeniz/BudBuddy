@@ -30,6 +30,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
+import androidx.compose.animation.core.tween
+import androidx.compose.ui.draw.blur
+import androidx.compose.animation.core.animateDpAsState
+import androidx.activity.compose.BackHandler
+import com.benegedeniz.budsdynamiceq.ui.buds.components.AppSearchOverlay
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.benegedeniz.budsdynamiceq.R
 import com.benegedeniz.budsdynamiceq.di.ServiceLocator
@@ -85,10 +91,15 @@ fun MainScreen() {
         }
     }
 
-    // Sub-screen state — no NavHost, no lifecycle transitions
     var activeSubScreen by remember { mutableStateOf(SubScreen.NONE) }
     // Tracks the last real sub-screen so exit animation has content to slide out
     var lastVisibleSubScreen by remember { mutableStateOf(SubScreen.NONE) }
+    
+    var isAppSearchVisible by remember { mutableStateOf(false) }
+
+    BackHandler(enabled = isAppSearchVisible) {
+        isAppSearchVisible = false
+    }
     
     // Update synchronously during composition to avoid "instant open" glitches
     if (activeSubScreen != SubScreen.NONE) {
@@ -112,11 +123,15 @@ fun MainScreen() {
     val context = LocalContext.current
     var backPressedTime by remember { mutableLongStateOf(0L) }
     
-    BackHandler(enabled = activeSubScreen != SubScreen.NONE) {
-        activeSubScreen = SubScreen.NONE
+    BackHandler(enabled = isAppSearchVisible || activeSubScreen != SubScreen.NONE) {
+        if (isAppSearchVisible) {
+            isAppSearchVisible = false
+        } else {
+            activeSubScreen = SubScreen.NONE
+        }
     }
 
-    BackHandler(enabled = activeSubScreen == SubScreen.NONE) {
+    BackHandler(enabled = !isAppSearchVisible && activeSubScreen == SubScreen.NONE) {
         val currentTime = System.currentTimeMillis()
         if (currentTime - backPressedTime < 2000) {
             (context as? android.app.Activity)?.finish()
@@ -126,113 +141,149 @@ fun MainScreen() {
         }
     }
 
+    val blurRadius by animateDpAsState(
+        targetValue = if (isAppSearchVisible) 16.dp else 0.dp,
+        animationSpec = tween(300), label = "mainBlur"
+    )
+
     Box(modifier = Modifier.fillMaxSize()) {
-        // ── Main pager (always alive, never unmounted) ─────────────────────
-        HorizontalPager(
-            state = pagerState,
-            beyondViewportPageCount = 2,
-            userScrollEnabled = false,
-            modifier = Modifier.fillMaxSize()
-        ) { page ->
-            when (page) {
-                0 -> BudsScreen(
-                    viewModel = budsViewModel,
-                    onFitTestClick = { activeSubScreen = SubScreen.FIT_TEST },
-                    onWearStateClick = { activeSubScreen = SubScreen.WEAR_STATE },
-                    onSoundBalanceTestClick = { activeSubScreen = SubScreen.SOUND_BALANCE },
-                    onSettingsClick = { activeSubScreen = SubScreen.SETTINGS },
-                    onFindMyBudsClick = { activeSubScreen = SubScreen.FIND_MY_BUDS },
-                    modifier = Modifier.fillMaxSize()
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .then(if (blurRadius > 0.dp) Modifier.blur(blurRadius) else Modifier)
+        ) {
+            HorizontalPager(
+                state = pagerState,
+                beyondViewportPageCount = 2,
+                userScrollEnabled = false,
+                modifier = Modifier.fillMaxSize()
+            ) { page ->
+                when (page) {
+                    0 -> BudsScreen(
+                        viewModel = budsViewModel,
+                        rulesViewModel = rulesViewModel,
+                        headShakeViewModel = headShakeViewModel,
+                        onFitTestClick = { activeSubScreen = SubScreen.FIT_TEST },
+                        onWearStateClick = { activeSubScreen = SubScreen.WEAR_STATE },
+                        onSoundBalanceTestClick = { activeSubScreen = SubScreen.SOUND_BALANCE },
+                        onSettingsClick = { activeSubScreen = SubScreen.SETTINGS },
+                        onFindMyBudsClick = { activeSubScreen = SubScreen.FIND_MY_BUDS },
+                        onOpenSearch = { isAppSearchVisible = true },
+                        modifier = Modifier.fillMaxSize()
+                    )
+                    1 -> RulesScreen(
+                        viewModel = rulesViewModel,
+                        onOpenSearch = { isAppSearchVisible = true },
+                        modifier = Modifier.fillMaxSize()
+                    )
+                    2 -> HeadShakeScreen(
+                        viewModel = headShakeViewModel,
+                        onOpenSearch = { isAppSearchVisible = true },
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+            }
+
+            val showBottomBar = !isSensorDebugScreenOpen && activeSubScreen == SubScreen.NONE
+            AnimatedVisibility(
+                visible = showBottomBar,
+                modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth(),
+                enter = slideInVertically(initialOffsetY = { it }),
+                exit = slideOutVertically(targetOffsetY = { it })
+            ) {
+                GlassyBottomNavBar(
+                    selectedTab = selectedTab,
+                    disabledTabs = if (effectiveModel.isExperimentalGestures && !experimentalGesturesEnabled) listOf(2) else emptyList(),
+                    onTabSelected = { targetTabIndex ->
+                        if (targetTabIndex == 2 && effectiveModel.isExperimentalGestures && !experimentalGesturesEnabled) {
+                            if (savedMac == null) {
+                                showNoDeviceDialog = true
+                            } else {
+                                showGesturesDisabledDialog = true
+                            }
+                        } else {
+                            coroutineScope.launch {
+                                pagerState.animateScrollToPage(targetTabIndex)
+                            }
+                        }
+                    },
+                    showFab = selectedTab == 1 || selectedTab == 2,
+                    fabEnabled = if (selectedTab == 2) !locked else true,
+                    onFabClick = {
+                        if (selectedTab == 1) {
+                            rulesViewModel.isEditScreenOpen = true
+                        } else if (selectedTab == 2) {
+                            if (locked) return@GlassyBottomNavBar
+                            if (headShakeViewModel.isMovementCancellingScreenOpen) {
+                                headShakeViewModel.startNewNoiseProfileSetup()
+                            } else {
+                                headShakeViewModel.startNewGesture()
+                            }
+                        }
+                    }
                 )
-                1 -> RulesScreen(viewModel = rulesViewModel, modifier = Modifier.fillMaxSize())
-                2 -> HeadShakeScreen(viewModel = headShakeViewModel, modifier = Modifier.fillMaxSize())
             }
-        }
 
-        // ── Bottom bar ─────────────────────────────────────────────────────
-        val showBottomBar = !isSensorDebugScreenOpen && activeSubScreen == SubScreen.NONE
-        AnimatedVisibility(
-            visible = showBottomBar,
-            modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth(),
-            enter = slideInVertically(initialOffsetY = { it }),
-            exit = slideOutVertically(targetOffsetY = { it })
-        ) {
-            GlassyBottomNavBar(
-                selectedTab = selectedTab,
-                disabledTabs = if (effectiveModel.isExperimentalGestures && !experimentalGesturesEnabled) listOf(2) else emptyList(),
-                onTabSelected = { targetTabIndex ->
-                    if (targetTabIndex == 2 && effectiveModel.isExperimentalGestures && !experimentalGesturesEnabled) {
-                        if (savedMac == null) {
-                            showNoDeviceDialog = true
-                        } else {
-                            showGesturesDisabledDialog = true
-                        }
-                    } else {
-                        coroutineScope.launch {
-                            pagerState.animateScrollToPage(targetTabIndex)
-                        }
-                    }
-                },
-                showFab = selectedTab == 1 || selectedTab == 2,
-                fabEnabled = if (selectedTab == 2) !locked else true,
-                onFabClick = {
-                    if (selectedTab == 1) {
-                        rulesViewModel.isEditScreenOpen = true
-                    } else if (selectedTab == 2) {
-                        if (locked) return@GlassyBottomNavBar
-                        if (headShakeViewModel.isMovementCancellingScreenOpen) {
-                            headShakeViewModel.startNewNoiseProfileSetup()
-                        } else {
-                            headShakeViewModel.startNewGesture()
-                        }
+            // ── Sub-screen overlays (flag-based, no NavHost) ───────────────────
+            AnimatedVisibility(
+                visible = activeSubScreen != SubScreen.NONE,
+                enter = slideInHorizontally(
+                    initialOffsetX = { it },
+                    animationSpec = spring(stiffness = Spring.StiffnessLow)
+                ) + fadeIn(),
+                exit = slideOutHorizontally(
+                    targetOffsetX = { it },
+                    animationSpec = spring(stiffness = Spring.StiffnessLow)
+                ) + fadeOut()
+            ) {
+                Box(modifier = Modifier.fillMaxSize()) {
+                    // Use lastVisibleSubScreen so content stays rendered during exit animation
+                    when (lastVisibleSubScreen) {
+                        SubScreen.FIT_TEST -> FitTestScreen(
+                            viewModel = budsViewModel,
+                            onBack = { activeSubScreen = SubScreen.NONE },
+                            modifier = Modifier.fillMaxSize()
+                        )
+                        SubScreen.WEAR_STATE -> WearStateScreen(
+                            viewModel = wearStateViewModel,
+                            onBack = { activeSubScreen = SubScreen.NONE },
+                            modifier = Modifier.fillMaxSize()
+                        )
+                        SubScreen.SOUND_BALANCE -> SoundBalanceTestScreen(
+                            viewModel = budsViewModel,
+                            onBack = { activeSubScreen = SubScreen.NONE },
+                            modifier = Modifier.fillMaxSize()
+                        )
+                        SubScreen.SETTINGS -> AppSettingsScreen(
+                            onBack = { activeSubScreen = SubScreen.NONE },
+                            modifier = Modifier.fillMaxSize()
+                        )
+                        SubScreen.FIND_MY_BUDS -> com.benegedeniz.budsdynamiceq.ui.findmybuds.FindMyBudsScreen(
+                            viewModel = budsViewModel,
+                            onBack = { activeSubScreen = SubScreen.NONE },
+                            modifier = Modifier.fillMaxSize()
+                        )
+                        SubScreen.NONE -> {}
                     }
                 }
-            )
-        }
-
-        // ── Sub-screen overlays (flag-based, no NavHost) ───────────────────
-        AnimatedVisibility(
-            visible = activeSubScreen != SubScreen.NONE,
-            enter = slideInHorizontally(
-                initialOffsetX = { it },
-                animationSpec = spring(stiffness = Spring.StiffnessLow)
-            ) + fadeIn(),
-            exit = slideOutHorizontally(
-                targetOffsetX = { it },
-                animationSpec = spring(stiffness = Spring.StiffnessLow)
-            ) + fadeOut()
-        ) {
-            Box(modifier = Modifier.fillMaxSize()) {
-                // Use lastVisibleSubScreen so content stays rendered during exit animation
-                when (lastVisibleSubScreen) {
-                    SubScreen.FIT_TEST -> FitTestScreen(
-                        viewModel = budsViewModel,
-                        onBack = { activeSubScreen = SubScreen.NONE },
-                        modifier = Modifier.fillMaxSize()
-                    )
-                    SubScreen.WEAR_STATE -> WearStateScreen(
-                        viewModel = wearStateViewModel,
-                        onBack = { activeSubScreen = SubScreen.NONE },
-                        modifier = Modifier.fillMaxSize()
-                    )
-                    SubScreen.SOUND_BALANCE -> SoundBalanceTestScreen(
-                        viewModel = budsViewModel,
-                        onBack = { activeSubScreen = SubScreen.NONE },
-                        modifier = Modifier.fillMaxSize()
-                    )
-                    SubScreen.SETTINGS -> AppSettingsScreen(
-                        onBack = { activeSubScreen = SubScreen.NONE },
-                        modifier = Modifier.fillMaxSize()
-                    )
-                    SubScreen.FIND_MY_BUDS -> com.benegedeniz.budsdynamiceq.ui.findmybuds.FindMyBudsScreen(
-                        viewModel = budsViewModel,
-                        onBack = { activeSubScreen = SubScreen.NONE },
-                        modifier = Modifier.fillMaxSize()
-                    )
-                    SubScreen.NONE -> {}
-                }
             }
-        }
+        } // End of blurred Box
+
+        val gesturesTabEnabled = !(effectiveModel.isExperimentalGestures && !experimentalGesturesEnabled)
+
+        AppSearchOverlay(
+            isVisible = isAppSearchVisible,
+            onClose = { isAppSearchVisible = false },
+            onNavigateToTab = { coroutineScope.launch { pagerState.animateScrollToPage(it) } },
+            gesturesTabEnabled = gesturesTabEnabled,
+            budsViewModel = budsViewModel,
+            rulesViewModel = rulesViewModel,
+            headShakeViewModel = headShakeViewModel,
+            onFitTestClick = { activeSubScreen = SubScreen.FIT_TEST },
+            onWearStateClick = { activeSubScreen = SubScreen.WEAR_STATE },
+            onSoundBalanceTestClick = { activeSubScreen = SubScreen.SOUND_BALANCE },
+            onFindMyBudsClick = { activeSubScreen = SubScreen.FIND_MY_BUDS }
+        )
 
         // ── Dialogs ────────────────────────────────────────────────────────
         if (showGesturesDisabledDialog) {

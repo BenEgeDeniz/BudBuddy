@@ -5,3 +5,5 @@
 - Xəta düzəlişləri: Sonsuz janr axtarış dövrü, qaydalar ekranındakı mətn kəsilmələri və cihazı unutma düzəldildi
 - Çıxış üçün iki dəfə geri basma əlavə edildi
 - Qulaqlıqlarımı Tap xüsusiyyəti əlavə edildi
+- Galaxy Buds 4 dəstəyi əlavə edildi
+- Tətbiq daxilində axtarış xüsusiyyəti (aşağı çəkərək) əlavə edildi
