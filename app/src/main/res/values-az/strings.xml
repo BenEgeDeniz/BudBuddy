@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <resources>
 	<string name="app_name">Bud Buddy</string>
-	<string name="gestures_not_supported">Jestlər Dəstəklənmir</string>
+	<string name="gestures_not_supported">Jestlər Eksperimentaldır</string>
 	<string name="experimental_gestures_warning">Hazırda qoşulmuş Galaxy Buds modeli üçün jest dəstəyi çox qeyri-sabit və eksperimentaldır. Bu funksiyanı sınaq məqsədilə aktivləşdirmək istərdinizmi?</string>
 	<string name="enable">Aktivləşdir</string>
 	<string name="got_it">Başa düşdüm</string>
@@ -150,7 +150,7 @@
 	<string name="debug_info">Sazlama Məlumatı</string>
 	<string name="gestures_muted">Jestlər susturulub</string>
 	<string name="gestures_lets_you_trigger_custom_action_">Jestlər, başınızı hərəkət etdirərək xüsusi əməliyyatlar tetikləməyinizə imkan verir. Media, səs-küy nəzarəti və zəngləri idarə etmək üçün Jestlər qeyd edə bilərsiniz.</string>
-	<string name="you_can_also_record_continuous_movements">Hərəkət zamanı yanlış tetikləmələrin qarşısını almaq üçün gəzinti kimi davamlı Jestləri \'Hərəkət Filtri\' kimi qeyd edə bilərsiniz.</string>
+	<string name="you_can_also_record_continuous_movements">Hərəkət zamanı yanlış tetikləmələrin qarşısını almaq üçün gəzinti kimi davamlı hərəkətləri \'Hərəkət Filtri\' kimi qeyd edə bilərsiniz.</string>
 	<string name="need_recalibration">Kalibrasiya Lazımdır?</string>
 	<string name="due_to_a_known_issue_with_the_earbuds_se">Qulaqlıq sensorlarındakı məlum bir problem səbəbindən taxıldıqdan sonra hərəkət istiqaməti (yuxarı/aşağı) tərsinə çevrilə bilər.</string>
 	<string name="if_your_gestures_stop_working_correctly_">Jestləriniz düzgün işləmirsə və ya tərsinə aşkarlanırsa, sensorları yenidən kalibrasiya etmək üçün bir qulaqlığı çıxarıb yenidən taxın.</string>
@@ -171,9 +171,9 @@
 	<string name="enabling_this_will_forcefully_do_the_act">Bu seçim aktiv edildikdə əməliyyat hər şəraitdə zorla icra edilir.</string>
 	<string name="remove">Çıxar</string>
 	<string name="no_noise_profiles_yet">Hələ heç bir hərəkət profili yoxdur.</string>
-	<string name="tap_to_record_background_movements_as_no">Arxa plan Jestlərini qeyd etmək üçün +\'ya toxunun.</string>
+	<string name="tap_to_record_background_movements_as_no">Arxa plan hərəkətlərini qeyd etmək üçün +\'ya toxunun.</string>
 	<string name="back">Geri</string>
-	<string name="movement_cancelling_detects_background_p">Hərəkət Filtri, gəzinti və ya nəqliyyat kimi Jestləri aşkarlayır və yanlış tetikləmələrin qarşısını almaq üçün jestləri müvəqqəti dayandırır.</string>
+	<string name="movement_cancelling_detects_background_p">Hərəkət Filtri, gəzinti və ya ictimai nəqliyyat kimi hərəkətləri aşkarlayır və yanlış tetikləmələrin qarşısını almaq üçün jestləri müvəqqəti dayandırır.</string>
 	<string name="prevent_accidental_triggers">Təsadüfi Tetikləmələrin Qarşısını Al</string>
 	<string name="once_recorded_the_profile_runs_continuou">Profil qeyd edildikdən sonra, hərəkət zamanı yanlış tetikləmələrin qarşısını almaq üçün daimi işləyir.</string>
 	<string name="search">Axtar</string>

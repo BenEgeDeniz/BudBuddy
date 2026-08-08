@@ -7,3 +7,4 @@
 - Added Find My Earbuds functionality
 - Added support for Galaxy Buds 4
 - Added app-wide search gesture (pull down)
+- Reclassified Buds 2 series gesture support as experimental due to code refactoring (v1.3.0 is still stable for Buds 2 devices)
