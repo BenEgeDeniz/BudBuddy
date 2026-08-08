@@ -5,3 +5,5 @@
 - Bug fixes: Genre loading loops, text truncations, and complete device forgetting
 - Added double-back press to exit
 - Added Find My Earbuds functionality
+- Added support for Galaxy Buds 4
+- Added app-wide search gesture (pull down)

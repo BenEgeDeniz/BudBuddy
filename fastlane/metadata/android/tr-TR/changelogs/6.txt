@@ -5,3 +5,5 @@
 - Hata düzeltmeleri: Tür aramalarındaki sonsuz döngü, kural ekranındaki metin kesilmeleri ve cihazı unutma düzeltildi
 - Çıkmak için çift geri basma eklendi
 - Kulaklıklarımı Bul özelliği eklendi
+- Galaxy Buds 4 desteği eklendi
+- Uygulama içi arama özelliği (aşağı çekerek) eklendi
