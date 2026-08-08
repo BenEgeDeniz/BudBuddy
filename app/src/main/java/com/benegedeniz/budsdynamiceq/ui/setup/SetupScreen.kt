@@ -22,7 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
@@ -150,10 +150,11 @@ fun SetupScreen(onPermissionsGranted: () -> Unit) {
                         
                         val earbuds = listOf(
                             Pair(stringResource(R.string.model_buds_4_pro), stringResource(R.string.setup_gestures_supported)),
+                            Pair(stringResource(R.string.model_buds_4), stringResource(R.string.setup_gestures_supported)),
                             Pair(stringResource(R.string.model_buds_3_pro), stringResource(R.string.setup_gestures_not_supported)),
                             Pair(stringResource(R.string.model_buds_3), stringResource(R.string.setup_gestures_not_supported)),
-                            Pair(stringResource(R.string.model_buds_2_pro), stringResource(R.string.setup_gestures_supported)),
-                            Pair(stringResource(R.string.model_buds_2), stringResource(R.string.setup_gestures_supported))
+                            Pair(stringResource(R.string.model_buds_2_pro), stringResource(R.string.setup_gestures_not_supported)),
+                            Pair(stringResource(R.string.model_buds_2), stringResource(R.string.setup_gestures_not_supported))
                         )
                         
                         val scrollState = rememberScrollState()
@@ -240,7 +241,11 @@ fun SetupScreen(onPermissionsGranted: () -> Unit) {
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .height(56.dp),
-                                shape = RoundedCornerShape(28.dp)
+                                shape = RoundedCornerShape(28.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.secondary,
+                                    contentColor = MaterialTheme.colorScheme.onSecondary
+                                )
                             ) {
                                 Text(stringResource(R.string.grant_notification_access), style = MaterialTheme.typography.titleMedium)
                             }

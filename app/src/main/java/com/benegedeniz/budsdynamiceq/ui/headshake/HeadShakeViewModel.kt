@@ -18,7 +18,9 @@ import com.benegedeniz.budsdynamiceq.gesture.GestureDetector
 import com.benegedeniz.budsdynamiceq.gesture.QuaternionSample
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import com.benegedeniz.budsdynamiceq.ui.state.HeadShakeUiState
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
@@ -99,7 +101,54 @@ class HeadShakeViewModel(application: Application) : AndroidViewModel(applicatio
     val doubleTapEdgeConflict: StateFlow<Boolean> = _doubleTapEdgeConflict.asStateFlow()
 
     private val _recordingState = MutableStateFlow(RecordingState.IDLE)
-    val recordingState: StateFlow<RecordingState> = _recordingState.asStateFlow()
+
+    val uiState: StateFlow<HeadShakeUiState> = combine(
+        combine(
+            gestures,
+            _headShakeEnabled,
+            isMissingEarbudForHeadshake,
+            isConnected,
+            _recordingState
+        ) { g, hs, ms, c, rs ->
+            Tuple5(g, hs, ms, c, rs)
+        },
+        combine(
+            _spatialAudioConflict,
+            _doubleTapEdgeConflict,
+            _lastDetectedGesture,
+            isUiLocked,
+            _requireBothEarbuds
+        ) { sc, dt, lg, ul, rb ->
+            Tuple5(sc, dt, lg, ul, rb)
+        },
+        combine(
+            activeImuSide,
+            activeImuReason,
+            invertPitch
+        ) { side, reason, inv ->
+            Tuple3(side, reason, inv)
+        }
+    ) { group1, group2, group3 ->
+        HeadShakeUiState(
+            gestures = group1.t1,
+            headShakeEnabled = group1.t2,
+            isMissingEarbud = group1.t3,
+            isConnected = group1.t4,
+            recordingState = group1.t5,
+            spatialAudioConflict = group2.t1,
+            doubleTapEdgeConflict = group2.t2,
+            lastDetectedGesture = group2.t3,
+            isUiLocked = group2.t4,
+            requireBothEarbuds = group2.t5,
+            activeImuSide = group3.t1,
+            activeImuReason = group3.t2,
+            invertPitch = group3.t3
+        )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = HeadShakeUiState()
+    )
 
     private val _currentRecordingIndex = MutableStateFlow(0)
     val currentRecordingIndex: StateFlow<Int> = _currentRecordingIndex.asStateFlow()
@@ -109,6 +158,8 @@ class HeadShakeViewModel(application: Application) : AndroidViewModel(applicatio
 
     private val _editingGesture = MutableStateFlow<HeadGesture?>(null)
     val editingGesture: StateFlow<HeadGesture?> = _editingGesture.asStateFlow()
+
+    var editingFlowForGesture by androidx.compose.runtime.mutableStateOf<HeadGesture?>(null)
 
     private val _countdownSeconds = MutableStateFlow(3)
     val countdownSeconds: StateFlow<Int> = _countdownSeconds.asStateFlow()
@@ -354,9 +405,8 @@ class HeadShakeViewModel(application: Application) : AndroidViewModel(applicatio
             _recordedTemplates.value = templates
             
             if (templates.isEmpty()) {
-                // Not enough movement, just return to ready state with a warning
+                consistencyWarning.value = R.string.no_significant_movement_detected
                 _recordingState.value = RecordingState.READY_FOR_SAMPLE
-                consistencyWarning.value = getApplication<Application>().getString(R.string.no_significant_movement_detected)
                 return@launch
             }
             
@@ -432,7 +482,7 @@ class HeadShakeViewModel(application: Application) : AndroidViewModel(applicatio
                 val refDur = templates[prevIndex].last().timestampMs - templates[prevIndex].first().timestampMs
                 val dist = DtwEngine.computeDtw(refFeatures, newFeatures, refDur, newDur)
                 if (dist > 0.75f) {
-                    consistencyWarning.value = getApplication<Application>().getString(R.string.gesture_looks_different)
+                    consistencyWarning.value = R.string.gesture_looks_different
                 } else {
                     consistencyWarning.value = null
                 }
@@ -454,7 +504,7 @@ class HeadShakeViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
-    val consistencyWarning = MutableStateFlow<String?>(null)
+    val consistencyWarning = MutableStateFlow<Int?>(null)
 
     fun redoLastRecording() {
         startRecording()
@@ -632,3 +682,6 @@ class HeadShakeViewModel(application: Application) : AndroidViewModel(applicatio
     // Spatial flow proxy for UI visualizer
     val spatialDataFlow = budsController.spatialDataFlow
 }
+
+private data class Tuple5<T1, T2, T3, T4, T5>(val t1: T1, val t2: T2, val t3: T3, val t4: T4, val t5: T5)
+private data class Tuple3<T1, T2, T3>(val t1: T1, val t2: T2, val t3: T3)

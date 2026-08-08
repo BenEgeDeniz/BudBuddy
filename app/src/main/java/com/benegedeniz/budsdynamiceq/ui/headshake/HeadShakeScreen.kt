@@ -11,9 +11,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.automirrored.filled.VolumeUp
-import androidx.compose.material.icons.automirrored.filled.TrendingUp
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import kotlinx.coroutines.delay
@@ -26,6 +24,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.draw.drawWithContent
@@ -35,6 +34,9 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.benegedeniz.budsdynamiceq.ui.theme.StatusActiveGreen
 import com.benegedeniz.budsdynamiceq.ui.theme.StatusErrorRed
+
+import com.benegedeniz.budsdynamiceq.ui.components.SearchBarInput
+import com.benegedeniz.budsdynamiceq.ui.headshake.components.*
 import com.benegedeniz.budsdynamiceq.ui.components.bounceClick
 import com.benegedeniz.budsdynamiceq.data.model.FitTestResult
 import com.benegedeniz.budsdynamiceq.data.model.GestureAction
@@ -43,28 +45,43 @@ import com.benegedeniz.budsdynamiceq.data.model.HeadGesture
 import androidx.compose.ui.res.stringResource
 import com.benegedeniz.budsdynamiceq.R
 
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.unit.Velocity
+import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.ui.graphics.graphicsLayer
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HeadShakeScreen(
-    modifier: Modifier = Modifier,
-    viewModel: HeadShakeViewModel = viewModel()
+    viewModel: HeadShakeViewModel = viewModel(),
+    onOpenSearch: () -> Unit = {},
+    modifier: Modifier = Modifier
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
     val prefs = context.getSharedPreferences("BudsPrefs", android.content.Context.MODE_PRIVATE)
     var hasSeenGesturesIntro by remember { mutableStateOf(prefs.getBoolean("has_seen_gestures_intro", false)) }
     
-    val gestures by viewModel.gestures.collectAsState()
-    val headShakeEnabled by viewModel.headShakeEnabled.collectAsState()
-    val isMissingEarbud by viewModel.isMissingEarbudForHeadshake.collectAsState()
-    
+    val uiState by viewModel.uiState.collectAsState()
+    val gestures = uiState.gestures
+    val headShakeEnabled = uiState.headShakeEnabled
+    val isMissingEarbud = uiState.isMissingEarbud
+    val isConnected = uiState.isConnected
+    val recordingState = uiState.recordingState
+    val spatialAudioConflict = uiState.spatialAudioConflict
+    val doubleTapEdgeConflict = uiState.doubleTapEdgeConflict
+    val isUiLocked = uiState.isUiLocked
+    val requireBothEarbuds = uiState.requireBothEarbuds
+    val lastDetectedGesture = uiState.lastDetectedGesture
+    val activeImuSide = uiState.activeImuSide
+    val activeImuReason = uiState.activeImuReason
+    val invertPitch = uiState.invertPitch
+    val isMutedByNoise = lastDetectedGesture?.isNoiseProfile == true && lastDetectedGesture?.blockGesturesOnMatch == true
+
     val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
     val effectiveEnabled = headShakeEnabled && !isMissingEarbud
-    val isConnected by viewModel.isConnected.collectAsState()
-    val recordingState by viewModel.recordingState.collectAsState()
-    val spatialAudioConflict by viewModel.spatialAudioConflict.collectAsState()
-    val doubleTapEdgeConflict by viewModel.doubleTapEdgeConflict.collectAsState()
-    val lastDetectedGesture by viewModel.lastDetectedGesture.collectAsState()
-    val isMutedByNoise = lastDetectedGesture?.isNoiseProfile == true && lastDetectedGesture?.blockGesturesOnMatch == true
 
     var showVisualizer by remember { mutableStateOf(false) }
     var showInfoDialog by remember { mutableStateOf(false) }
@@ -82,7 +99,7 @@ fun HeadShakeScreen(
     val listState = androidx.compose.foundation.lazy.rememberLazyListState()
     val isScrolled by remember { derivedStateOf { listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > 20 } }
     
-    val isUiLocked by viewModel.isUiLocked.collectAsState()
+
 
     LaunchedEffect(isConnected) {
         if (isConnected) {
@@ -90,197 +107,126 @@ fun HeadShakeScreen(
         }
     }
 
-    androidx.compose.animation.AnimatedVisibility(
-        visible = !viewModel.isMovementCancellingScreenOpen,
-        enter = androidx.compose.animation.slideInHorizontally(animationSpec = androidx.compose.animation.core.tween(300)) { -it } + androidx.compose.animation.fadeIn(animationSpec = androidx.compose.animation.core.tween(300)),
-        exit = androidx.compose.animation.slideOutHorizontally(animationSpec = androidx.compose.animation.core.tween(300)) { -it } + androidx.compose.animation.fadeOut(animationSpec = androidx.compose.animation.core.tween(300))
-    ) {
-        Box(modifier = modifier.fillMaxSize()) {
-            LazyColumn(
-                state = listState,
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(bottom = 120.dp, top = 140.dp)
-            ) {
+    Box(modifier = modifier.fillMaxSize()) {
+        androidx.compose.animation.AnimatedVisibility(
+            visible = !viewModel.isMovementCancellingScreenOpen,
+            enter = androidx.compose.animation.slideInHorizontally(animationSpec = androidx.compose.animation.core.tween(300)) { -it } + androidx.compose.animation.fadeIn(animationSpec = androidx.compose.animation.core.tween(300)),
+            exit = androidx.compose.animation.slideOutHorizontally(animationSpec = androidx.compose.animation.core.tween(300)) { -it } + androidx.compose.animation.fadeOut(animationSpec = androidx.compose.animation.core.tween(300))
+        ) {
+            var overscrollAmount by remember { mutableFloatStateOf(0f) }
 
-            item {
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                    shape = RoundedCornerShape(24.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant
-                    )
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(20.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column {
-                            Text(
-                                text = stringResource(R.string.gestures),
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(8.dp)
-                                        .clip(CircleShape)
-                                        .background(if (isConnected) StatusActiveGreen else StatusErrorRed)
-                                )
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Text(
-                                    text = if (!isConnected) stringResource(R.string.buds_disconnected) 
-                                           else if (isMissingEarbud && headShakeEnabled) stringResource(R.string.headshake_disabled_missing)
-                                           else if (headShakeEnabled) stringResource(R.string.headshake_active_gestures, gestures.filter { !it.isNoiseProfile }.size) 
-                                           else stringResource(R.string.status_disabled),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
-                                )
+            val nestedScrollConnection = remember {
+                object : NestedScrollConnection {
+                    override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                        if (source == NestedScrollSource.UserInput) {
+                            if (available.y > 0 && !listState.canScrollBackward) {
+                                overscrollAmount += available.y
+                                return Offset(0f, available.y)
+                            } else if (overscrollAmount > 0 && available.y < 0) {
+                                val consumed = minOf(overscrollAmount, -available.y)
+                                overscrollAmount -= consumed
+                                return Offset(0f, -consumed)
                             }
                         }
-                        Switch(
-                            checked = effectiveEnabled,
-                            onCheckedChange = { checked ->
-                                haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
-                                if (checked) {
-                                    if (isMissingEarbud) {
-                                        viewModel.forceHeadshakeOn()
-                                    } else {
-                                        viewModel.toggleHeadShake(true)
-                                    }
-                                } else {
-                                    viewModel.toggleHeadShake(false)
-                                }
-                            },
-                            enabled = !spatialAudioConflict && !doubleTapEdgeConflict,
-                            colors = SwitchDefaults.colors(
-                                checkedThumbColor = Color.White,
-                                checkedTrackColor = MaterialTheme.colorScheme.primary
-                            )
-                        )
+                        return Offset.Zero
+                    }
+                    override fun onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource): Offset {
+                        return Offset.Zero
+                    }
+                    override suspend fun onPreFling(available: Velocity): Velocity {
+                        if (overscrollAmount > 250f) {
+                            onOpenSearch()
+                        }
+                        overscrollAmount = 0f
+                        return super.onPreFling(available)
+                    }
+                    override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity {
+                        overscrollAmount = 0f
+                        return super.onPostFling(consumed, available)
                     }
                 }
             }
 
-            if (spatialAudioConflict && isConnected) {
+            Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+                LazyColumn(
+                    state = listState,
+                    modifier = Modifier.fillMaxSize().nestedScroll(nestedScrollConnection),
+                    contentPadding = PaddingValues(bottom = 120.dp, top = 140.dp)
+                ) {
+
                 item {
-                    Card(
+                    val searchThreshold = 250f
+                    val isReadyToSearch = overscrollAmount > searchThreshold
+                    
+                    val rotation by androidx.compose.animation.core.animateFloatAsState(targetValue = if (isReadyToSearch) 180f else 0f)
+                    
+                    Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
-                        shape = RoundedCornerShape(16.dp)
+                            .padding(bottom = 16.dp),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Column(
-                            modifier = Modifier.padding(16.dp)
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(
-                                    Icons.Default.Warning,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onErrorContainer
-                                )
-                                Spacer(Modifier.width(16.dp))
-                                Text(stringResource(R.string.gestures_is_disabled_spatial_audio_360_a),
-                                    color = MaterialTheme.colorScheme.onErrorContainer,
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
-                            }
-                            Spacer(Modifier.height(12.dp))
-                            androidx.compose.material3.Button(
-                                onClick = { viewModel.checkSpatialSensorAvailability() },
-                                modifier = Modifier.align(Alignment.End),
-                                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.onErrorContainer,
-                                    contentColor = MaterialTheme.colorScheme.errorContainer
-                                )
-                            ) {
-                                Text(stringResource(R.string.retry_connection))
+                        Icon(
+                            imageVector = Icons.Default.ArrowDownward,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(16.dp).graphicsLayer { rotationZ = rotation }
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = if (isReadyToSearch) stringResource(R.string.release_to_search_app_wide) else stringResource(R.string.pull_down_to_search),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+
+                item {
+                    GesturesStatusCard(
+                        isConnected = isConnected,
+                        isMissingEarbud = isMissingEarbud,
+                        headShakeEnabled = headShakeEnabled,
+                        effectiveEnabled = effectiveEnabled,
+                        gestures = gestures,
+                        spatialAudioConflict = spatialAudioConflict,
+                        doubleTapEdgeConflict = doubleTapEdgeConflict,
+                        onCheckedChange = { checked ->
+                            haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
+                            if (checked) {
+                                if (isMissingEarbud) {
+                                    viewModel.forceHeadshakeOn()
+                                } else {
+                                    viewModel.toggleHeadShake(true)
+                                }
+                            } else {
+                                viewModel.toggleHeadShake(false)
                             }
                         }
-                    }
+                    )
+                }
+
+            if (spatialAudioConflict && isConnected) {
+                item {
+                    SpatialAudioConflictCard(
+                        onRetryClick = { viewModel.checkSpatialSensorAvailability() }
+                    )
                 }
             }
 
             if (doubleTapEdgeConflict && isConnected && !spatialAudioConflict) {
                 item {
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
-                        shape = RoundedCornerShape(16.dp)
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(16.dp)
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(
-                                    Icons.Default.Warning,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onErrorContainer
-                                )
-                                Spacer(Modifier.width(16.dp))
-                                Text(stringResource(R.string.gestures_is_disabled_double_tap_edge),
-                                    color = MaterialTheme.colorScheme.onErrorContainer,
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
-                            }
-                        }
-                    }
+                    DoubleTapEdgeConflictCard()
                 }
             }
 
             item {
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
-                        .alpha(if (isConnected && !isUiLocked) 1f else 0.5f)
-                        .clickable(enabled = isConnected && !isUiLocked) { viewModel.isMovementCancellingScreenOpen = true },
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
-                        ),
-                        shape = RoundedCornerShape(24.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(
-                                    imageVector = Icons.Default.SensorsOff,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
-                                Spacer(modifier = Modifier.width(12.dp))
-                                Text(stringResource(R.string.movement_cancelling),
-                                    style = MaterialTheme.typography.titleSmall,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                IconButton(onClick = { showMcIntro = true }) {
-                                    Icon(
-                                        imageVector = Icons.Default.Info,
-                                        contentDescription = stringResource(R.string.about_movement_cancelling),
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                                    contentDescription = stringResource(R.string.open_movement_cancelling)
-                                )
-                            }
-                        }
-                    }
+                MovementCancellingCard(
+                    isConnected = isConnected,
+                    isUiLocked = isUiLocked,
+                    onCardClick = { viewModel.isMovementCancellingScreenOpen = true },
+                    onInfoClick = { showMcIntro = true }
+                )
 
                     var settingsExpanded by remember { mutableStateOf(false) }
                     
@@ -345,7 +291,7 @@ fun HeadShakeScreen(
                             )
                             
                             Spacer(Modifier.height(8.dp))
-                            val requireBothEarbuds by viewModel.requireBothEarbuds.collectAsState()
+                            // requireBothEarbuds is accessed via uiState.requireBothEarbuds above
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -443,16 +389,15 @@ fun HeadShakeScreen(
                 }
             } else {
                 item {
-                    var editingFlowForGesture by remember { mutableStateOf<HeadGesture?>(null) }
                     
-                    if (editingFlowForGesture != null) {
+                    if (viewModel.editingFlowForGesture != null) {
                         GestureEditScreen(
-                            gesture = editingFlowForGesture!!,
+                            gesture = viewModel.editingFlowForGesture!!,
                             onSave = { name, actions, playChime ->
-                                viewModel.updateGestureNameAndActions(editingFlowForGesture!!.id, name, actions, playChime)
-                                editingFlowForGesture = null
+                                viewModel.updateGestureNameAndActions(viewModel.editingFlowForGesture!!.id, name, actions, playChime)
+                                viewModel.editingFlowForGesture = null
                             },
-                            onDismiss = { editingFlowForGesture = null }
+                            onDismiss = { viewModel.editingFlowForGesture = null }
                         )
                     }
                     
@@ -464,7 +409,7 @@ fun HeadShakeScreen(
                                 onToggle = { enabled -> viewModel.toggleGesture(gesture, enabled) },
                                 onDelete = { viewModel.deleteGesture(gesture.id) },
                                 onImprove = { viewModel.improveDetection(gesture) },
-                                onEditFlow = { editingFlowForGesture = gesture },
+                                onEditFlow = { viewModel.editingFlowForGesture = gesture },
                                 isDetected = lastDetectedGesture?.id == gesture.id
                             )
                         }
@@ -553,7 +498,7 @@ fun HeadShakeScreen(
         }
         GestureRecordingScreen(viewModel = viewModel)
     }
-
+    } // Close root Box
 }
 
 @Composable
@@ -564,7 +509,8 @@ fun GestureCard(
     onDelete: () -> Unit,
     onImprove: () -> Unit,
     onEditFlow: () -> Unit,
-    isDetected: Boolean = false
+    isDetected: Boolean = false,
+    modifier: Modifier = Modifier
 ) {
     val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
 
@@ -593,7 +539,7 @@ fun GestureCard(
     }
 
     Card(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 6.dp)
             .bounceClick { onEditFlow() },
@@ -614,7 +560,9 @@ fun GestureCard(
                     text = gesture.name,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = androidx.compose.ui.graphics.Color.Unspecified
+                    color = androidx.compose.ui.graphics.Color.Unspecified,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -630,7 +578,7 @@ fun GestureCard(
                                         GestureAction.PREVIOUS_TRACK -> Icons.Default.SkipPrevious
                                         GestureAction.ANNOUNCE_TRACK -> Icons.Default.MusicNote
                                         GestureAction.NC_TOGGLE -> Icons.Default.Hearing
-                                        GestureAction.NC_ACTIVE -> Icons.Default.VolumeOff
+                                        GestureAction.NC_ACTIVE -> Icons.AutoMirrored.Filled.VolumeOff
                                         GestureAction.NC_OFF -> Icons.Default.Close
                                         GestureAction.NC_TRANSPARENT -> Icons.Default.Hearing
                                         GestureAction.NC_ADAPTIVE -> Icons.Default.AutoAwesome
@@ -640,17 +588,17 @@ fun GestureCard(
                                         GestureAction.READ_NOTIFICATIONS -> Icons.Default.Notifications
                                         GestureAction.SPEAK_TEXT -> Icons.Default.RecordVoiceOver
                                         GestureAction.LAUNCH_APP -> Icons.Default.Apps
-                                        GestureAction.SET_VOLUME -> Icons.Default.VolumeUp
-                                        GestureAction.MODIFY_VOLUME_INCREASE -> Icons.Default.VolumeUp
-                                        GestureAction.MODIFY_VOLUME_DECREASE -> Icons.Default.VolumeDown
+                                        GestureAction.SET_VOLUME -> Icons.AutoMirrored.Filled.VolumeUp
+                                        GestureAction.MODIFY_VOLUME_INCREASE -> Icons.AutoMirrored.Filled.VolumeUp
+                                        GestureAction.MODIFY_VOLUME_DECREASE -> Icons.AutoMirrored.Filled.VolumeDown
                                         GestureAction.FIT_TEST -> Icons.Default.CheckCircle
                                         GestureAction.NO_ACTION -> Icons.Default.Cancel
                                     }
                                 }
                                 is com.benegedeniz.budsdynamiceq.data.model.FlowAction.AppAction -> Icons.Default.Apps
                                 is com.benegedeniz.budsdynamiceq.data.model.FlowAction.DelayAction -> Icons.Default.Timer
-                                is com.benegedeniz.budsdynamiceq.data.model.FlowAction.VolumeAction -> Icons.Default.VolumeUp
-                                is com.benegedeniz.budsdynamiceq.data.model.FlowAction.ModifyVolumeAction -> if (action.increase) Icons.Default.VolumeUp else Icons.Default.VolumeDown
+                                is com.benegedeniz.budsdynamiceq.data.model.FlowAction.VolumeAction -> Icons.AutoMirrored.Filled.VolumeUp
+                                is com.benegedeniz.budsdynamiceq.data.model.FlowAction.ModifyVolumeAction -> if (action.increase) Icons.AutoMirrored.Filled.VolumeUp else Icons.AutoMirrored.Filled.VolumeDown
                                 is com.benegedeniz.budsdynamiceq.data.model.FlowAction.TtsAction -> Icons.Default.RecordVoiceOver
                                 else -> Icons.Default.HeadsetOff
                             }
@@ -764,12 +712,12 @@ fun IMUVisualizerDialog(
 fun LivePreviewSection(
     viewModel: com.benegedeniz.budsdynamiceq.ui.headshake.HeadShakeViewModel
 ) {
+    val uiState by viewModel.uiState.collectAsState()
+    val lastDetectedGesture = uiState.lastDetectedGesture
+    val activeImuSide = uiState.activeImuSide
+    val activeImuReason = uiState.activeImuReason
+    val invertPitch = uiState.invertPitch
     val currentSample by viewModel.spatialDataFlow.collectAsState(initial = null)
-    val lastDetectedGesture by viewModel.lastDetectedGesture.collectAsState()
-    
-    val activeImuSide by viewModel.activeImuSide.collectAsState()
-    val activeImuReason by viewModel.activeImuReason.collectAsState()
-    val invertPitch by viewModel.invertPitch.collectAsState()
     
     Box(contentAlignment = Alignment.Center) {
         Head3DCanvas(
@@ -862,15 +810,14 @@ fun LivePreviewSection(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontWeight = FontWeight.Medium
             )
-                }
-            }
-            
             Spacer(modifier = Modifier.height(16.dp))
             OutlinedButton(
                 onClick = { viewModel.isSensorDebugScreenOpen = true },
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(stringResource(R.string.debug_title))
+            }
+                }
             }
         }
     }

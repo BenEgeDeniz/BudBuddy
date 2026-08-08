@@ -39,7 +39,7 @@ import androidx.compose.ui.unit.sp
 import com.benegedeniz.budsdynamiceq.audio.HearingTestManager
 import com.benegedeniz.budsdynamiceq.ui.components.PageHeader
 import com.benegedeniz.budsdynamiceq.ui.components.bounceClick
-import com.benegedeniz.budsdynamiceq.ui.rules.RulesViewModel
+import com.benegedeniz.budsdynamiceq.ui.buds.BudsViewModel
 import kotlinx.coroutines.delay
 import androidx.compose.ui.res.stringResource
 import com.benegedeniz.budsdynamiceq.R
@@ -49,7 +49,7 @@ enum class TestPhase {
 }
 
 @Composable
-fun SoundBalanceTestScreen(viewModel: RulesViewModel, onBack: () -> Unit, modifier: Modifier = Modifier) {
+fun SoundBalanceTestScreen(viewModel: BudsViewModel, onBack: () -> Unit, modifier: Modifier = Modifier) {
     androidx.activity.compose.BackHandler { onBack() }
     val context = LocalContext.current
     val haptic = LocalHapticFeedback.current
@@ -64,20 +64,23 @@ fun SoundBalanceTestScreen(viewModel: RulesViewModel, onBack: () -> Unit, modifi
     val testManager = remember { HearingTestManager(context) }
     var isTestActive by remember { mutableStateOf(false) }
 
-    val placementL by viewModel.placementL.collectAsState()
-    val placementR by viewModel.placementR.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
+    val stereoBalance = uiState.stereoBalance
+    val placementL = uiState.placementL
+    val placementR = uiState.placementR
     
     LaunchedEffect(placementL, placementR) {
         if (placementL != PlacementState.WEARING || placementR != PlacementState.WEARING) {
+            isTestActive = false
             Toast.makeText(context, context.getString(R.string.earbud_removed_aborted), Toast.LENGTH_SHORT).show()
             onBack()
         }
     }
 
-    val originalBalance = remember { viewModel.stereoBalance.value }
+    val originalBalance = remember { stereoBalance }
     var didApplyNewBalance by remember { mutableStateOf(false) }
 
-    val originalNcMode = remember { viewModel.activeNoiseControl.value }
+    val originalNcMode = remember { uiState.activeNoiseControl }
 
     DisposableEffect(Unit) {
         viewModel.setStereoBalance(16)
@@ -101,8 +104,7 @@ fun SoundBalanceTestScreen(viewModel: RulesViewModel, onBack: () -> Unit, modifi
                         onClick = {
                             haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                             onBack()
-                        },
-                        modifier = Modifier.bounceClick()
+                        }
                     ) {
                         Icon(Icons.Default.Close, contentDescription = stringResource(R.string.close))
                     }

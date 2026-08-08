@@ -3,7 +3,7 @@ package com.benegedeniz.budsdynamiceq.data.model
 import androidx.annotation.StringRes
 import com.benegedeniz.budsdynamiceq.R
 
-enum class PlacementState(val id: Int, @StringRes val displayNameRes: Int) {
+enum class PlacementState(val id: Int, @param:StringRes val displayNameRes: Int) {
     DISCONNECTED(0, R.string.place_disconnected),
     WEARING(1, R.string.place_wearing),
     IDLE(2, R.string.place_idle),

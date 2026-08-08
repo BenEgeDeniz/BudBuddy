@@ -1,0 +1,10 @@
+✨ v1.4.0
+- Complete UI & Architecture Rewrite: Faster, smoother animations and transition speeds
+- Automatic Earbud Detection Fallback: Prompt if auto-detect fails
+- Transparency Mode Upgrade: Enabled for Buds 3 Pro & 4 Pro when one earbud is worn
+- Bug fixes: Genre loading loops, text truncations, and complete device forgetting
+- Added double-back press to exit
+- Added Find My Earbuds functionality
+- Added support for Galaxy Buds 4
+- Added app-wide search gesture (pull down)
+- Reclassified Buds 2 series gesture support as experimental due to code refactoring (v1.3.0 is still stable for Buds 2 devices)

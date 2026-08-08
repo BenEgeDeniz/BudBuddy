@@ -1,0 +1,154 @@
+name: Android CI/CD
+
+on:
+  push:
+    branches: [ "staging", "master" ]
+  pull_request:
+    branches: [ "dev", "staging", "master" ]
+
+jobs:
+  policy:
+    name: PR Policy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Enforce promotion workflow
+        if: github.event_name == 'pull_request'
+        run: |
+          if [[ "${{ github.base_ref }}" == "staging" ]]; then
+            if [[ "${{ github.event.pull_request.head.repo.full_name }}" != "${{ github.repository }}" ]]; then
+              echo "::error::Pull requests to 'staging' from external forks are not allowed."
+              exit 1
+            fi
+
+            if [[ "${{ github.head_ref }}" != "dev" ]]; then
+              echo "::error::Pull requests to 'staging' MUST originate from the 'dev' branch."
+              echo "::error::You are trying to merge from '${{ github.head_ref }}'."
+              exit 1
+            fi
+          fi
+
+          if [[ "${{ github.base_ref }}" == "master" ]]; then
+            if [[ "${{ github.event.pull_request.head.repo.full_name }}" != "${{ github.repository }}" ]]; then
+              echo "::error::Pull requests to 'master' from external forks are not allowed."
+              exit 1
+            fi
+
+            if [[ "${{ github.head_ref }}" != "staging" ]]; then
+              echo "::error::Pull requests to 'master' MUST originate from the 'staging' branch."
+              echo "::error::You are trying to merge from '${{ github.head_ref }}'."
+              exit 1
+            fi
+          fi
+
+          echo "Branch promotion policy passed."
+
+  build:
+    needs: policy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build Debug APK (Dev)
+        if: github.ref == 'refs/heads/dev' || github.base_ref == 'dev'
+        run: ./gradlew assembleDebug
+
+      - name: Upload Debug APK (Dev)
+        if: github.ref == 'refs/heads/dev' || github.base_ref == 'dev'
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug-dev
+          path: app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Decode Staging Keystore (Staging)
+        if: github.ref == 'refs/heads/staging' || github.base_ref == 'staging'
+        env:
+          STAGING_KEYSTORE_BASE64: ${{ secrets.STAGING_KEYSTORE_BASE64 }}
+        run: |
+          echo "$STAGING_KEYSTORE_BASE64" | base64 --decode > "${{ github.workspace }}/staging-keystore.jks"
+
+      - name: Build Debug & Signed Release APKs (Staging)
+        if: github.ref == 'refs/heads/staging' || github.base_ref == 'staging'
+        env:
+          STAGING_KEY_ALIAS: ${{ secrets.STAGING_KEY_ALIAS }}
+          STAGING_KEY_PASSWORD: ${{ secrets.STAGING_KEY_PASSWORD }}
+          STAGING_STORE_PASSWORD: ${{ secrets.STAGING_STORE_PASSWORD }}
+        run: |
+          ./gradlew assembleDebug assembleRelease \
+            -Pandroid.injected.signing.store.file="${{ github.workspace }}/staging-keystore.jks" \
+            -Pandroid.injected.signing.store.password="$STAGING_STORE_PASSWORD" \
+            -Pandroid.injected.signing.key.alias="$STAGING_KEY_ALIAS" \
+            -Pandroid.injected.signing.key.password="$STAGING_KEY_PASSWORD"
+
+      - name: Upload Debug APK
+        if: github.ref == 'refs/heads/staging' || github.base_ref == 'staging'
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug
+          path: app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Upload Staging Release APK
+        if: github.ref == 'refs/heads/staging' || github.base_ref == 'staging'
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-staging-release
+          path: app/build/outputs/apk/release/app-release*.apk
+
+      - name: Decode Keystore (Master)
+        if: >
+          github.ref == 'refs/heads/master' ||
+          (
+            github.event_name == 'pull_request' &&
+            github.base_ref == 'master' &&
+            github.head_ref == 'staging' &&
+            github.event.pull_request.head.repo.full_name == github.repository
+          )
+        env:
+          SIGNING_KEYSTORE_BASE64: ${{ secrets.SIGNING_KEYSTORE_BASE64 }}
+        run: |
+          echo "$SIGNING_KEYSTORE_BASE64" | base64 --decode > "${{ github.workspace }}/keystore.jks"
+
+      - name: Build Release APK (Master)
+        if: >
+          github.ref == 'refs/heads/master' ||
+          (
+            github.event_name == 'pull_request' &&
+            github.base_ref == 'master' &&
+            github.head_ref == 'staging' &&
+            github.event.pull_request.head.repo.full_name == github.repository
+          )
+        env:
+          SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
+          SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
+        run: |
+          ./gradlew assembleRelease \
+            -Pandroid.injected.signing.store.file="${{ github.workspace }}/keystore.jks" \
+            -Pandroid.injected.signing.store.password="$SIGNING_STORE_PASSWORD" \
+            -Pandroid.injected.signing.key.alias="$SIGNING_KEY_ALIAS" \
+            -Pandroid.injected.signing.key.password="$SIGNING_KEY_PASSWORD"
+
+      - name: Upload Release APK
+        if: >
+          github.ref == 'refs/heads/master' ||
+          (
+            github.event_name == 'pull_request' &&
+            github.base_ref == 'master' &&
+            github.head_ref == 'staging' &&
+            github.event.pull_request.head.repo.full_name == github.repository
+          )
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release
+          path: app/build/outputs/apk/release/app-release.apk

@@ -1,5 +1,4 @@
 package com.benegedeniz.budsdynamiceq.bluetooth
-import com.benegedeniz.budsdynamiceq.R
 
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
@@ -11,17 +10,15 @@ import android.util.Log
 import com.benegedeniz.budsdynamiceq.data.model.EqPreset
 import com.benegedeniz.budsdynamiceq.data.model.EqRule
 import com.benegedeniz.budsdynamiceq.data.model.NoiseControlMode
-import com.benegedeniz.budsdynamiceq.data.model.PlacementState
 import com.benegedeniz.budsdynamiceq.data.model.FitTestResult
-import com.benegedeniz.budsdynamiceq.gesture.QuaternionSample
+import com.benegedeniz.budsdynamiceq.data.repository.DeviceStateRepository
+import com.benegedeniz.budsdynamiceq.data.repository.SettingsRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.SharingStarted
@@ -29,130 +26,46 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.asSharedFlow
 import java.io.IOException
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
 import java.util.UUID
 
-enum class BudsModel(@androidx.annotation.StringRes val displayNameRes: Int) {
-    BUDS_2(R.string.model_buds_2),
-    BUDS_2_PRO(R.string.model_buds_2_pro),
-    BUDS_3(R.string.model_buds_3),
-    BUDS_3_PRO(R.string.model_buds_3_pro),
-    BUDS_4_PRO(R.string.model_buds_4_pro),
-    UNKNOWN(R.string.model_buds_unknown);
-    
-    val supportsAdaptiveNC: Boolean get() = this != BUDS_2 && this != BUDS_2_PRO && this != BUDS_3
-    val supportsTransparencyNC: Boolean get() = this != BUDS_3
-    val supportsConversationDetection: Boolean get() = this != BUDS_2 && this != BUDS_3
-    val supportsFitTest: Boolean get() = this != BUDS_3
-    val isExperimentalGestures: Boolean get() = this != BUDS_4_PRO && this != BUDS_2 && this != BUDS_2_PRO
-}
-
-class BudsController(private val context: Context) {
-
+class BudsController(
+    private val context: Context,
+    val deviceState: DeviceStateRepository,
+    val settingsRepo: SettingsRepository
+) {
     companion object {
         private const val TAG = "BudsController"
-        // Standard SPP UUID used by Galaxy Buds manager
         val BUDS_SPP_UUID: UUID = UUID.fromString("2e73a4ad-332d-41fc-90e2-16bef06523f2")
-        private const val PREFS_NAME = "BudsPrefs"
-        private const val KEY_MAC_ADDRESS = "saved_mac_address"
     }
 
-    private val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     private val bluetoothManager: BluetoothManager? = context.getSystemService(BluetoothManager::class.java)
     private val bluetoothAdapter: BluetoothAdapter? = bluetoothManager?.adapter
-
-    fun startFitTest() {
-        val payload = byteArrayOf(1)
-        sendSppPacket(157.toByte(), payload)
-        // Reset results on start
-        _fitTestResultL.value = FitTestResult.UNKNOWN
-        _fitTestResultR.value = FitTestResult.UNKNOWN
-    }
-
-    fun stopFitTest() {
-        val payload = byteArrayOf(0)
-        sendSppPacket(157.toByte(), payload)
-    }
-
-    private fun sendSppPacket(msgId: Byte, payload: ByteArray) {
-        val packet = SppPacketEncoder.buildPacket(msgId, payload)
-        packetQueue.trySend(packet)
-    }
-
-    private fun disableHardwareAutoPause() {
-        // payload = 0x00 disables the built-in pause behavior
-        sendSppPacket(SppPacketEncoder.MSG_ID_PAUSE_MEDIA_WHEN_ONE_BUD_REMOVED, byteArrayOf(0))
-    }
 
     private var socket: BluetoothSocket? = null
     private var connectionJob: Job? = null
     private val scope = CoroutineScope(Dispatchers.IO)
+    private val packetParser = BudsPacketParser(deviceState, settingsRepo, this)
 
-    private val _isConnected = MutableStateFlow(false)
-    val isConnected: StateFlow<Boolean> = _isConnected.asStateFlow()
+    val isConnected = deviceState.isConnected.asStateFlow()
+    val isConnecting = deviceState.isConnecting.asStateFlow()
+    val savedDeviceMac = deviceState.savedDeviceMac.asStateFlow()
+    val isSpatialActive = deviceState.isSpatialActive.asStateFlow()
+    val isHomePageVisible = deviceState.isHomePageVisible
+    val connectedModel = deviceState.connectedModel.asStateFlow()
+    val modelOverride = deviceState.modelOverride.asStateFlow()
+    
+    val effectiveModel = deviceState.modelOverride
+        .combine(deviceState.connectedModel) { override, detected -> override ?: detected }
+        .stateIn(scope, SharingStarted.Eagerly, deviceState.modelOverride.value ?: BudsModel.UNKNOWN)
 
-    private val _isConnecting = MutableStateFlow(false)
-    val isConnecting: StateFlow<Boolean> = _isConnecting.asStateFlow()
-
-    private val _savedDeviceMac = MutableStateFlow<String?>(prefs.getString(KEY_MAC_ADDRESS, null))
-    val savedDeviceMac: StateFlow<String?> = _savedDeviceMac.asStateFlow()
-
-    fun isBluetoothEnabled(): Boolean {
-        return bluetoothAdapter?.isEnabled == true
-    }
-
-    private val _isSpatialActive = MutableStateFlow(false)
-    val isSpatialActive: StateFlow<Boolean> = _isSpatialActive.asStateFlow()
-
-    val isHomePageVisible = MutableStateFlow(false)
-
-    private val _connectedModel = MutableStateFlow(
-        prefs.getString("detected_model_${prefs.getString(KEY_MAC_ADDRESS, "")}", null)?.let {
-            try { BudsModel.valueOf(it) } catch (_: Exception) { null }
-        } ?: BudsModel.UNKNOWN
-    )
-    val connectedModel: StateFlow<BudsModel> = _connectedModel.asStateFlow()
-
-    private val _modelOverride = MutableStateFlow<BudsModel?>(
-        prefs.getString(KEY_MAC_ADDRESS, null)?.let { mac ->
-            prefs.getString("model_override_$mac", null)?.let { overrideStr ->
-                try { BudsModel.valueOf(overrideStr) } catch (_: Exception) { null }
-            }
-        }
-    )
-    val modelOverride: StateFlow<BudsModel?> = _modelOverride.asStateFlow()
-
-    /** The effective model: override if set, otherwise auto-detected */
-    val effectiveModel: StateFlow<BudsModel> = _modelOverride
-        .combine(_connectedModel) { override, detected -> override ?: detected }
-        .stateIn(scope, SharingStarted.Eagerly, _modelOverride.value ?: BudsModel.UNKNOWN)
-
-    fun setModelOverride(model: BudsModel?) {
-        _modelOverride.value = model
-        val mac = _savedDeviceMac.value
-        if (mac != null) {
-            if (model != null) {
-                prefs.edit().putString("model_override_$mac", model.name).apply()
-            } else {
-                prefs.edit().remove("model_override_$mac").apply()
-            }
-        }
-    }
+    val activeImuSide = deviceState.activeImuSide.asStateFlow()
+    val activeImuReason = deviceState.activeImuReason.asStateFlow()
 
     enum class ImuSide { LEFT, RIGHT, UNKNOWN }
 
-    private val _activeImuSide = MutableStateFlow(ImuSide.UNKNOWN)
-    val activeImuSide: StateFlow<ImuSide> = _activeImuSide.asStateFlow()
-
-    private val _activeImuReason = MutableStateFlow("Initializing...")
-    val activeImuReason: StateFlow<String> = _activeImuReason.asStateFlow()
-
-    val invertPitch: StateFlow<Boolean> = combine(_activeImuSide, effectiveModel) { side, model ->
+    val invertPitch = combine(deviceState.activeImuSide, effectiveModel) { side, model ->
         if (model == BudsModel.BUDS_2 || model == BudsModel.BUDS_2_PRO) {
             side == ImuSide.RIGHT
         } else {
@@ -160,112 +73,61 @@ class BudsController(private val context: Context) {
         }
     }.stateIn(scope, SharingStarted.Eagerly, false)
 
-    fun setActiveImuSide(side: ImuSide, reason: String? = null) {
-        _activeImuSide.value = side
-        if (reason != null) {
-            _activeImuReason.value = reason
-        }
-    }
+    val spatialDataFlow = deviceState.spatialDataFlow.asSharedFlow()
+    val rawSpatialDataFlow = deviceState.rawSpatialDataFlow.asSharedFlow()
+    val batteryL = deviceState.batteryL.asStateFlow()
+    val batteryR = deviceState.batteryR.asStateFlow()
+    val batteryCase = deviceState.batteryCase.asStateFlow()
+    val chargingL = deviceState.chargingL.asStateFlow()
+    val chargingR = deviceState.chargingR.asStateFlow()
+    val chargingCase = deviceState.chargingCase.asStateFlow()
+    val temperatureL = deviceState.temperatureL.asStateFlow()
+    val temperatureR = deviceState.temperatureR.asStateFlow()
+    val placementL = deviceState.placementL.asStateFlow()
+    val placementR = deviceState.placementR.asStateFlow()
+    val fitTestResultL = deviceState.fitTestResultL.asStateFlow()
+    val fitTestResultR = deviceState.fitTestResultR.asStateFlow()
+    val isFitTestScreenOpen = deviceState.isFitTestScreenOpen.asStateFlow()
+    
+    val isSearching = deviceState.isSearching.asStateFlow()
+    val isLeftMuted = deviceState.isLeftMuted.asStateFlow()
+    val isRightMuted = deviceState.isRightMuted.asStateFlow()
 
-    private val _spatialDataFlow = MutableSharedFlow<QuaternionSample>(
-        extraBufferCapacity = 100,
-        onBufferOverflow = kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST
-    )
-    val spatialDataFlow: SharedFlow<QuaternionSample> = _spatialDataFlow.asSharedFlow()
-
-    private val _rawSpatialDataFlow = MutableSharedFlow<QuaternionSample>(extraBufferCapacity = 64)
-    val rawSpatialDataFlow: SharedFlow<QuaternionSample> = _rawSpatialDataFlow.asSharedFlow()
-
-    private val _batteryL = MutableStateFlow(-1)
-    val batteryL: StateFlow<Int> = _batteryL.asStateFlow()
-
-    private val _batteryR = MutableStateFlow(-1)
-    val batteryR: StateFlow<Int> = _batteryR.asStateFlow()
-
-    private val _batteryCase = MutableStateFlow(-1)
-    val batteryCase: StateFlow<Int> = _batteryCase.asStateFlow()
-
-    private val _chargingL = MutableStateFlow(false)
-    val chargingL: StateFlow<Boolean> = _chargingL.asStateFlow()
-
-    private val _chargingR = MutableStateFlow(false)
-    val chargingR: StateFlow<Boolean> = _chargingR.asStateFlow()
-
-    private val _chargingCase = MutableStateFlow(false)
-    val chargingCase: StateFlow<Boolean> = _chargingCase.asStateFlow()
-
-    private val _temperatureL = MutableStateFlow<Double?>(null)
-    val temperatureL: StateFlow<Double?> = _temperatureL.asStateFlow()
-
-    private val _temperatureR = MutableStateFlow<Double?>(null)
-    val temperatureR: StateFlow<Double?> = _temperatureR.asStateFlow()
-
-
-    private val _placementL = MutableStateFlow(PlacementState.UNKNOWN)
-    val placementL: StateFlow<PlacementState> = _placementL.asStateFlow()
-
-    private val _placementR = MutableStateFlow(PlacementState.UNKNOWN)
-    val placementR: StateFlow<PlacementState> = _placementR.asStateFlow()
-
-    private val _fitTestResultL = MutableStateFlow(FitTestResult.UNKNOWN)
-    val fitTestResultL: StateFlow<FitTestResult> = _fitTestResultL.asStateFlow()
-
-    private val _fitTestResultR = MutableStateFlow(FitTestResult.UNKNOWN)
-    val fitTestResultR: StateFlow<FitTestResult> = _fitTestResultR.asStateFlow()
-
-    private val _isFitTestScreenOpen = MutableStateFlow(false)
-    val isFitTestScreenOpen: StateFlow<Boolean> = _isFitTestScreenOpen.asStateFlow()
-
-    fun setFitTestScreenOpen(isOpen: Boolean) {
-        _isFitTestScreenOpen.value = isOpen
-        if (!isOpen) {
-            _fitTestResultL.value = FitTestResult.UNKNOWN
-            _fitTestResultR.value = FitTestResult.UNKNOWN
-        }
-    }
-
-    private val _conversationDetectionEnabled = MutableStateFlow(false)
-    val conversationDetectionEnabled: StateFlow<Boolean> = _conversationDetectionEnabled.asStateFlow()
-
-    private val _oneEarbudNoiseControlEnabled = MutableStateFlow(false)
-    val oneEarbudNoiseControlEnabled: StateFlow<Boolean> = _oneEarbudNoiseControlEnabled.asStateFlow()
-
-    private val _useAmbientSoundDuringCalls = MutableStateFlow(false)
-    val useAmbientSoundDuringCalls: StateFlow<Boolean> = _useAmbientSoundDuringCalls.asStateFlow()
-
-    private val _inEarDetectionForCalls = MutableStateFlow(true)
-    val inEarDetectionForCalls: StateFlow<Boolean> = _inEarDetectionForCalls.asStateFlow()
-
-    private val _doubleTapEdgeEnabled = MutableStateFlow(false)
-    val doubleTapEdgeEnabled: StateFlow<Boolean> = _doubleTapEdgeEnabled.asStateFlow()
-
-    private val _stereoBalance = MutableStateFlow(16) // Default to center
-    val stereoBalance: StateFlow<Int> = _stereoBalance.asStateFlow()
-
-    private var keepAliveJob: Job? = null
-
-    private var lastConnectedTime = 0L
-
-    private val _lastMatchedRule = MutableStateFlow<EqRule?>(null)
-    val lastMatchedRule: StateFlow<EqRule?> = _lastMatchedRule.asStateFlow()
-
-    private val _manualPreset = MutableStateFlow<EqPreset?>(null)
-    val manualPreset: StateFlow<EqPreset?> = _manualPreset.asStateFlow()
-
-    private val _manualNoiseControl = MutableStateFlow<NoiseControlMode?>(null)
-    val manualNoiseControl: StateFlow<NoiseControlMode?> = _manualNoiseControl.asStateFlow()
-
-    private val _activeNoiseControl = MutableStateFlow<NoiseControlMode?>(null)
-    val activeNoiseControl: StateFlow<NoiseControlMode?> = _activeNoiseControl.asStateFlow()
+    val conversationDetectionEnabled = deviceState.conversationDetectionEnabled.asStateFlow()
+    val oneEarbudNoiseControlEnabled = deviceState.oneEarbudNoiseControlEnabled.asStateFlow()
+    val useAmbientSoundDuringCalls = deviceState.useAmbientSoundDuringCalls.asStateFlow()
+    val inEarDetectionForCalls = deviceState.inEarDetectionForCalls.asStateFlow()
+    val doubleTapEdgeEnabled = deviceState.doubleTapEdgeEnabled.asStateFlow()
+    val stereoBalance = deviceState.stereoBalance.asStateFlow()
+    val lastMatchedRule = deviceState.lastMatchedRule.asStateFlow()
+    val manualPreset = deviceState.manualPreset.asStateFlow()
+    val manualNoiseControl = deviceState.manualNoiseControl.asStateFlow()
+    val activeNoiseControl = deviceState.activeNoiseControl.asStateFlow()
 
     private var targetDevice: BluetoothDevice? = null
-    class QueuedPacket(val data: ByteArray, val isNc: Boolean = false, val ncMode: com.benegedeniz.budsdynamiceq.data.model.NoiseControlMode? = null)
+    class QueuedPacket(val data: ByteArray, val isNc: Boolean = false, val ncMode: NoiseControlMode? = null)
     private val _packetQueue = Channel<QueuedPacket>(Channel.UNLIMITED)
     private val packetQueue = object {
         fun trySend(data: ByteArray) = _packetQueue.trySend(QueuedPacket(data))
     }
 
+    private var keepAliveJob: Job? = null
+    private var lastConnectedTime = 0L
+
+    // NC and EQ state
+    private var lastEqSendTimestamp: Long = 0
+    private var lastSentEq: EqPreset? = null
+    private var lastSentNcMode: NoiseControlMode? = null
+    private var lastNcSendTimestamp: Long = 0
+    @Volatile private var lastConfirmedNcMode: NoiseControlMode? = null
+    private var ncRetryJob: Job? = null
+    val lastAppNcSendTimestamp: Long get() = lastNcSendTimestamp
+
     init {
+        deviceState.savedDeviceMac.value = settingsRepo.getSavedMacAddress()
+        deviceState.connectedModel.value = settingsRepo.getDetectedModel(deviceState.savedDeviceMac.value ?: "")
+        deviceState.modelOverride.value = settingsRepo.getModelOverride(deviceState.savedDeviceMac.value ?: "")
+        
         scope.launch(Dispatchers.IO) {
             for (packet in _packetQueue) {
                 if (packet.isNc && packet.ncMode != lastSentNcMode) {
@@ -283,17 +145,82 @@ class BudsController(private val context: Context) {
 
         scope.launch(Dispatchers.IO) {
             while (isActive) {
-                if (_isConnected.value) {
-                    if (!_isSpatialActive.value || isHomePageVisible.value) {
-                        // Only request DEBUG_GET_ALL_DATA if spatial audio is NOT active,
-                        // OR if the home page is currently visible (so the user can see temp).
-                        // The earbuds pause the IMU stream for ~500ms to gather and construct this massive packet,
-                        // which causes the live preview and gesture detection to lag significantly.
+                if (deviceState.isConnected.value) {
+                    if (!deviceState.isSpatialActive.value || deviceState.isHomePageVisible.value) {
                         packetQueue.trySend(SppPacketEncoder.buildPacket(0x26.toByte(), byteArrayOf())) 
                     }
                 }
                 delay(15000)
             }
+        }
+    }
+
+    fun startFitTest() {
+        val payload = byteArrayOf(1)
+        sendSppPacket(157.toByte(), payload)
+        deviceState.fitTestResultL.value = FitTestResult.UNKNOWN
+        deviceState.fitTestResultR.value = FitTestResult.UNKNOWN
+    }
+
+    fun stopFitTest() {
+        val payload = byteArrayOf(0)
+        sendSppPacket(157.toByte(), payload)
+    }
+
+    fun startFindMyEarbuds(ringWhileWearing: Boolean) {
+        val msgId = if (ringWhileWearing) 166.toByte() else 160.toByte()
+        sendSppPacket(msgId, byteArrayOf())
+        deviceState.isSearching.value = true
+        deviceState.isLeftMuted.value = false
+        deviceState.isRightMuted.value = false
+    }
+
+    fun stopFindMyEarbuds() {
+        sendSppPacket(161.toByte(), byteArrayOf())
+        deviceState.isSearching.value = false
+    }
+
+    fun muteEarbud(leftMuted: Boolean, rightMuted: Boolean) {
+        val payload = byteArrayOf(
+            (if (leftMuted) 1 else 0).toByte(),
+            (if (rightMuted) 1 else 0).toByte()
+        )
+        sendSppPacket(162.toByte(), payload)
+        deviceState.isLeftMuted.value = leftMuted
+        deviceState.isRightMuted.value = rightMuted
+    }
+
+    private fun sendSppPacket(msgId: Byte, payload: ByteArray) {
+        val packet = SppPacketEncoder.buildPacket(msgId, payload)
+        packetQueue.trySend(packet)
+    }
+
+    private fun disableHardwareAutoPause() {
+        sendSppPacket(SppPacketEncoder.MSG_ID_PAUSE_MEDIA_WHEN_ONE_BUD_REMOVED, byteArrayOf(0))
+    }
+
+    fun isBluetoothEnabled(): Boolean = bluetoothAdapter?.isEnabled == true
+
+    fun setModelOverride(model: BudsModel?) {
+        deviceState.modelOverride.value = model
+        val mac = deviceState.savedDeviceMac.value
+        if (mac != null) {
+            settingsRepo.saveModelOverride(mac, model)
+        }
+    }
+
+    fun setActiveImuSide(side: ImuSide, reason: String? = null) {
+        deviceState.activeImuSide.value = side
+        if (reason != null) {
+            deviceState.activeImuReason.value = reason
+        }
+    }
+
+    fun setFitTestScreenOpen(isOpen: Boolean) {
+        deviceState.isFitTestScreenOpen.value = isOpen
+        if (!isOpen) {
+            deviceState.fitTestResultL.value = FitTestResult.UNKNOWN
+            deviceState.fitTestResultR.value = FitTestResult.UNKNOWN
         }
     }
 
@@ -303,9 +230,6 @@ class BudsController(private val context: Context) {
         return bluetoothAdapter.bondedDevices?.toList() ?: emptyList()
     }
 
-    /**
-     * Attempts to find the previously saved device and connect to it.
-     */
     @SuppressLint("MissingPermission")
     fun startAutoConnect() {
         if (bluetoothAdapter == null || !bluetoothAdapter.isEnabled) {
@@ -313,13 +237,12 @@ class BudsController(private val context: Context) {
             return
         }
 
-        if (_isConnected.value || _isConnecting.value || connectionJob?.isActive == true) {
+        if (deviceState.isConnected.value || deviceState.isConnecting.value || connectionJob?.isActive == true) {
             Log.i(TAG, "Already connected or connecting, skipping auto-connect.")
             return
         }
 
-        val savedMac = prefs.getString(KEY_MAC_ADDRESS, null)
-        
+        val savedMac = settingsRepo.getSavedMacAddress()
         if (savedMac != null) {
             try {
                 val target = bluetoothAdapter.getRemoteDevice(savedMac)
@@ -335,19 +258,17 @@ class BudsController(private val context: Context) {
 
     @SuppressLint("MissingPermission")
     fun connect(device: BluetoothDevice) {
-        prefs.edit().putString(KEY_MAC_ADDRESS, device.address).apply()
-        _savedDeviceMac.value = device.address
+        settingsRepo.saveMacAddress(device.address)
+        deviceState.savedDeviceMac.value = device.address
         targetDevice = device
 
-        var savedModel = prefs.getString("detected_model_${device.address}", null)?.let {
-            try { BudsModel.valueOf(it) } catch (_: Exception) { null }
-        } ?: BudsModel.UNKNOWN
-        
+        var savedModel = settingsRepo.getDetectedModel(device.address)
         if (savedModel == BudsModel.UNKNOWN) {
             @SuppressLint("MissingPermission")
             val name = device.name ?: ""
             savedModel = when {
                 name.contains("Buds4 Pro", ignoreCase = true) -> BudsModel.BUDS_4_PRO
+                name.contains("Buds4", ignoreCase = true) -> BudsModel.BUDS_4
                 name.contains("Buds3 Pro", ignoreCase = true) -> BudsModel.BUDS_3_PRO
                 name.contains("Buds3", ignoreCase = true) -> BudsModel.BUDS_3
                 name.contains("Buds2 Pro", ignoreCase = true) -> BudsModel.BUDS_2_PRO
@@ -355,39 +276,31 @@ class BudsController(private val context: Context) {
                 else -> BudsModel.UNKNOWN
             }
             if (savedModel != BudsModel.UNKNOWN) {
-                prefs.edit().putString("detected_model_${device.address}", savedModel.name).apply()
+                settingsRepo.saveDetectedModel(device.address, savedModel)
             }
         }
         
-        _connectedModel.value = savedModel
-
-        val savedOverride = prefs.getString("model_override_${device.address}", null)?.let {
-            try { BudsModel.valueOf(it) } catch (_: Exception) { null }
-        }
-        _modelOverride.value = savedOverride
+        deviceState.connectedModel.value = savedModel
+        deviceState.modelOverride.value = settingsRepo.getModelOverride(device.address)
 
         connectionJob?.cancel()
         connectionJob = scope.launch {
             while (true) {
-                _isConnecting.value = true
-                _isConnected.value = false
+                deviceState.isConnecting.value = true
+                deviceState.isConnected.value = false
                 try {
                     Log.d(TAG, "Attempting connection to ${device.address}")
                     socket = device.createRfcommSocketToServiceRecord(BUDS_SPP_UUID)
                     socket?.connect()
                     
-                    _isConnected.value = true
-                    _isConnecting.value = false
+                    deviceState.isConnected.value = true
+                    deviceState.isConnecting.value = false
                     lastConnectedTime = System.currentTimeMillis()
                     Log.i(TAG, "Connected to Galaxy Buds.")
 
-                    // Immediately poll debug info upon connection to determine model and temperature
                     packetQueue.trySend(SppPacketEncoder.buildPacket(0x26.toByte(), byteArrayOf()))
-
-                    // Disable hardware-level auto-pause so Wear State Actions work correctly
                     disableHardwareAutoPause()
 
-                    // Keep connection alive, listen for incoming packets
                     val buffer = ByteArray(4096)
                     var index = 0
                     while (true) {
@@ -407,9 +320,9 @@ class BudsController(private val context: Context) {
                             val header = (buffer[processed + 1].toInt() and 0xFF) or ((buffer[processed + 2].toInt() and 0xFF) shl 8)
                             val size = header and 0x3FF
                             val payloadSize = maxOf(0, size - 3)
-                            val packetSize = 4 + size // SOM (1) + Header (2) + size + EOM (1)
+                            val packetSize = 4 + size
 
-                            if (packetSize > 1024) { // Unreasonable size, fake SOM
+                            if (packetSize > 1024) {
                                 processed++
                                 continue
                             }
@@ -417,7 +330,6 @@ class BudsController(private val context: Context) {
                             if (index - processed < packetSize) break
 
                             if (buffer[processed + packetSize - 1] != 0xDD.toByte()) {
-                                // Invalid EOM byte, this was a fake SOM (0xFD) inside another payload
                                 processed++
                                 continue
                             }
@@ -425,233 +337,7 @@ class BudsController(private val context: Context) {
                             val msgId = buffer[processed + 3]
                             val payload = buffer.copyOfRange(processed + 4, processed + 4 + payloadSize)
                             
-                            if (msgId == 0x61.toByte() || msgId == 0x26.toByte()) {
-                                Log.d(TAG, "Received msgId: 0x${msgId.toUByte().toString(16)}, size: $payloadSize, payload: ${payload.joinToString("") { "%02X".format(it) }}")
-                            }
-
-                            if (msgId == 0x60.toByte()) {
-                                if (payloadSize > 6) {
-                                    _batteryL.value = payload[1].toInt() and 0xFF
-                                    _batteryR.value = payload[2].toInt() and 0xFF
-                                    val placementByte = payload[5].toInt() and 0xFF
-                                    val pL = PlacementState.fromId((placementByte and 0xF0) shr 4)
-                                    val pR = PlacementState.fromId(placementByte and 0x0F)
-                                    _placementL.value = pL
-                                    _placementR.value = pR
-                                    
-                                    val batCase = payload[6].toInt() and 0xFF
-                                    val lInCase = pL == PlacementState.CASE || pL == PlacementState.CLOSED_CASE
-                                    val rInCase = pR == PlacementState.CASE || pR == PlacementState.CLOSED_CASE
-                                    _batteryCase.value = if (!lInCase && !rInCase) -1 else batCase
-                                    
-                                    if (payloadSize > 7) {
-                                        val chargingStatus = payload[7].toInt() and 0xFF
-                                        _chargingL.value = lInCase && ((chargingStatus and 16) == 16 || (chargingStatus and 1) == 1)
-                                        _chargingR.value = rInCase && ((chargingStatus and 4) == 4 || (chargingStatus and 2) == 2)
-                                        _chargingCase.value = (lInCase || rInCase || _batteryCase.value > 0) && ((chargingStatus and 1) == 1 || (chargingStatus and 2) == 2)
-                                    }
-                                }
-                            } else if (msgId == 0x61.toByte()) {
-                                if (payloadSize > 7) {
-                                    _batteryL.value = payload[2].toInt() and 0xFF
-                                    _batteryR.value = payload[3].toInt() and 0xFF
-                                    val placementByte = payload[6].toInt() and 0xFF
-                                    val pL = PlacementState.fromId((placementByte and 0xF0) shr 4)
-                                    val pR = PlacementState.fromId(placementByte and 0x0F)
-                                    _placementL.value = pL
-                                    _placementR.value = pR
-                                    
-                                    val batCase = payload[7].toInt() and 0xFF
-                                    val lInCase = pL == PlacementState.CASE || pL == PlacementState.CLOSED_CASE
-                                    val rInCase = pR == PlacementState.CASE || pR == PlacementState.CLOSED_CASE
-                                    _batteryCase.value = if (!lInCase && !rInCase) -1 else batCase
-                                    
-                                    var chargingIndex = -1
-                                    if (payloadSize == 62) {
-                                        chargingIndex = 42 // Buds2 Pro
-                                    } else if (payloadSize == 64 || payloadSize == 44) {
-                                        chargingIndex = 43 // Buds Pro
-                                    } else if (payloadSize == 41 || payloadSize == 37) {
-                                        chargingIndex = 36 // Buds2
-                                    } else if (payloadSize >= 44) {
-                                        chargingIndex = 43 // Fallback
-                                    }
-                                    
-                                    if (chargingIndex != -1 && payloadSize > chargingIndex) {
-                                        val chargingStatus = payload[chargingIndex].toInt() and 0xFF
-                                        _chargingL.value = lInCase && ((chargingStatus and 16) == 16 || (chargingStatus and 1) == 1)
-                                        _chargingR.value = rInCase && ((chargingStatus and 4) == 4 || (chargingStatus and 2) == 2)
-                                        _chargingCase.value = (lInCase || rInCase || _batteryCase.value > 0) && ((chargingStatus and 1) == 1 || (chargingStatus and 2) == 2)
-                                    }
-                                }
-                                if (payloadSize > 12) {
-                                    val ncModeVal = payload[12].toInt() and 0xFF
-                                    val ncMode = NoiseControlMode.entries.find { it.payloadByte.toInt() == ncModeVal }
-                                    if (ncMode != null) {
-                                        lastConfirmedNcMode = ncMode
-                                        if (_activeNoiseControl.value != ncMode) {
-                                            if (System.currentTimeMillis() - lastNcSendTimestamp > 1500L) {
-                                                _activeNoiseControl.value = ncMode
-                                                lastSentNcMode = ncMode // keep in sync
-                                            }
-                                        }
-                                    }
-                                }
-                                if (payloadSize > 26) {
-                                    _conversationDetectionEnabled.value = payload[26].toInt() == 1
-                                }
-                                if (payloadSize > 28) {
-                                    _oneEarbudNoiseControlEnabled.value = payload[28].toInt() == 1
-                                }
-                                if (payloadSize > 33) {
-                                    _useAmbientSoundDuringCalls.value = payload[33].toInt() == 1
-                                }
-                                if (payloadSize > 34) {
-                                    _inEarDetectionForCalls.value = payload[34].toInt() == 0
-                                }
-                                if (payloadSize > 32) {
-                                    val currentModel = _connectedModel.value
-                                    if (currentModel == BudsModel.BUDS_2 || currentModel == BudsModel.BUDS_2_PRO) {
-                                        _doubleTapEdgeEnabled.value = payload[32].toInt() == 1
-                                    }
-                                }
-                                
-                                var hearingEnhancementIndex = -1
-                                if (payloadSize == 62) {
-                                    hearingEnhancementIndex = 25
-                                } else if (payloadSize == 64 || payloadSize == 44) {
-                                    hearingEnhancementIndex = 22
-                                } else if (payloadSize == 41 || payloadSize == 37) {
-                                    hearingEnhancementIndex = 25
-                                } else if (payloadSize >= 44) {
-                                    hearingEnhancementIndex = 25
-                                }
-                                
-                                if (hearingEnhancementIndex != -1 && payloadSize > hearingEnhancementIndex) {
-                                    _stereoBalance.value = payload[hearingEnhancementIndex].toInt() and 0xFF
-                                }
-                            } else if (msgId == 0x26.toByte()) { // DEBUG_GET_ALL_DATA
-                                // swLength offset calculation based on VersionDataToString from GalaxyBudsClient
-                                var swLength = 3
-                                if (payloadSize >= 22) {
-                                    val isBuds3 = payload[2] == 0x52.toByte() && payload[3] == 0x36.toByte() && (payload[4] == 0x34.toByte() || payload[4] == 0x33.toByte()) // "R64" or "R63"
-                                    if (isBuds3) {
-                                        swLength = 20
-                                    }
-                                    
-                                    // Auto-detect model from firmware version prefix
-                                    val ch2 = payload[2].toInt().toChar() // 'R'
-                                    val ch3 = payload[3].toInt().toChar() // '6'
-                                    val ch4 = payload[4].toInt().toChar() // '3' or '4'
-                                    val prefix = "$ch2$ch3$ch4"
-                                    val detected = when {
-                                        prefix.startsWith("R64") -> BudsModel.BUDS_4_PRO
-                                        prefix.startsWith("R63") -> BudsModel.BUDS_3_PRO
-                                        prefix.startsWith("R53") -> BudsModel.BUDS_3
-                                        prefix.startsWith("R51") -> BudsModel.BUDS_2_PRO
-                                        prefix.startsWith("R17") -> BudsModel.BUDS_2
-                                        else -> BudsModel.UNKNOWN
-                                    }
-                                    if (detected != BudsModel.UNKNOWN && detected != _connectedModel.value) {
-                                        _connectedModel.value = detected
-                                        val mac = _savedDeviceMac.value ?: ""
-                                        prefs.edit().putString("detected_model_$mac", detected.name).apply()
-                                        Log.i(TAG, "Auto-detected model: ${context.getString(detected.displayNameRes)} (prefix: $prefix)")
-                                    }
-                                }
-                                
-                                if (payloadSize > swLength + 38) {
-                                    // Parse Little Endian Int16 at swLength + 35 and swLength + 37, multiplied by 0.1
-                                    val leftTempRaw = (payload[swLength + 35].toInt() and 0xFF) or (payload[swLength + 36].toInt() shl 8)
-                                    val rightTempRaw = (payload[swLength + 37].toInt() and 0xFF) or (payload[swLength + 38].toInt() shl 8)
-                                    val leftTemp = leftTempRaw.toShort() * 0.1
-                                    val rightTemp = rightTempRaw.toShort() * 0.1
-                                    
-                                    // 0x4006 (1639.0) means earbud is likely disconnected or sensor is off
-                                    if (leftTempRaw != 0x4006 && leftTemp > 0.0 && leftTemp < 100.0) {
-                                        _temperatureL.value = leftTemp
-                                    } else if (leftTempRaw == 0x4006 || leftTempRaw == 0) {
-                                        // Keep last known valid temperature instead of nulling out immediately to avoid flickering
-                                    }
-                                    
-                                    if (rightTempRaw != 0x4006 && rightTemp > 0.0 && rightTemp < 100.0) {
-                                        _temperatureR.value = rightTemp
-                                    } else if (rightTempRaw == 0x4006 || rightTempRaw == 0) {
-                                        // Keep last known
-                                    }
-                                }
-                            } else if (msgId == 158.toByte()) {
-                                if (payloadSize >= 2) {
-                                    _fitTestResultL.value = FitTestResult.fromId(payload[0].toInt() and 0xFF)
-                                    _fitTestResultR.value = FitTestResult.fromId(payload[1].toInt() and 0xFF)
-                                }
-                            } else if (msgId == 0x77.toByte()) {
-                                if (payloadSize > 0) {
-                                    val ncModeVal = payload[0].toInt() and 0xFF
-                                    val ncMode = NoiseControlMode.entries.find { it.payloadByte.toInt() == ncModeVal }
-                                    if (ncMode != null) {
-                                        lastConfirmedNcMode = ncMode
-                                        if (_activeNoiseControl.value != ncMode) {
-                                            if (System.currentTimeMillis() - lastNcSendTimestamp > 1500L) {
-                                                _activeNoiseControl.value = ncMode
-                                                lastSentNcMode = ncMode // keep in sync
-                                            }
-                                        }
-                                    }
-                                }
-                            } else if (msgId == SppPacketEncoder.MSG_ID_SPATIAL_AUDIO_CONTROL) {
-                                if (payload.isNotEmpty()) {
-                                    val status = payload[0].toInt()
-                                    if (status == 2) { // AttachSuccess
-                                        _isSpatialActive.value = true
-                                        Log.i(TAG, "Spatial Audio Sensor Attached")
-                                    } else if (status == 3) { // DetachSuccess
-                                        _isSpatialActive.value = false
-                                        Log.i(TAG, "Spatial Audio Sensor Detached")
-                                    }
-                                }
-                            } else if (msgId == SppPacketEncoder.MSG_ID_SPATIAL_AUDIO_DATA) {
-                                if (payload.isNotEmpty() && payload[0].toInt() == 32) { // BudGrv event
-                                    if (payload.size >= 9) {
-                                        val buffer = ByteBuffer.wrap(payload, 1, 8).order(ByteOrder.LITTLE_ENDIAN)
-                                        var x = buffer.short / 10000.0f
-                                        val y = buffer.short / 10000.0f
-                                        var z = buffer.short / 10000.0f
-                                        val w = buffer.short / 10000.0f
-                                        
-                                        var outX = x
-                                        var outY = y
-                                        var outZ = z
-                                        var outW = w
-
-                                        _rawSpatialDataFlow.tryEmit(QuaternionSample(System.currentTimeMillis(), x, y, z, w))
-
-                                        val currentModel = effectiveModel.value
-                                        if (currentModel == BudsModel.BUDS_2 || currentModel == BudsModel.BUDS_2_PRO) {
-                                            // The IMU in Buds 2/Pro is mounted rotated 90 degrees around the X-axis
-                                            // compared to Buds Live/Pro. We must swap Y and Z to fix Yaw and Roll.
-                                            var tempY = -z
-                                            var tempZ = y
-                                            
-                                            if (!invertPitch.value) {
-                                                tempY = z
-                                                tempZ = -y
-                                            }
-
-                                            outY = tempY
-                                            outZ = tempZ
-                                        }
-
-                                        if (invertPitch.value) {
-                                            // Left earbud is physically rotated 180 degrees around the Y axis
-                                            // Negating X (Pitch) and Z (Roll) mirrors the local frame properly.
-                                            outX = -outX
-                                            outZ = -outZ
-                                        }
-                                        _spatialDataFlow.tryEmit(QuaternionSample(System.currentTimeMillis(), outX, outY, outZ, outW, x, y, z, w))
-                                    }
-                                }
-                            }
+                            packetParser.parsePacket(msgId, payload, payloadSize)
 
                             processed += packetSize
                         }
@@ -662,18 +348,15 @@ class BudsController(private val context: Context) {
                             index = remaining
                         }
                     }
-
                 } catch (e: IOException) {
                     Log.e(TAG, "Connection error: ${e.message}")
                 } finally {
                     closeSocket()
-                    _isConnected.value = false
-                    _isSpatialActive.value = false
-                    resetDeviceState()
+                    deviceState.isConnected.value = false
+                    deviceState.isSpatialActive.value = false
+                    deviceState.reset()
                     keepAliveJob?.cancel()
                 }
-
-                // Rapidly reconnect delay
                 delay(500)
             }
         }
@@ -681,34 +364,26 @@ class BudsController(private val context: Context) {
 
     fun disconnect(forget: Boolean = false) {
         if (forget) {
-            prefs.edit().remove(KEY_MAC_ADDRESS).apply()
-            _savedDeviceMac.value = null
+            val mac = deviceState.savedDeviceMac.value
+            if (mac != null) {
+                settingsRepo.forgetDevice(mac)
+            } else {
+                settingsRepo.clearMacAddress()
+            }
+            deviceState.savedDeviceMac.value = null
+            deviceState.connectedModel.value = BudsModel.UNKNOWN
+            deviceState.modelOverride.value = null
         }
         synchronized(spatialConsumers) { spatialConsumers.clear() }
         stopSpatialSensor()
         connectionJob?.cancel()
         closeSocket()
-        _isConnected.value = false
-        _isConnecting.value = false
-        _isSpatialActive.value = false
-        resetDeviceState()
+        deviceState.isConnected.value = false
+        deviceState.isConnecting.value = false
+        deviceState.isSpatialActive.value = false
+        deviceState.reset()
         lastSentEq = null
         lastSentNcMode = null
-    }
-
-    private fun resetDeviceState() {
-        _batteryL.value = -1
-        _batteryR.value = -1
-        _batteryCase.value = -1
-        _chargingL.value = false
-        _chargingR.value = false
-        _chargingCase.value = false
-        _placementL.value = PlacementState.UNKNOWN
-        _placementR.value = PlacementState.UNKNOWN
-        _fitTestResultL.value = FitTestResult.UNKNOWN
-        _fitTestResultR.value = FitTestResult.UNKNOWN
-        _activeImuSide.value = ImuSide.UNKNOWN
-        lastConfirmedNcMode = null
     }
 
     private fun closeSocket() {
@@ -720,20 +395,6 @@ class BudsController(private val context: Context) {
         socket = null
     }
 
-
-    private var lastEqSendTimestamp: Long = 0
-    private var lastSentEq: EqPreset? = null
-    private var lastSentNcMode: com.benegedeniz.budsdynamiceq.data.model.NoiseControlMode? = null
-    private var lastNcSendTimestamp: Long = 0
-    @Volatile private var lastConfirmedNcMode: com.benegedeniz.budsdynamiceq.data.model.NoiseControlMode? = null
-    private var ncRetryJob: Job? = null
-    /** Milliseconds since epoch of the last app-sent NC command. Used externally to distinguish app vs hardware NC changes. */
-    val lastAppNcSendTimestamp: Long get() = lastNcSendTimestamp
-
-    /**
-     * Sends the equalizer command to the connected buds.
-     * Payload for newer models: 0x00 for off, preset + 1 for on.
-     */
     fun sendEqualizer(preset: EqPreset?) {
         if (preset == lastSentEq && preset != null) return
         lastSentEq = preset
@@ -746,15 +407,14 @@ class BudsController(private val context: Context) {
         Log.i(TAG, "Queued EQ preset: ${preset?.name ?: "OFF"} (byte: 0x%02X)".format(payloadByte))
     }
 
-    fun sendNoiseControl(mode: com.benegedeniz.budsdynamiceq.data.model.NoiseControlMode?) {
-        if (mode == null || mode == com.benegedeniz.budsdynamiceq.data.model.NoiseControlMode.IGNORE) return
+    fun sendNoiseControl(mode: NoiseControlMode?) {
+        if (mode == null || mode == NoiseControlMode.IGNORE) return
         
-        // Optimistically update the UI instantly
-        _activeNoiseControl.value = mode
+        deviceState.activeNoiseControl.value = mode
 
         if (mode == lastSentNcMode) return
         lastSentNcMode = mode
-        lastConfirmedNcMode = null // Clear stale confirmations so we don't abort prematurely
+        lastConfirmedNcMode = null
         lastNcSendTimestamp = System.currentTimeMillis()
 
         val payload = byteArrayOf(mode.payloadByte)
@@ -763,7 +423,6 @@ class BudsController(private val context: Context) {
         ncRetryJob?.cancel()
         ncRetryJob = CoroutineScope(Dispatchers.IO).launch {
             for (attempt in 1..5) {
-                // If it was confirmed by periodic 0x61 packets, we can stop retrying early.
                 if (attempt > 1 && lastConfirmedNcMode == mode) {
                     Log.i(TAG, "Noise Control ${mode.name} confirmed, stopping retries.")
                     break
@@ -771,12 +430,10 @@ class BudsController(private val context: Context) {
                 
                 try {
                     if (attempt == 1) {
-                        // The user requested immediate, unthrottled sending for the first tap
                         socket?.outputStream?.write(packet)
                         socket?.outputStream?.flush()
                         Log.i(TAG, "Sent Noise Control directly without throttle: ${mode.name} (attempt 1)")
                     } else {
-                        // For retries, queue it to respect the 250ms hardware buffer and prevent corruption
                         _packetQueue.trySend(QueuedPacket(packet, isNc = true, ncMode = mode))
                         Log.i(TAG, "Sent Noise Control to queue: ${mode.name} (attempt $attempt/5)")
                     }
@@ -784,24 +441,34 @@ class BudsController(private val context: Context) {
                     Log.e(TAG, "Send failed: ${e.message}")
                 }
                 
-                delay(1000)
-                if (mode != lastSentNcMode) break // Abort tries if user switched
+                delay(3000) // Wait for ANC chime to finish before retrying
+                if (mode != lastSentNcMode) break
+            }
+        }
+    }
+
+    fun confirmNcMode(mode: NoiseControlMode) {
+        lastConfirmedNcMode = mode
+        if (deviceState.activeNoiseControl.value != mode) {
+            if (System.currentTimeMillis() - lastNcSendTimestamp > 1500L) {
+                deviceState.activeNoiseControl.value = mode
+                lastSentNcMode = mode
             }
         }
     }
 
     fun setLastMatchedRule(rule: EqRule?) {
-        _lastMatchedRule.value = rule
+        deviceState.lastMatchedRule.value = rule
     }
 
     fun setConversationDetection(enabled: Boolean) {
-        if (!_isConnected.value) return
+        if (!deviceState.isConnected.value) return
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val byteValue = if (enabled) 1.toByte() else 0.toByte()
                 val encoded = SppPacketEncoder.buildPacket(0x7A.toByte(), byteArrayOf(byteValue))
                 packetQueue.trySend(encoded)
-                _conversationDetectionEnabled.value = enabled
+                deviceState.conversationDetectionEnabled.value = enabled
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -809,13 +476,13 @@ class BudsController(private val context: Context) {
     }
 
     fun setOneEarbudNoiseControl(enabled: Boolean) {
-        if (!_isConnected.value) return
+        if (!deviceState.isConnected.value) return
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val byteValue = if (enabled) 1.toByte() else 0.toByte()
                 val encoded = SppPacketEncoder.buildPacket(SppPacketEncoder.MSG_ID_SET_ANC_WITH_ONE_EARBUD, byteArrayOf(byteValue))
                 packetQueue.trySend(encoded)
-                _oneEarbudNoiseControlEnabled.value = enabled
+                deviceState.oneEarbudNoiseControlEnabled.value = enabled
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -823,13 +490,13 @@ class BudsController(private val context: Context) {
     }
 
     fun setUseAmbientSoundDuringCalls(enabled: Boolean) {
-        if (!_isConnected.value) return
+        if (!deviceState.isConnected.value) return
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val byteValue = if (enabled) 1.toByte() else 0.toByte()
                 val encoded = SppPacketEncoder.buildPacket(SppPacketEncoder.MSG_ID_SET_SIDETONE, byteArrayOf(byteValue))
                 packetQueue.trySend(encoded)
-                _useAmbientSoundDuringCalls.value = enabled
+                deviceState.useAmbientSoundDuringCalls.value = enabled
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -837,7 +504,7 @@ class BudsController(private val context: Context) {
     }
 
     fun setInEarDetectionForCalls(enabled: Boolean) {
-        _inEarDetectionForCalls.value = enabled
+        deviceState.inEarDetectionForCalls.value = enabled
         val packet = SppPacketEncoder.buildPacket(
             SppPacketEncoder.MSG_ID_SET_CALL_PATH_CONTROL,
             byteArrayOf(if (enabled) 0x00 else 0x01)
@@ -846,10 +513,10 @@ class BudsController(private val context: Context) {
     }
 
     fun setDoubleTapEdgeEnabled(enabled: Boolean) {
-        if (!isConnected.value) return
-        _doubleTapEdgeEnabled.value = enabled
+        if (!deviceState.isConnected.value) return
+        deviceState.doubleTapEdgeEnabled.value = enabled
         val packet = SppPacketEncoder.buildPacket(
-            149.toByte(), // SET_TOUCHPAD_OPTION or OUTSIDE_DOUBLE_TAP
+            149.toByte(),
             byteArrayOf(if (enabled) 1 else 0)
         )
         packetQueue.trySend(packet)
@@ -857,7 +524,7 @@ class BudsController(private val context: Context) {
 
     fun setStereoBalance(value: Int) {
         val clamped = value.coerceIn(0, 32)
-        _stereoBalance.value = clamped
+        deviceState.stereoBalance.value = clamped
         val packet = SppPacketEncoder.buildPacket(
             SppPacketEncoder.MSG_ID_HEARING_ENHANCEMENTS,
             byteArrayOf(clamped.toByte())
@@ -866,15 +533,15 @@ class BudsController(private val context: Context) {
     }
 
     fun applyEqPreset(preset: EqPreset) {
-        _manualPreset.value = preset
+        deviceState.manualPreset.value = preset
     }
 
     fun setManualPreset(preset: EqPreset?) {
-        _manualPreset.value = preset
+        deviceState.manualPreset.value = preset
     }
 
     fun setManualNoiseControl(mode: NoiseControlMode?) {
-        _manualNoiseControl.value = mode
+        deviceState.manualNoiseControl.value = mode
     }
 
     private val spatialConsumers = mutableSetOf<String>()
@@ -888,8 +555,6 @@ class BudsController(private val context: Context) {
         }
         
         scope.launch {
-            // If model is UNKNOWN, wait a bit for the 0x26 debug packet to return
-            // before bombarding the earbuds with spatial audio commands that could interrupt it.
             var attempts = 0
             while (effectiveModel.value == BudsModel.UNKNOWN && attempts < 15) {
                 delay(200)
@@ -901,11 +566,10 @@ class BudsController(private val context: Context) {
                 delay(1500 - timeSinceConnect)
             }
             
-            val wasActive = _isSpatialActive.value
-            _isSpatialActive.value = true
+            val wasActive = deviceState.isSpatialActive.value
+            deviceState.isSpatialActive.value = true
             Log.i(TAG, "Starting spatial sensor for consumer: $consumer (wasActive=$wasActive)")
             
-            // Always send setup packets as a failsafe against dropped packets or silent detaches
             packetQueue.trySend(SppPacketEncoder.buildPacket(SppPacketEncoder.MSG_ID_SET_SPATIAL_AUDIO, byteArrayOf(1)))
             packetQueue.trySend(SppPacketEncoder.buildPacket(SppPacketEncoder.MSG_ID_SPATIAL_AUDIO_CONTROL, byteArrayOf(0)))
             
@@ -914,7 +578,7 @@ class BudsController(private val context: Context) {
                 keepAliveJob = scope.launch {
                     while (true) {
                         delay(2000)
-                        if (_isSpatialActive.value) {
+                        if (deviceState.isSpatialActive.value) {
                             packetQueue.trySend(SppPacketEncoder.buildPacket(SppPacketEncoder.MSG_ID_SPATIAL_AUDIO_CONTROL, byteArrayOf(4)))
                         }
                     }
@@ -924,34 +588,32 @@ class BudsController(private val context: Context) {
     }
 
     fun kickstartSpatialSensor() {
-
         Log.i(TAG, "Kickstarting spatial sensor (Hard reset)")
-        // Stop it fully
-        _isSpatialActive.value = false
+        deviceState.isSpatialActive.value = false
         keepAliveJob?.cancel()
         kickstartJob?.cancel()
         packetQueue.trySend(SppPacketEncoder.buildPacket(SppPacketEncoder.MSG_ID_SET_SPATIAL_AUDIO, byteArrayOf(0)))
         packetQueue.trySend(SppPacketEncoder.buildPacket(SppPacketEncoder.MSG_ID_SPATIAL_AUDIO_CONTROL, byteArrayOf(1)))
         
         kickstartJob = scope.launch {
-                delay(1500) // Wait for earbud role-sync to finish
+            delay(1500) 
+            
+            if (spatialConsumers.isNotEmpty()) {
+                deviceState.isSpatialActive.value = true
+                packetQueue.trySend(SppPacketEncoder.buildPacket(SppPacketEncoder.MSG_ID_SET_SPATIAL_AUDIO, byteArrayOf(1)))
+                packetQueue.trySend(SppPacketEncoder.buildPacket(SppPacketEncoder.MSG_ID_SPATIAL_AUDIO_CONTROL, byteArrayOf(0)))
                 
-                if (spatialConsumers.isNotEmpty()) {
-                    _isSpatialActive.value = true
-                    packetQueue.trySend(SppPacketEncoder.buildPacket(SppPacketEncoder.MSG_ID_SET_SPATIAL_AUDIO, byteArrayOf(1)))
-                    packetQueue.trySend(SppPacketEncoder.buildPacket(SppPacketEncoder.MSG_ID_SPATIAL_AUDIO_CONTROL, byteArrayOf(0)))
-                    
-                    keepAliveJob?.cancel()
-                    keepAliveJob = scope.launch {
-                        while (true) {
-                            delay(2000)
-                            if (_isSpatialActive.value) {
-                                packetQueue.trySend(SppPacketEncoder.buildPacket(SppPacketEncoder.MSG_ID_SPATIAL_AUDIO_CONTROL, byteArrayOf(4)))
-                            }
+                keepAliveJob?.cancel()
+                keepAliveJob = scope.launch {
+                    while (true) {
+                        delay(2000)
+                        if (deviceState.isSpatialActive.value) {
+                            packetQueue.trySend(SppPacketEncoder.buildPacket(SppPacketEncoder.MSG_ID_SPATIAL_AUDIO_CONTROL, byteArrayOf(4)))
                         }
                     }
                 }
             }
+        }
     }
 
     fun stopSpatialSensor(consumer: String = "default") {
@@ -972,13 +634,13 @@ class BudsController(private val context: Context) {
             Log.i(TAG, "Stopping spatial sensor (no more consumers)")
             packetQueue.trySend(SppPacketEncoder.buildPacket(SppPacketEncoder.MSG_ID_SPATIAL_AUDIO_CONTROL, byteArrayOf(1)))
             packetQueue.trySend(SppPacketEncoder.buildPacket(SppPacketEncoder.MSG_ID_SET_SPATIAL_AUDIO, byteArrayOf(0)))
-            _isSpatialActive.value = false
+            deviceState.isSpatialActive.value = false
             keepAliveJob?.cancel()
         }
     }
 
     fun toggleNoiseControl() {
-        val current = lastSentNcMode ?: _manualNoiseControl.value
+        val current = lastSentNcMode ?: deviceState.manualNoiseControl.value
         val next = when (current) {
             NoiseControlMode.NOISE_CANCELLATION -> if (effectiveModel.value.supportsTransparencyNC) NoiseControlMode.TRANSPARENT else NoiseControlMode.OFF
             NoiseControlMode.TRANSPARENT -> NoiseControlMode.NOISE_CANCELLATION

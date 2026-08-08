@@ -78,6 +78,7 @@ class MediaObserver(private val context: Context) {
     private var currentFetchJob: Job? = null
     
     private val genreCache = context.getSharedPreferences("genre_cache", Context.MODE_PRIVATE)
+    private val failedGenreFetches = mutableSetOf<String>()
 
     private val activeSessionsListener = MediaSessionManager.OnActiveSessionsChangedListener { controllers ->
         updateActiveControllers(controllers)
@@ -203,6 +204,8 @@ class MediaObserver(private val context: Context) {
             if (!cachedGenre.isNullOrBlank()) {
                 initialGenre = cachedGenre
                 initialState = GenreFetchState.SUCCESS
+            } else if (failedGenreFetches.contains(cacheKey)) {
+                initialState = GenreFetchState.ERROR
             } else {
                 initialState = GenreFetchState.LOADING
             }
@@ -250,6 +253,9 @@ class MediaObserver(private val context: Context) {
                             _recentHistory.value = listOf(updatedMetadata) + currentHistory.drop(1)
                         }
                     } else {
+                        val cacheKey = "${artist}_${title}"
+                        failedGenreFetches.add(cacheKey)
+                        
                         val updatedMetadata = SongMetadata(title, artist, null, GenreFetchState.ERROR)
                         Log.d(TAG, "Failed to fetch genre from iTunes")
                         _currentMetadata.value = updatedMetadata

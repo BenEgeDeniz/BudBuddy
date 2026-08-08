@@ -70,9 +70,31 @@ object ServiceLocator {
         _pauseMediaOnConversation.value = enabled
     }
 
+    @Volatile
+    private var settingsRepository: com.benegedeniz.budsdynamiceq.data.repository.SettingsRepository? = null
+
+    @Volatile
+    private var deviceStateRepository: com.benegedeniz.budsdynamiceq.data.repository.DeviceStateRepository? = null
+
+    fun provideSettingsRepository(context: Context): com.benegedeniz.budsdynamiceq.data.repository.SettingsRepository {
+        return settingsRepository ?: synchronized(this) {
+            settingsRepository ?: com.benegedeniz.budsdynamiceq.data.repository.SettingsRepository(context.applicationContext).also { settingsRepository = it }
+        }
+    }
+
+    fun provideDeviceStateRepository(context: Context): com.benegedeniz.budsdynamiceq.data.repository.DeviceStateRepository {
+        return deviceStateRepository ?: synchronized(this) {
+            deviceStateRepository ?: com.benegedeniz.budsdynamiceq.data.repository.DeviceStateRepository().also { deviceStateRepository = it }
+        }
+    }
+
     fun provideBudsController(context: Context): BudsController {
         return budsController ?: synchronized(this) {
-            budsController ?: BudsController(context.applicationContext).also { budsController = it }
+            budsController ?: BudsController(
+                context.applicationContext,
+                provideDeviceStateRepository(context),
+                provideSettingsRepository(context)
+            ).also { budsController = it }
         }
     }
 

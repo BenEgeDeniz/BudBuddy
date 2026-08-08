@@ -9,7 +9,11 @@ import com.benegedeniz.budsdynamiceq.data.model.FlowAction
 import com.benegedeniz.budsdynamiceq.data.model.WearStateAction
 import com.benegedeniz.budsdynamiceq.data.model.WearStateTrigger
 import com.benegedeniz.budsdynamiceq.di.ServiceLocator
+import com.benegedeniz.budsdynamiceq.ui.state.WearStateUiState
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class WearStateViewModel(application: Application) : AndroidViewModel(application) {
@@ -17,8 +21,16 @@ class WearStateViewModel(application: Application) : AndroidViewModel(applicatio
     private val wearStateRepo = ServiceLocator.provideWearStateRepository(application)
     private val budsController = ServiceLocator.provideBudsController(application)
 
-    val wearStateActions: StateFlow<List<WearStateAction>> = wearStateRepo.actions
-    val isConnected: StateFlow<Boolean> = budsController.isConnected
+    val uiState: StateFlow<WearStateUiState> = combine(
+        wearStateRepo.actions,
+        budsController.isConnected
+    ) { actions, isConnected ->
+        WearStateUiState(actions, isConnected)
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = WearStateUiState()
+    )
 
     init {
         viewModelScope.launch {
@@ -40,7 +52,7 @@ class WearStateViewModel(application: Application) : AndroidViewModel(applicatio
 
     fun saveAction(action: WearStateAction) {
         viewModelScope.launch {
-            val existing = wearStateActions.value.find { it.id == action.id }
+            val existing = uiState.value.actions.find { it.id == action.id }
             if (existing != null) {
                 wearStateRepo.updateAction(action)
             } else {

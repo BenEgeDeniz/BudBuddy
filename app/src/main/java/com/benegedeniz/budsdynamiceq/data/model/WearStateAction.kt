@@ -15,7 +15,7 @@ data class WearStateAction(
 )
 
 @Serializable
-enum class WearStateTrigger(@StringRes val displayNameRes: Int) {
+enum class WearStateTrigger(@param:StringRes val displayNameRes: Int) {
     EARBUD_REMOVED(R.string.trigger_earbud_removed),
     BOTH_WEARING(R.string.trigger_both_worn)
 }

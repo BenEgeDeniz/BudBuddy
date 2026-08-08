@@ -143,6 +143,7 @@ class GestureActionExecutor(
         }
     }
 
+    @Suppress("DEPRECATION")
     private fun acceptCall() {
         val telecomManager = context.getSystemService(Context.TELECOM_SERVICE) as? TelecomManager ?: return
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.ANSWER_PHONE_CALLS) == PackageManager.PERMISSION_GRANTED) {
@@ -154,16 +155,12 @@ class GestureActionExecutor(
         }
     }
 
+    @Suppress("DEPRECATION")
     private fun rejectCall() {
         val telecomManager = context.getSystemService(Context.TELECOM_SERVICE) as? TelecomManager ?: return
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.ANSWER_PHONE_CALLS) == PackageManager.PERMISSION_GRANTED) {
             try {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                    telecomManager.endCall()
-                } else {
-                    @Suppress("DEPRECATION")
-                    telecomManager.endCall()
-                }
+                telecomManager.endCall()
             } catch (e: Exception) {
                 e.printStackTrace()
             }
