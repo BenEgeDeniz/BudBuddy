@@ -11,11 +11,36 @@ jobs:
     name: PR Policy
     runs-on: ubuntu-latest
     steps:
-      - name: Enforce Staging to Master Workflow
-        if: github.event_name == 'pull_request' && github.base_ref == 'master' && github.head_ref != 'staging'
+      - name: Enforce promotion workflow
+        if: github.event_name == 'pull_request'
         run: |
-          echo "::error::Pull requests to 'master' MUST originate from the 'staging' branch. You are trying to merge from '${{ github.head_ref }}'."
-          exit 1
+          if [[ "${{ github.base_ref }}" == "staging" ]]; then
+            if [[ "${{ github.event.pull_request.head.repo.full_name }}" != "${{ github.repository }}" ]]; then
+              echo "::error::Pull requests to 'staging' from external forks are not allowed."
+              exit 1
+            fi
+
+            if [[ "${{ github.head_ref }}" != "dev" ]]; then
+              echo "::error::Pull requests to 'staging' MUST originate from the 'dev' branch."
+              echo "::error::You are trying to merge from '${{ github.head_ref }}'."
+              exit 1
+            fi
+          fi
+
+          if [[ "${{ github.base_ref }}" == "master" ]]; then
+            if [[ "${{ github.event.pull_request.head.repo.full_name }}" != "${{ github.repository }}" ]]; then
+              echo "::error::Pull requests to 'master' from external forks are not allowed."
+              exit 1
+            fi
+
+            if [[ "${{ github.head_ref }}" != "staging" ]]; then
+              echo "::error::Pull requests to 'master' MUST originate from the 'staging' branch."
+              echo "::error::You are trying to merge from '${{ github.head_ref }}'."
+              exit 1
+            fi
+          fi
+
+          echo "Branch promotion policy passed."
 
   build:
     needs: policy
