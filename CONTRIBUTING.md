@@ -15,8 +15,34 @@ The repository maintains three primary branches:
 The Continuous Integration (CI) pipeline enforces the following rules for pull requests:
 
 - **All general contributions and pull requests MUST be sent to the `dev` branch.**
-- Pull requests to `staging` are **only allowed** if they originate from the `dev` branch of this repository. External forks cannot submit pull requests directly to `staging`.
-- Pull requests to `master` are **only allowed** if they originate from the `staging` branch of this repository. External forks cannot submit pull requests directly to `master`.
+- Pull requests to `staging` are **only allowed** if they originate from the `dev` branch of this repository. Pull requests from external forks targeting `staging` will be discarded.
+- Pull requests to `master` are **only allowed** if they originate from the `staging` branch of this repository. Pull requests from external forks targeting `master` will be discarded.
+
+## Code Quality & Architecture
+
+We try to keep our codebase clean, responsive, and robust. It's super helpful if you can try to align with our general patterns:
+
+### 1. Modern Kotlin & Compose
+- We prefer using **Jetpack Compose** for the UI, styled with **Material Design 3**.
+- We're currently targeting **JVM 21**. 
+
+### 2. Unidirectional Data Flow (UDF)
+- **State Holders:** We generally expose state from `ViewModel`s using `StateFlow` and collect them in the UI via `collectAsState()`.
+- **Flow Combining Quirks:** When combining many flows into a single UI State (like in `BudsViewModel`), consider grouping them into private data classes first (e.g., `ConnectionGroup`, `MediaGroup`). *Kotlin's standard `combine` limits us to 5 flows, so grouping helps us get around this cleanly.*
+- **Subscription:** Try to use `.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), initialValue)` when exposing state to help save background resources.
+- **Local State:** We typically save `remember { mutableStateOf(...) }` for transient UI states (like active tabs or dialog toggles).
+
+### 3. Fluid Animations
+- **Motion matters:** We enjoy using fluid animations! It's nice when new components use Compose APIs like `AnimatedVisibility`, `animateDpAsState`, and `spring()` physics to match the existing dynamic aesthetic. 
+- **Side Effects:** Try to handle UI events thoughtfully—`LaunchedEffect` for state-driven side effects and `rememberCoroutineScope()` for callback-driven actions (like button clicks) usually work best.
+
+### 4. Dependency Injection
+- We use a lightweight manual DI approach via `ServiceLocator`. 
+- We'd prefer to avoid heavy frameworks like Hilt, Dagger, or Koin for now. If you need a dependency, you can usually just inject it through the `ServiceLocator` as seen in the existing ViewModels.
+
+### 5. AI-Assisted Development
+- We **encourage** the use of AI tools to help write and review code.
+- However, **AI slop will not be tolerated.** Please make sure any generated code is reviewed, fully understood, and generally aligns with the core patterns defined above before opening a PR.
 
 ### How to Contribute
 
