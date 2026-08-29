@@ -10,7 +10,7 @@ android {
 
     defaultConfig {
         applicationId = "com.benegedeniz.budsdynamiceq"
-        minSdk = 31
+        minSdk = 29
         targetSdk = 37
         versionCode = 11
         versionName = "1.7.1"
