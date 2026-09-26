@@ -544,4 +544,12 @@
     <string name="rule_applied_toast">Применено: %1$s</string>
     <string name="not_affiliated_samsung">Не связано с Samsung Electronics Co., Ltd.</string>
     <string name="open_source_by_benegedeniz">Bud Buddy — это проект с открытым исходным кодом от BenEgeDeniz.</string>
+    <!-- Quick Settings Tile -->
+    <string name="qs_tile_behavior">Поведение плитки быстрых настроек</string>
+    <string name="qs_tile_behavior_desc">Выберите, что происходит при нажатии на плитку</string>
+    <string name="qs_tile_anc_trans">Шумоподавление и Прозрачность</string>
+    <string name="qs_tile_anc_off">Шумоподавление и Выкл</string>
+    <string name="qs_tile_trans_off">Прозрачность и Выкл</string>
+    <string name="qs_tile_cycle_all">Переключать все</string>
+    <string name="qs_tile_label">Шумоподавление</string>
 </resources>

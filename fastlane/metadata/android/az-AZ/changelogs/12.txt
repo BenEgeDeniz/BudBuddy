@@ -1,0 +1,3 @@
+- Səs-küy nəzarəti rejimləri (məs. ANC və Şəffaf) arasında sürətli keçid üçün yeni Sürətli Ayar paneli əlavə edildi.
+- Sürətli Ayar panelinin necə işləyəcəyini tətbiq ayarlarında seçə bilərsiniz.
+- Android dəstəyi Android 10 və daha yeni versiyalara genişləndirildi.

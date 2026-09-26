@@ -1,0 +1,3 @@
+- Gürültü kontrol modları (ör. ANC ve Şeffaf) arasında hızlıca geçiş yapmak için yeni bir Hızlı Ayarlar kutucuğu eklendi.
+- Hızlı Ayarlar kutucuğunun davranışını uygulama ayarlarından seçebilirsiniz.
+- Android desteği Android 10 ve daha yeni sürümlere genişletildi.

@@ -1,0 +1,3 @@
+- Added a new Quick Settings tile to quickly toggle between noise control modes (e.g. ANC and Transparent).
+- You can now choose how the Quick Settings tile behaves in the app settings.
+- Expanded Android support to Android 10 and newer.
