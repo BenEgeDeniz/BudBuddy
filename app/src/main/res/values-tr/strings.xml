@@ -544,4 +544,12 @@
     <string name="rule_applied_toast">Uygulandı: %1$s</string>
     <string name="not_affiliated_samsung">Samsung Electronics Co., Ltd. ile bağlantısı yoktur.</string>
     <string name="open_source_by_benegedeniz">Bud Buddy, BenEgeDeniz tarafından geliştirilmiş açık kaynaklı bir projedir.</string>
+    <!-- Quick Settings Tile -->
+    <string name="qs_tile_behavior">Hızlı Ayar Kutucuğu Davranışı</string>
+    <string name="qs_tile_behavior_desc">Kutucuğa dokunduğunuzda ne olacağını seçin</string>
+    <string name="qs_tile_anc_trans">ANC ve Şeffaf</string>
+    <string name="qs_tile_anc_off">ANC ve Kapalı</string>
+    <string name="qs_tile_trans_off">Şeffaf ve Kapalı</string>
+    <string name="qs_tile_cycle_all">Tümünü Döngüye Al</string>
+    <string name="qs_tile_label">Gürültü Kontrolü</string>
 </resources>

@@ -89,4 +89,12 @@ class SettingsRepository(context: Context) {
     fun setExperimentalGesturesEnabled(mac: String, enabled: Boolean) {
         prefs.edit().putBoolean("experimental_gestures_enabled_$mac", enabled).apply()
     }
+
+    fun getTileBehavior(): Int {
+        return prefs.getInt("qs_tile_behavior", 0) // 0: ANC_AND_TRANSPARENT, 1: ANC_AND_OFF, 2: TRANSPARENT_AND_OFF, 3: CYCLE_ALL
+    }
+
+    fun setTileBehavior(behavior: Int) {
+        prefs.edit().putInt("qs_tile_behavior", behavior).apply()
+    }
 }

@@ -544,4 +544,12 @@
     <string name="rule_applied_toast">Applied: %1$s</string>
     <string name="not_affiliated_samsung">Not affiliated with Samsung Electronics Co., Ltd.</string>
     <string name="open_source_by_benegedeniz">Bud Buddy is an open-source project by BenEgeDeniz</string>
+    <!-- Quick Settings Tile -->
+    <string name="qs_tile_behavior">Quick Setting Tile Behavior</string>
+    <string name="qs_tile_behavior_desc">Choose what happens when you tap the tile</string>
+    <string name="qs_tile_anc_trans">ANC &amp; Transparent</string>
+    <string name="qs_tile_anc_off">ANC &amp; Off</string>
+    <string name="qs_tile_trans_off">Transparent &amp; Off</string>
+    <string name="qs_tile_cycle_all">Cycle All</string>
+    <string name="qs_tile_label">Noise Control</string>
 </resources>
