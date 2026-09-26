@@ -45,7 +45,7 @@ This project uses standard Android build tools. To build it locally:
 
 ### Google Play
 Bud Buddy is now live on Google Play! 
-<a href="https://play.google.com/store/apps/details?id=com.benegedeniz.budsdynamiceq"><img alt="Get it on Google Play" src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png"/></a>
+<a href="https://play.google.com/store/apps/details?id=com.benegedeniz.budsdynamiceq"><img alt="Get it on Google Play" src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" height="110"/></a>
 
 ### 📦 GitHub Releases & Builds
 You can also download standalone APKs directly:
