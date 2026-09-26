@@ -93,9 +93,11 @@ fun AppSettingsScreen(
     var startOnBoot by remember { mutableStateOf(prefs.getBoolean("start_on_boot", false)) }
     var autoConnectBuds by remember { mutableStateOf(prefs.getBoolean("auto_connect", true)) }
     var enableItunesGenreFetching by remember { mutableStateOf(prefs.getBoolean("enable_itunes_genre_fetching", true)) }
+    var tileBehavior by remember { mutableStateOf(prefs.getInt("qs_tile_behavior", 0)) }
 
     var mediaApps by remember { mutableStateOf<List<com.benegedeniz.budsdynamiceq.util.MediaAppInfo>>(emptyList()) }
     var showMediaPlayerDialog by remember { mutableStateOf(false) }
+    var showTileBehaviorDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
@@ -744,6 +746,45 @@ fun AppSettingsScreen(
                                     }
                                 )
                             }
+                            
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                        showTileBehaviorDialog = true
+                                    }
+                                    .padding(vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Column(modifier = Modifier.weight(1f).padding(end = 16.dp)) {
+                                    Text(
+                                        text = stringResource(R.string.qs_tile_behavior),
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    val currentBehaviorStr = when(tileBehavior) {
+                                        0 -> stringResource(R.string.qs_tile_anc_trans)
+                                        1 -> stringResource(R.string.qs_tile_anc_off)
+                                        2 -> stringResource(R.string.qs_tile_trans_off)
+                                        3 -> stringResource(R.string.qs_tile_cycle_all)
+                                        else -> stringResource(R.string.qs_tile_anc_trans)
+                                    }
+                                    Text(
+                                        text = currentBehaviorStr,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                                Icon(
+                                    imageVector = Icons.Default.Settings,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                         }
                     }
                 }
@@ -1177,6 +1218,78 @@ fun AppSettingsScreen(
             containerColor = MaterialTheme.colorScheme.surfaceVariant,
             titleContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
             textContentColor = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+    
+    if (showTileBehaviorDialog) {
+        AlertDialog(
+            onDismissRequest = { showTileBehaviorDialog = false },
+            title = {
+                Text(
+                    text = stringResource(R.string.qs_tile_behavior),
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Column(
+                    modifier = Modifier.verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    val behaviors = listOf(
+                        Pair(0, stringResource(R.string.qs_tile_anc_trans)),
+                        Pair(1, stringResource(R.string.qs_tile_anc_off)),
+                        Pair(2, stringResource(R.string.qs_tile_trans_off)),
+                        Pair(3, stringResource(R.string.qs_tile_cycle_all))
+                    )
+                    behaviors.forEach { (value, label) ->
+                        val isSelected = tileBehavior == value
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(
+                                    if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+                                    else Color.Transparent
+                                )
+                                .clickable {
+                                    if (!isSelected) {
+                                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                        tileBehavior = value
+                                        prefs.edit().putInt("qs_tile_behavior", value).apply()
+                                        showTileBehaviorDialog = false
+                                    }
+                                }
+                                .padding(horizontal = 12.dp, vertical = 10.dp)
+                        ) {
+                            RadioButton(
+                                selected = isSelected,
+                                onClick = {
+                                    if (!isSelected) {
+                                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                        tileBehavior = value
+                                        prefs.edit().putInt("qs_tile_behavior", value).apply()
+                                        showTileBehaviorDialog = false
+                                    }
+                                }
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Text(
+                                text = label,
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showTileBehaviorDialog = false }) {
+                    Text(stringResource(android.R.string.cancel))
+                }
+            },
+            shape = RoundedCornerShape(24.dp)
         )
     }
 }

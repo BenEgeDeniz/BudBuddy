@@ -544,4 +544,12 @@
     <string name="rule_applied_toast">Tətbiq edildi: %1$s</string>
     <string name="not_affiliated_samsung">Samsung Electronics Co., Ltd. ilə heç bir əlaqəsi yoxdur.</string>
     <string name="open_source_by_benegedeniz">Bud Buddy, BenEgeDeniz tərəfindən hazırlanmış açıq mənbəli layihədir.</string>
+    <!-- Quick Settings Tile -->
+    <string name="qs_tile_behavior">Sürətli Ayar Paneli Davranışı</string>
+    <string name="qs_tile_behavior_desc">Panelə toxunduqda nə olacağını seçin</string>
+    <string name="qs_tile_anc_trans">ANC &amp; Şəffaf</string>
+    <string name="qs_tile_anc_off">ANC &amp; Söndürülüb</string>
+    <string name="qs_tile_trans_off">Şəffaf &amp; Söndürülüb</string>
+    <string name="qs_tile_cycle_all">Hamısını Dövr Et</string>
+    <string name="qs_tile_label">Səs-küy Nəzarəti</string>
 </resources>
