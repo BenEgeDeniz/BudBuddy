@@ -14,7 +14,12 @@ Bud Buddy is an improved, open-source alternative to the Samsung Galaxy Buds Man
 - **Head Gestures:** Control your device with custom head movements.
 - **Dynamic Rules:** Auto-adjust your equalizer and noise control based on your currently playing music.
 - **Diagnostics & Tracking:** Built-in earbud fit test, wear state monitoring, and "Find My Earbuds".
-- **Advanced Controls:** Seamless noise control, sound balance tuning, and a global app search.
+- **Advanced Controls:** Seamless noise control (with Quick Settings tile integration), sound balance tuning, and a global app search.
+
+## Requirements
+
+- **Android 10** or newer.
+- A compatible pair of Galaxy Buds (see below).
 
 ## Earbud Support
 
