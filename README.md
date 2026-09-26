@@ -43,11 +43,9 @@ This project uses standard Android build tools. To build it locally:
 
 ## Download & Installation
 
-### 🧪 Google Play Closed Beta
-Bud Buddy is now live in **Closed Testing** on Google Play! To join the beta test team:
-1. Join the [Bud Buddy Tester Google Group](https://groups.google.com/g/budbuddy-closed).
-2. Opt-in to testing via the [Google Play Web Opt-in Link](https://play.google.com/apps/testing/com.benegedeniz.budsdynamiceq).
-3. Download or update the app directly from the [Google Play Store](https://play.google.com/store/apps/details?id=com.benegedeniz.budsdynamiceq).
+### Google Play
+Bud Buddy is now live on Google Play! 
+<a href="https://play.google.com/store/apps/details?id=com.benegedeniz.budsdynamiceq"><img alt="Get it on Google Play" src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png"/></a>
 
 ### 📦 GitHub Releases & Builds
 You can also download standalone APKs directly:
