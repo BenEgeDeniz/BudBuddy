@@ -1,0 +1,2 @@
+- Made the 'Answer Phone Calls' permission optional and on-demand to improve privacy.
+- Removed the 'Query All Packages' permission to comply with Play Store policies and improve privacy.
