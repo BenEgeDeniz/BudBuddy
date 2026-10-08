@@ -1,0 +1,2 @@
+- Məxfiliyi artırmaq üçün 'Zəngləri Cavablandır' icazəsi istəyə bağlı edildi və yalnız lazım olduqda soruşulacaq şəkildə nizamlandı.
+- Play Store siyasətlərinə uyğunlaşmaq və məxfiliyi artırmaq üçün 'Bütün Paketləri Sorğula' icazəsi silindi.

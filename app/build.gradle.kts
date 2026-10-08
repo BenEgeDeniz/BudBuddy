@@ -12,8 +12,8 @@ android {
         applicationId = "com.benegedeniz.budsdynamiceq"
         minSdk = 29
         targetSdk = 37
-        versionCode = 12
-        versionName = "1.8.0"
+        versionCode = 13
+        versionName = "1.8.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         resourceConfigurations += listOf("en", "tr", "az", "ru")
@@ -31,6 +31,9 @@ android {
             dimension = "distribution"
         }
         create("github") {
+            dimension = "distribution"
+        }
+        create("fdroid") {
             dimension = "distribution"
         }
     }

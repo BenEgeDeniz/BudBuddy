@@ -1,0 +1,2 @@
+- Gizliliği artırmak için 'Aramaları Yanıtla' izni isteğe bağlı hale getirildi ve yalnızca gerektiğinde sorulacak şekilde ayarlandı.
+- Play Store politikalarına uyum sağlamak ve gizliliği artırmak için 'Tüm Paketleri Sorgula' izni kaldırıldı.

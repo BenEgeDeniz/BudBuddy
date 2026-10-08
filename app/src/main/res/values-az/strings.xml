@@ -552,4 +552,5 @@
     <string name="qs_tile_trans_off">Şəffaf &amp; Söndürülüb</string>
     <string name="qs_tile_cycle_all">Hamısını Dövr Et</string>
     <string name="qs_tile_label">Səs-küy Nəzarəti</string>
+    <string name="permission_required_answer_calls">Zəngləri cavablandırmaq/rədd etmək üçün icazə lazımdır</string>
 </resources>
