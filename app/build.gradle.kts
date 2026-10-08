@@ -33,6 +33,9 @@ android {
         create("github") {
             dimension = "distribution"
         }
+        create("fdroid") {
+            dimension = "distribution"
+        }
     }
 
     buildTypes {
