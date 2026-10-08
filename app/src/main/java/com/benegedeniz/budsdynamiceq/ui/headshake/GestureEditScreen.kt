@@ -268,6 +268,15 @@ fun FlowActionItem(
     onRemove: () -> Unit,
     onUpdate: (FlowAction) -> Unit
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val permissionLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (!isGranted) {
+            android.widget.Toast.makeText(context, context.getString(R.string.permission_required_answer_calls), android.widget.Toast.LENGTH_SHORT).show()
+        }
+    }
+    
     Card(
         modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
@@ -354,6 +363,9 @@ fun FlowActionItem(
                                 } else if (a == GestureAction.SPEAK_TEXT) {
                                     onUpdate(FlowAction.TtsAction())
                                 } else {
+                                    if (a == GestureAction.ACCEPT_CALL || a == GestureAction.REJECT_CALL) {
+                                        permissionLauncher.launch(android.Manifest.permission.ANSWER_PHONE_CALLS)
+                                    }
                                     onUpdate(FlowAction.SystemAction(a))
                                 }
                                 showActionDialog = false
@@ -406,6 +418,9 @@ fun FlowActionItem(
                                 } else if (a == GestureAction.SPEAK_TEXT) {
                                     onUpdate(FlowAction.TtsAction())
                                 } else {
+                                    if (a == GestureAction.ACCEPT_CALL || a == GestureAction.REJECT_CALL) {
+                                        permissionLauncher.launch(android.Manifest.permission.ANSWER_PHONE_CALLS)
+                                    }
                                     onUpdate(FlowAction.SystemAction(a))
                                 }
                                 showActionDialog = false
@@ -494,6 +509,9 @@ fun FlowActionItem(
                                 } else if (a == GestureAction.SPEAK_TEXT) {
                                     onUpdate(FlowAction.TtsAction())
                                 } else {
+                                    if (a == GestureAction.ACCEPT_CALL || a == GestureAction.REJECT_CALL) {
+                                        permissionLauncher.launch(android.Manifest.permission.ANSWER_PHONE_CALLS)
+                                    }
                                     onUpdate(FlowAction.SystemAction(a))
                                 }
                                 showActionDialog = false
@@ -569,6 +587,9 @@ fun FlowActionItem(
                                 } else if (a == GestureAction.SPEAK_TEXT) {
                                     onUpdate(FlowAction.TtsAction())
                                 } else {
+                                    if (a == GestureAction.ACCEPT_CALL || a == GestureAction.REJECT_CALL) {
+                                        permissionLauncher.launch(android.Manifest.permission.ANSWER_PHONE_CALLS)
+                                    }
                                     onUpdate(FlowAction.SystemAction(a))
                                 }
                                 showActionDialog = false
@@ -640,6 +661,9 @@ fun FlowActionItem(
                                 } else if (a == GestureAction.SPEAK_TEXT) {
                                     onUpdate(FlowAction.TtsAction(action.text, action.asAnnouncement))
                                 } else {
+                                    if (a == GestureAction.ACCEPT_CALL || a == GestureAction.REJECT_CALL) {
+                                        permissionLauncher.launch(android.Manifest.permission.ANSWER_PHONE_CALLS)
+                                    }
                                     onUpdate(FlowAction.SystemAction(a))
                                 }
                                 showActionDialog = false

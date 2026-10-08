@@ -552,4 +552,5 @@
     <string name="qs_tile_trans_off">Transparent &amp; Off</string>
     <string name="qs_tile_cycle_all">Cycle All</string>
     <string name="qs_tile_label">Noise Control</string>
+    <string name="permission_required_answer_calls">Permission required to answer/reject calls</string>
 </resources>

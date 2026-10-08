@@ -206,6 +206,14 @@ fun SetupStep(
     onNext: () -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val permissionLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (!isGranted) {
+            android.widget.Toast.makeText(context, context.getString(R.string.permission_required_answer_calls), android.widget.Toast.LENGTH_SHORT).show()
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -327,6 +335,9 @@ fun SetupStep(
                             val currentAnn = if (action is com.benegedeniz.budsdynamiceq.data.model.FlowAction.TtsAction) (action as com.benegedeniz.budsdynamiceq.data.model.FlowAction.TtsAction).asAnnouncement else true
                             onActionChange(com.benegedeniz.budsdynamiceq.data.model.FlowAction.TtsAction(text = currentText, asAnnouncement = currentAnn))
                         } else {
+                            if (a == GestureAction.ACCEPT_CALL || a == GestureAction.REJECT_CALL) {
+                                permissionLauncher.launch(android.Manifest.permission.ANSWER_PHONE_CALLS)
+                            }
                             onActionChange(com.benegedeniz.budsdynamiceq.data.model.FlowAction.SystemAction(a))
                         }
                         showActionDialog = false

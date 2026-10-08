@@ -43,14 +43,12 @@ fun SetupScreen(onPermissionsGranted: () -> Unit) {
         arrayOf(
             Manifest.permission.BLUETOOTH_CONNECT,
             Manifest.permission.BLUETOOTH_SCAN,
-            Manifest.permission.POST_NOTIFICATIONS,
-            Manifest.permission.ANSWER_PHONE_CALLS
+            Manifest.permission.POST_NOTIFICATIONS
         )
     } else {
         arrayOf(
             Manifest.permission.BLUETOOTH,
-            Manifest.permission.BLUETOOTH_ADMIN,
-            Manifest.permission.ANSWER_PHONE_CALLS
+            Manifest.permission.BLUETOOTH_ADMIN
         )
     }
 
