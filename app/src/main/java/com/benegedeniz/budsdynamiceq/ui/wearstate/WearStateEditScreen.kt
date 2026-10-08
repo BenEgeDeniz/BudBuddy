@@ -41,6 +41,14 @@ fun WearStateEditScreen(
     var actionWrappers by remember { 
         mutableStateOf(initialAction.actions.map { ActionWrapper(action = it) }) 
     }
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val permissionLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (!isGranted) {
+            android.widget.Toast.makeText(context, context.getString(R.string.permission_required_answer_calls), android.widget.Toast.LENGTH_SHORT).show()
+        }
+    }
 
     val state = rememberReorderableLazyListState(
         onMove = { from, to ->
@@ -211,6 +219,9 @@ fun WearStateEditScreen(
                                 allowFitTestWithOtherActions = true,
                                 onDismissRequest = { showSelectionDialog = false },
                                 onActionSelected = { gestureAction ->
+                                    if (gestureAction == GestureAction.ACCEPT_CALL || gestureAction == GestureAction.REJECT_CALL) {
+                                        permissionLauncher.launch(android.Manifest.permission.ANSWER_PHONE_CALLS)
+                                    }
                                     val newFlowAction = when (gestureAction) {
                                         GestureAction.SET_VOLUME -> FlowAction.VolumeAction()
                                         GestureAction.MODIFY_VOLUME_INCREASE -> FlowAction.ModifyVolumeAction(increase = true)
