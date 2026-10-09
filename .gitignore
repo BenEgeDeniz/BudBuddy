@@ -21,6 +21,7 @@ local.properties
 /app/release/
 /app/playstore/
 /app/github/
+/app/fdroid/
 /app/build/
 
 # Keystores and secrets
