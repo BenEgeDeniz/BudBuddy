@@ -10,7 +10,9 @@ enum class BudsModel(
     val isExperimentalGestures: Boolean,
     val supportsFmgRingWhileWearing: Boolean,
     val supportsDoubleTapEdge: Boolean,
-    val supportsCustomEqualizer: Boolean
+    val supportsCustomEqualizer: Boolean,
+    val supportsTransparentVolume: Boolean = false,
+    val maxAmbientVolume: Int = 0
 ) {
     BUDS_4_PRO(
         displayNameRes = com.benegedeniz.budsdynamiceq.R.string.model_buds_4_pro,
@@ -22,7 +24,9 @@ enum class BudsModel(
         isExperimentalGestures = false,
         supportsFmgRingWhileWearing = false,
         supportsDoubleTapEdge = false,
-        supportsCustomEqualizer = true
+        supportsCustomEqualizer = true,
+        supportsTransparentVolume = true,
+        maxAmbientVolume = 4
     ),
     BUDS_4(
         displayNameRes = com.benegedeniz.budsdynamiceq.R.string.model_buds_4,
@@ -34,7 +38,9 @@ enum class BudsModel(
         isExperimentalGestures = false,
         supportsFmgRingWhileWearing = false,
         supportsDoubleTapEdge = false,
-        supportsCustomEqualizer = true
+        supportsCustomEqualizer = true,
+        supportsTransparentVolume = false,
+        maxAmbientVolume = 0
     ),
     BUDS_3_PRO(
         displayNameRes = com.benegedeniz.budsdynamiceq.R.string.model_buds_3_pro,
@@ -46,7 +52,9 @@ enum class BudsModel(
         isExperimentalGestures = true,
         supportsFmgRingWhileWearing = false,
         supportsDoubleTapEdge = false,
-        supportsCustomEqualizer = true
+        supportsCustomEqualizer = true,
+        supportsTransparentVolume = true,
+        maxAmbientVolume = 2
     ),
     BUDS_3(
         displayNameRes = com.benegedeniz.budsdynamiceq.R.string.model_buds_3,
@@ -58,7 +66,9 @@ enum class BudsModel(
         isExperimentalGestures = true,
         supportsFmgRingWhileWearing = false,
         supportsDoubleTapEdge = false,
-        supportsCustomEqualizer = true
+        supportsCustomEqualizer = true,
+        supportsTransparentVolume = false,
+        maxAmbientVolume = 0
     ),
     BUDS_3_FE(
         displayNameRes = com.benegedeniz.budsdynamiceq.R.string.model_buds_3_fe,
@@ -70,7 +80,9 @@ enum class BudsModel(
         isExperimentalGestures = false,
         supportsFmgRingWhileWearing = true,
         supportsDoubleTapEdge = false,
-        supportsCustomEqualizer = false
+        supportsCustomEqualizer = false,
+        supportsTransparentVolume = true,
+        maxAmbientVolume = 2
     ),
     BUDS_2_PRO(
         displayNameRes = com.benegedeniz.budsdynamiceq.R.string.model_buds_2_pro,
@@ -82,7 +94,9 @@ enum class BudsModel(
         isExperimentalGestures = true,
         supportsFmgRingWhileWearing = true,
         supportsDoubleTapEdge = true,
-        supportsCustomEqualizer = false
+        supportsCustomEqualizer = false,
+        supportsTransparentVolume = true,
+        maxAmbientVolume = 2
     ),
     BUDS_2(
         displayNameRes = com.benegedeniz.budsdynamiceq.R.string.model_buds_2,
@@ -94,7 +108,9 @@ enum class BudsModel(
         isExperimentalGestures = true,
         supportsFmgRingWhileWearing = true,
         supportsDoubleTapEdge = true,
-        supportsCustomEqualizer = false
+        supportsCustomEqualizer = false,
+        supportsTransparentVolume = true,
+        maxAmbientVolume = 2
     ),
     BUDS_FE(
         displayNameRes = com.benegedeniz.budsdynamiceq.R.string.model_buds_fe,
@@ -106,7 +122,9 @@ enum class BudsModel(
         isExperimentalGestures = false,
         supportsFmgRingWhileWearing = true,
         supportsDoubleTapEdge = false,
-        supportsCustomEqualizer = false
+        supportsCustomEqualizer = false,
+        supportsTransparentVolume = true,
+        maxAmbientVolume = 2
     ),
     UNKNOWN(
         displayNameRes = com.benegedeniz.budsdynamiceq.R.string.model_buds_unknown,
@@ -118,6 +136,8 @@ enum class BudsModel(
         isExperimentalGestures = true,
         supportsFmgRingWhileWearing = true,
         supportsDoubleTapEdge = true,
-        supportsCustomEqualizer = true
+        supportsCustomEqualizer = true,
+        supportsTransparentVolume = true,
+        maxAmbientVolume = 4
     )
 }

@@ -54,6 +54,7 @@ class DeviceStateRepository {
     val useAmbientSoundDuringCalls = MutableStateFlow(false)
     val inEarDetectionForCalls = MutableStateFlow(true)
     val doubleTapEdgeEnabled = MutableStateFlow(false)
+    val ambientSoundVolume = MutableStateFlow(0)
     
     val isSearching = MutableStateFlow(false)
     val isLeftMuted = MutableStateFlow(false)
@@ -82,5 +83,6 @@ class DeviceStateRepository {
         fitTestResultL.value = FitTestResult.UNKNOWN
         fitTestResultR.value = FitTestResult.UNKNOWN
         activeImuSide.value = ImuSide.UNKNOWN
+        ambientSoundVolume.value = 0
     }
 }

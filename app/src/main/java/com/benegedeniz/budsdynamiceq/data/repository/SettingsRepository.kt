@@ -30,6 +30,7 @@ class SettingsRepository(context: Context) {
             .remove("detected_model_$mac")
             .remove("model_override_$mac")
             .remove("experimental_gestures_enabled_$mac")
+            .remove("ambient_sound_volume_$mac")
             .remove(customEqKey(mac, 1))
             .remove(customEqKey(mac, 2))
             .remove(customEqKey(mac, 3))
@@ -96,5 +97,15 @@ class SettingsRepository(context: Context) {
 
     fun setTileBehavior(behavior: Int) {
         prefs.edit().putInt("qs_tile_behavior", behavior).apply()
+    }
+
+    fun getAmbientSoundVolume(mac: String?): Int {
+        val key = if (mac.isNullOrBlank()) "ambient_sound_volume" else "ambient_sound_volume_$mac"
+        return prefs.getInt(key, 0)
+    }
+
+    fun saveAmbientSoundVolume(mac: String?, volume: Int) {
+        val key = if (mac.isNullOrBlank()) "ambient_sound_volume" else "ambient_sound_volume_$mac"
+        prefs.edit().putInt(key, volume).apply()
     }
 }

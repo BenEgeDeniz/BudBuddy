@@ -651,6 +651,165 @@ fun NoiseControlWithOneEarbudCard(
 
 
 @Composable
+fun TransparentModeVolumeCard(
+    isConnected: Boolean,
+    effectiveModel: BudsModel,
+    volume: Int,
+    onVolumeChange: (Int) -> Unit,
+    modifier: Modifier = Modifier,
+    asCard: Boolean = true
+) {
+    if (!effectiveModel.supportsTransparentVolume) return
+    val haptic = LocalHapticFeedback.current
+    val maxVolume = effectiveModel.maxAmbientVolume.coerceAtLeast(1)
+    val currentVolume = volume.coerceIn(0, maxVolume)
+
+    var isDragging by remember { mutableStateOf(false) }
+    var localVolume by remember(volume) { mutableFloatStateOf(currentVolume.toFloat()) }
+    var lastSentTime by remember { mutableLongStateOf(0L) }
+    var lastHapticValue by remember { mutableIntStateOf(currentVolume) }
+
+    val activeIntVolume = if (isDragging) kotlin.math.round(localVolume).toInt().coerceIn(0, maxVolume) else currentVolume
+
+    val volumeLabel = when {
+        maxVolume <= 2 -> when (activeIntVolume) {
+            0 -> stringResource(R.string.ambient_level_low)
+            1 -> stringResource(R.string.ambient_level_medium)
+            else -> stringResource(R.string.ambient_level_high)
+        }
+        else -> stringResource(R.string.ambient_level_step, activeIntVolume + 1)
+    }
+
+    val content: @Composable () -> Unit = {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(if (asCard) 20.dp else 16.dp)
+                .alpha(if (isConnected) 1f else 0.5f)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(
+                    modifier = Modifier.weight(1f).padding(end = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Hearing,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = stringResource(R.string.transparent_mode_volume),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = stringResource(R.string.transparent_mode_volume_desc),
+                            style = MaterialTheme.typography.bodySmall,
+                            fontSize = 11.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f)
+                        )
+                    }
+                }
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f),
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                ) {
+                    Text(
+                        text = volumeLabel,
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            Slider(
+                value = if (isDragging) localVolume else currentVolume.toFloat(),
+                onValueChange = { newVal ->
+                    isDragging = true
+                    localVolume = newVal
+                    val newInt = kotlin.math.round(newVal).toInt().coerceIn(0, maxVolume)
+                    if (newInt != lastHapticValue) {
+                        haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
+                        lastHapticValue = newInt
+                    }
+                    val now = System.currentTimeMillis()
+                    if (now - lastSentTime > 250) {
+                        onVolumeChange(newInt)
+                        lastSentTime = now
+                    }
+                },
+                onValueChangeFinished = {
+                    isDragging = false
+                    val finalInt = kotlin.math.round(localVolume).toInt().coerceIn(0, maxVolume)
+                    onVolumeChange(finalInt)
+                },
+                valueRange = 0f..maxVolume.toFloat(),
+                steps = if (maxVolume > 1) maxVolume - 1 else 0,
+                enabled = isConnected,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 4.dp)
+            )
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 6.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                if (maxVolume <= 2) {
+                    Text(
+                        text = stringResource(R.string.ambient_level_low),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                    )
+                    Text(
+                        text = stringResource(R.string.ambient_level_medium),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                    )
+                    Text(
+                        text = stringResource(R.string.ambient_level_high),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                    )
+                } else {
+                    for (step in 1..maxVolume + 1) {
+                        Text(
+                            text = "$step",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    if (asCard) {
+        BaseCard(modifier = modifier.animateContentSize()) {
+            content()
+        }
+    } else {
+        Box(modifier = modifier.animateContentSize()) {
+            content()
+        }
+    }
+}
+
+@Composable
 fun NoiseControlsCard(
     effectiveModel: BudsModel,
     activeNoiseControl: NoiseControlMode,

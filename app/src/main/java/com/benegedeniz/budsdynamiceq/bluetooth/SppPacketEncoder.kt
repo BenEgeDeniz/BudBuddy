@@ -15,6 +15,7 @@ object SppPacketEncoder {
     const val MSG_ID_SPATIAL_AUDIO_DATA: Byte = 0xC2.toByte()
     const val MSG_ID_PAUSE_MEDIA_WHEN_ONE_BUD_REMOVED: Byte = 0x6C.toByte() // 108 (0x6C)
     const val MSG_ID_HEARING_ENHANCEMENTS: Byte = 0x8F.toByte() // 143 (0x8F)
+    const val MSG_ID_AMBIENT_VOLUME: Byte = 132.toByte() // 0x84; Ambient sound volume
 
     /**
      * Builds a Samsung SPP packet.

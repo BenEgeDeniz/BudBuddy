@@ -86,6 +86,9 @@ class BudsPacketParser(
                     controller.confirmNcMode(ncMode)
                 }
             }
+            if (payloadSize > 23) {
+                deviceState.ambientSoundVolume.value = payload[23].toInt() and 0xFF
+            }
             if (payloadSize > 26) {
                 deviceState.conversationDetectionEnabled.value = payload[26].toInt() == 1
             }
@@ -183,6 +186,13 @@ class BudsPacketParser(
                 if (ncMode != null) {
                     controller.confirmNcMode(ncMode)
                 }
+            }
+        } else if (msgId == SppPacketEncoder.MSG_ID_AMBIENT_VOLUME) {
+            if (payloadSize > 0) {
+                val vol = payload[0].toInt() and 0xFF
+                deviceState.ambientSoundVolume.value = vol
+                val mac = deviceState.savedDeviceMac.value
+                settingsRepo.saveAmbientSoundVolume(mac, vol)
             }
         } else if (msgId == SppPacketEncoder.MSG_ID_SPATIAL_AUDIO_CONTROL) {
             if (payload.isNotEmpty()) {

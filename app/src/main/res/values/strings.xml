@@ -200,6 +200,12 @@
 	<string name="toggle_more_settings">Toggle More Settings</string>
 	<string name="noise_control_with_one_earbud">Noise Control with One Earbud</string>
 	<string name="use_ambient_sound_during_calls">Use ambient sound during calls</string>
+	<string name="transparent_mode_volume">Transparent Mode Volume</string>
+	<string name="transparent_mode_volume_desc">Adjust the volume of external sound passed through in Transparent mode.</string>
+	<string name="ambient_level_low">Low</string>
+	<string name="ambient_level_medium">Medium</string>
+	<string name="ambient_level_high">High</string>
+	<string name="ambient_level_step">Level %d</string>
 	<string name="in_ear_detection_for_calls">In-ear detection for calls</string>
 	<string name="play_calls_through_earbuds_when_in_ear_s">Play calls through earbuds when in ear, speaker when not</string>
 	<string name="left_right_sound_balance">Sound Balance</string>
