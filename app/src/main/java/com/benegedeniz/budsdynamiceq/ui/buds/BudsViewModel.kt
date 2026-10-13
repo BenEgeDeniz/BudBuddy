@@ -93,9 +93,12 @@ class BudsViewModel(application: Application) : AndroidViewModel(application) {
             budsController.doubleTapEdgeEnabled,
             budsController.stereoBalance
         ) { i, d, s -> Triple(i, d, s) },
-        budsController.ambientSoundVolume
-    ) { t1, t2, ambVol ->
-        FeaturesGroup(t1.first, t1.second, t1.third, t2.first, t2.second, t2.third, ambVol)
+        combine(
+            budsController.ambientSoundVolume,
+            budsController.ancLevel
+        ) { ambVol, ancLvl -> Pair(ambVol, ancLvl) }
+    ) { t1, t2, levels ->
+        FeaturesGroup(t1.first, t1.second, t1.third, t2.first, t2.second, t2.third, levels.first, levels.second)
     }
 
     private val modelState = combine(
@@ -151,6 +154,7 @@ class BudsViewModel(application: Application) : AndroidViewModel(application) {
             inEarDetectionForCalls = feat.inEarCall,
             doubleTapEdgeEnabled = feat.doubleTap,
             ambientSoundVolume = feat.ambientVolume,
+            ancLevel = feat.ancLevel,
             stereoBalance = feat.balance,
             
             fitTestResultL = hw.fitL,
@@ -213,6 +217,10 @@ class BudsViewModel(application: Application) : AndroidViewModel(application) {
 
     fun setAmbientSoundVolume(volume: Int) {
         budsController.setAmbientSoundVolume(volume)
+    }
+
+    fun setAncLevel(level: Int) {
+        budsController.setAncLevel(level)
     }
 
     fun setInEarDetectionForCalls(enabled: Boolean) {
@@ -308,7 +316,7 @@ private data class HardwareGroup(
     val isRightMuted: Boolean
 )
 private data class FeaturesGroup(
-    val convDet: Boolean, val oneEarNC: Boolean, val ambCall: Boolean, val inEarCall: Boolean, val doubleTap: Boolean, val balance: Int, val ambientVolume: Int
+    val convDet: Boolean, val oneEarNC: Boolean, val ambCall: Boolean, val inEarCall: Boolean, val doubleTap: Boolean, val balance: Int, val ambientVolume: Int, val ancLevel: Int
 )
 private data class ModelGroup(
     val connected: BudsModel, val override: BudsModel?, val effective: BudsModel

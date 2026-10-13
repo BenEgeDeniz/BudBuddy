@@ -173,6 +173,14 @@ fun AppSearchOverlay(
                         descTransparentVolume.contains(query)
                     )
 
+                    val titleAncLevel = context.getString(R.string.anc_level).lowercase()
+                    val descAncLevel = context.getString(R.string.anc_level_desc).lowercase()
+                    val mAncLevel = effectiveModel.supportsAncLevel && (
+                        titleAncLevel.contains(query) ||
+                        descAncLevel.contains(query) ||
+                        query.contains("anc")
+                    )
+
                     val titleInEarCall = context.getString(R.string.in_ear_detection_for_calls).lowercase()
                     val mInEarCall = titleInEarCall.contains(query)
                     
@@ -211,7 +219,7 @@ fun AppSearchOverlay(
                     val mMediaControls = (effectiveModel.supportsTransparencyNC && (togglePauseMedia.contains(query) || pauseMediaDesc.contains(query))) || 
                                          (togglePlayOnAnc.contains(query) || playOnAncDesc.contains(query))
 
-                    val hasNoiseGroup = mNoiseControls || mOneEarbud || mAmbientCall || mTransparentVolume || mInEarCall || mDoubleTap || mVoiceDetect || mMediaControls
+                    val hasNoiseGroup = mNoiseControls || mOneEarbud || mAmbientCall || mTransparentVolume || mAncLevel || mInEarCall || mDoubleTap || mVoiceDetect || mMediaControls
                     val hasSoundGroup = mEqualizer || mSoundBalance
                     val hasDeviceGroup = mWearState || mFitTest || mFindBuds
 
@@ -270,6 +278,19 @@ fun AppSearchOverlay(
                                 effectiveModel = budsState.effectiveModel,
                                 volume = budsState.ambientSoundVolume,
                                 onVolumeChange = { budsViewModel.setAmbientSoundVolume(it) },
+                                asCard = true,
+                                modifier = Modifier.animateItem().padding(horizontal = 16.dp, vertical = 8.dp)
+                            )
+                        }
+                    }
+
+                    if (mAncLevel) {
+                        item(key = "anc_level") {
+                            AncLevelCard(
+                                isConnected = budsState.isConnected,
+                                effectiveModel = budsState.effectiveModel,
+                                level = budsState.ancLevel,
+                                onLevelChange = { budsViewModel.setAncLevel(it) },
                                 asCard = true,
                                 modifier = Modifier.animateItem().padding(horizontal = 16.dp, vertical = 8.dp)
                             )

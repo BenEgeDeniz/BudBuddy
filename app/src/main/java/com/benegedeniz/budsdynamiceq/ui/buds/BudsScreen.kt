@@ -614,6 +614,25 @@ fun BudsScreen(
                             )
                         }
                     }
+                    AnimatedVisibility(
+                        visible = activeNc == NoiseControlMode.NOISE_CANCELLATION && effectiveModel.supportsAncLevel,
+                        enter = fadeIn(animationSpec = tween(150)) + expandVertically(animationSpec = spring(stiffness = Spring.StiffnessHigh)),
+                        exit = fadeOut(animationSpec = tween(120)) + shrinkVertically(animationSpec = spring(stiffness = Spring.StiffnessHigh))
+                    ) {
+                        Column {
+                            HorizontalDivider(
+                                modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp),
+                                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                            )
+                            AncLevelCard(
+                                isConnected = isConnected,
+                                effectiveModel = effectiveModel,
+                                level = uiState.ancLevel,
+                                onLevelChange = { viewModel.setAncLevel(it) },
+                                asCard = false
+                            )
+                        }
+                    }
                     HorizontalDivider(
                         modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp),
                         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
@@ -698,6 +717,21 @@ fun BudsScreen(
                                         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
                                     )
                                 }
+                            }
+
+                            if (effectiveModel.supportsAncLevel && activeNc != NoiseControlMode.NOISE_CANCELLATION) {
+                                AncLevelCard(
+                                    isConnected = isConnected,
+                                    effectiveModel = effectiveModel,
+                                    level = uiState.ancLevel,
+                                    onLevelChange = { viewModel.setAncLevel(it) },
+                                    asCard = false
+                                )
+
+                                HorizontalDivider(
+                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 2.dp),
+                                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                                )
                             }
 
                             // 3. In-ear detection for calls

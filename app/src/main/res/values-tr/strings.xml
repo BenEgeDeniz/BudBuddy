@@ -206,6 +206,11 @@
 	<string name="ambient_level_medium">Orta</string>
 	<string name="ambient_level_high">Yüksek</string>
 	<string name="ambient_level_step">Seviye %d</string>
+	<string name="anc_level">Aktif Gürültü Engelleme Düzeyi</string>
+	<string name="anc_level_desc">Aktif gürültü engellemenin şiddetini ayarlayın.</string>
+	<string name="anc_level_low">Düşük</string>
+	<string name="anc_level_high">Yüksek</string>
+	<string name="anc_level_step">Seviye %d</string>
 	<string name="in_ear_detection_for_calls">Aramalarda Kulak İçi Algılama</string>
 	<string name="play_calls_through_earbuds_when_in_ear_s">Aramaları takılıyken kulaklığa, değilken hoparlöre aktar</string>
 	<string name="left_right_sound_balance">Ses Dengesi</string>

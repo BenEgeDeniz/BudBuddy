@@ -55,6 +55,7 @@ class DeviceStateRepository {
     val inEarDetectionForCalls = MutableStateFlow(true)
     val doubleTapEdgeEnabled = MutableStateFlow(false)
     val ambientSoundVolume = MutableStateFlow(0)
+    val ancLevel = MutableStateFlow(0)
     
     val isSearching = MutableStateFlow(false)
     val isLeftMuted = MutableStateFlow(false)

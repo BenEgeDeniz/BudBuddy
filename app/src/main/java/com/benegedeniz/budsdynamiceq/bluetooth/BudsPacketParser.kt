@@ -89,6 +89,9 @@ class BudsPacketParser(
             if (payloadSize > 23) {
                 deviceState.ambientSoundVolume.value = payload[23].toInt() and 0xFF
             }
+            if (payloadSize > 24) {
+                deviceState.ancLevel.value = payload[24].toInt() and 0xFF
+            }
             if (payloadSize > 26) {
                 deviceState.conversationDetectionEnabled.value = payload[26].toInt() == 1
             }
@@ -193,6 +196,13 @@ class BudsPacketParser(
                 deviceState.ambientSoundVolume.value = vol
                 val mac = deviceState.savedDeviceMac.value
                 settingsRepo.saveAmbientSoundVolume(mac, vol)
+            }
+        } else if (msgId == SppPacketEncoder.MSG_ID_NOISE_REDUCTION_LEVEL) {
+            if (payloadSize > 0) {
+                val lvl = payload[0].toInt() and 0xFF
+                deviceState.ancLevel.value = lvl
+                val mac = deviceState.savedDeviceMac.value
+                settingsRepo.saveAncLevel(mac, lvl)
             }
         } else if (msgId == SppPacketEncoder.MSG_ID_SPATIAL_AUDIO_CONTROL) {
             if (payload.isNotEmpty()) {

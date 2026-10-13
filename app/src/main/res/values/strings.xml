@@ -206,6 +206,11 @@
 	<string name="ambient_level_medium">Medium</string>
 	<string name="ambient_level_high">High</string>
 	<string name="ambient_level_step">Level %d</string>
+	<string name="anc_level">Active Noise Cancelling Level</string>
+	<string name="anc_level_desc">Adjust the intensity of active noise cancellation.</string>
+	<string name="anc_level_low">Low</string>
+	<string name="anc_level_high">High</string>
+	<string name="anc_level_step">Level %d</string>
 	<string name="in_ear_detection_for_calls">In-ear detection for calls</string>
 	<string name="play_calls_through_earbuds_when_in_ear_s">Play calls through earbuds when in ear, speaker when not</string>
 	<string name="left_right_sound_balance">Sound Balance</string>

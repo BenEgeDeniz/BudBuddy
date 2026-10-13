@@ -41,6 +41,7 @@ data class BudsUiState(
     val inEarDetectionForCalls: Boolean = false,
     val doubleTapEdgeEnabled: Boolean = false,
     val ambientSoundVolume: Int = 0,
+    val ancLevel: Int = 0,
     val stereoBalance: Int = 0,
     
     val fitTestResultL: FitTestResult = FitTestResult.UNKNOWN,

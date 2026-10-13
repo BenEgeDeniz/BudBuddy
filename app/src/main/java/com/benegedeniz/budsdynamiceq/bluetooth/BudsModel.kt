@@ -12,7 +12,9 @@ enum class BudsModel(
     val supportsDoubleTapEdge: Boolean,
     val supportsCustomEqualizer: Boolean,
     val supportsTransparentVolume: Boolean = false,
-    val maxAmbientVolume: Int = 0
+    val maxAmbientVolume: Int = 0,
+    val supportsAncLevel: Boolean = false,
+    val maxAncLevel: Int = 0
 ) {
     BUDS_4_PRO(
         displayNameRes = com.benegedeniz.budsdynamiceq.R.string.model_buds_4_pro,
@@ -26,7 +28,9 @@ enum class BudsModel(
         supportsDoubleTapEdge = false,
         supportsCustomEqualizer = true,
         supportsTransparentVolume = true,
-        maxAmbientVolume = 4
+        maxAmbientVolume = 4,
+        supportsAncLevel = true,
+        maxAncLevel = 4
     ),
     BUDS_4(
         displayNameRes = com.benegedeniz.budsdynamiceq.R.string.model_buds_4,
@@ -40,7 +44,9 @@ enum class BudsModel(
         supportsDoubleTapEdge = false,
         supportsCustomEqualizer = true,
         supportsTransparentVolume = false,
-        maxAmbientVolume = 0
+        maxAmbientVolume = 0,
+        supportsAncLevel = false,
+        maxAncLevel = 0
     ),
     BUDS_3_PRO(
         displayNameRes = com.benegedeniz.budsdynamiceq.R.string.model_buds_3_pro,
@@ -54,7 +60,9 @@ enum class BudsModel(
         supportsDoubleTapEdge = false,
         supportsCustomEqualizer = true,
         supportsTransparentVolume = true,
-        maxAmbientVolume = 2
+        maxAmbientVolume = 2,
+        supportsAncLevel = true,
+        maxAncLevel = 4
     ),
     BUDS_3(
         displayNameRes = com.benegedeniz.budsdynamiceq.R.string.model_buds_3,
@@ -68,7 +76,9 @@ enum class BudsModel(
         supportsDoubleTapEdge = false,
         supportsCustomEqualizer = true,
         supportsTransparentVolume = false,
-        maxAmbientVolume = 0
+        maxAmbientVolume = 0,
+        supportsAncLevel = false,
+        maxAncLevel = 0
     ),
     BUDS_3_FE(
         displayNameRes = com.benegedeniz.budsdynamiceq.R.string.model_buds_3_fe,
@@ -82,7 +92,9 @@ enum class BudsModel(
         supportsDoubleTapEdge = false,
         supportsCustomEqualizer = false,
         supportsTransparentVolume = true,
-        maxAmbientVolume = 2
+        maxAmbientVolume = 2,
+        supportsAncLevel = true,
+        maxAncLevel = 1
     ),
     BUDS_2_PRO(
         displayNameRes = com.benegedeniz.budsdynamiceq.R.string.model_buds_2_pro,
@@ -96,7 +108,9 @@ enum class BudsModel(
         supportsDoubleTapEdge = true,
         supportsCustomEqualizer = false,
         supportsTransparentVolume = true,
-        maxAmbientVolume = 2
+        maxAmbientVolume = 2,
+        supportsAncLevel = false,
+        maxAncLevel = 0
     ),
     BUDS_2(
         displayNameRes = com.benegedeniz.budsdynamiceq.R.string.model_buds_2,
@@ -110,7 +124,9 @@ enum class BudsModel(
         supportsDoubleTapEdge = true,
         supportsCustomEqualizer = false,
         supportsTransparentVolume = true,
-        maxAmbientVolume = 2
+        maxAmbientVolume = 2,
+        supportsAncLevel = false,
+        maxAncLevel = 0
     ),
     BUDS_FE(
         displayNameRes = com.benegedeniz.budsdynamiceq.R.string.model_buds_fe,
@@ -124,7 +140,9 @@ enum class BudsModel(
         supportsDoubleTapEdge = false,
         supportsCustomEqualizer = false,
         supportsTransparentVolume = true,
-        maxAmbientVolume = 2
+        maxAmbientVolume = 2,
+        supportsAncLevel = true,
+        maxAncLevel = 1
     ),
     UNKNOWN(
         displayNameRes = com.benegedeniz.budsdynamiceq.R.string.model_buds_unknown,
@@ -138,6 +156,8 @@ enum class BudsModel(
         supportsDoubleTapEdge = true,
         supportsCustomEqualizer = true,
         supportsTransparentVolume = true,
-        maxAmbientVolume = 4
+        maxAmbientVolume = 4,
+        supportsAncLevel = true,
+        maxAncLevel = 4
     )
 }

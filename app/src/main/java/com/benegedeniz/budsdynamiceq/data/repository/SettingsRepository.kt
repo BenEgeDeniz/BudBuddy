@@ -108,4 +108,14 @@ class SettingsRepository(context: Context) {
         val key = if (mac.isNullOrBlank()) "ambient_sound_volume" else "ambient_sound_volume_$mac"
         prefs.edit().putInt(key, volume).apply()
     }
+
+    fun getAncLevel(mac: String?): Int {
+        val key = if (mac.isNullOrBlank()) "anc_level" else "anc_level_$mac"
+        return prefs.getInt(key, 0)
+    }
+
+    fun saveAncLevel(mac: String?, level: Int) {
+        val key = if (mac.isNullOrBlank()) "anc_level" else "anc_level_$mac"
+        prefs.edit().putInt(key, level).apply()
+    }
 }
