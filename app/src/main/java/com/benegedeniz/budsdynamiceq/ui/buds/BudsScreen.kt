@@ -515,6 +515,7 @@ fun BudsScreen(
                     shape = RoundedCornerShape(24.dp),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                 ) {
+                    val activeNc = activeNoiseControl ?: NoiseControlMode.OFF
                     Row(
                         modifier = Modifier.fillMaxWidth().padding(16.dp),
                         horizontalArrangement = Arrangement.SpaceEvenly
@@ -528,7 +529,6 @@ fun BudsScreen(
                         val bothInEar = isConnected && placementL == com.benegedeniz.budsdynamiceq.data.model.PlacementState.WEARING && placementR == com.benegedeniz.budsdynamiceq.data.model.PlacementState.WEARING
                         val anyInEar = isConnected && (placementL == com.benegedeniz.budsdynamiceq.data.model.PlacementState.WEARING || placementR == com.benegedeniz.budsdynamiceq.data.model.PlacementState.WEARING)
                         val isBudsTransparencyAllowed = effectiveModel == com.benegedeniz.budsdynamiceq.bluetooth.BudsModel.BUDS_3_PRO || effectiveModel == com.benegedeniz.budsdynamiceq.bluetooth.BudsModel.BUDS_4_PRO
-                        val activeNc = activeNoiseControl ?: NoiseControlMode.OFF
                         controls.forEach { mode ->
                             val isSelected = activeNc == mode
                             val isModeEnabled = if (!isConnected || !anyInEar) {
@@ -595,6 +595,44 @@ fun BudsScreen(
                             }
                         }
                     }
+                    AnimatedVisibility(
+                        visible = activeNc == NoiseControlMode.TRANSPARENT && effectiveModel.supportsTransparentVolume,
+                        enter = fadeIn(animationSpec = tween(150)) + expandVertically(animationSpec = spring(stiffness = Spring.StiffnessHigh)),
+                        exit = fadeOut(animationSpec = tween(120)) + shrinkVertically(animationSpec = spring(stiffness = Spring.StiffnessHigh))
+                    ) {
+                        Column {
+                            HorizontalDivider(
+                                modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp),
+                                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                            )
+                            TransparentModeVolumeCard(
+                                isConnected = isConnected,
+                                effectiveModel = effectiveModel,
+                                volume = uiState.ambientSoundVolume,
+                                onVolumeChange = { viewModel.setAmbientSoundVolume(it) },
+                                asCard = false
+                            )
+                        }
+                    }
+                    AnimatedVisibility(
+                        visible = activeNc == NoiseControlMode.NOISE_CANCELLATION && effectiveModel.supportsAncLevel,
+                        enter = fadeIn(animationSpec = tween(150)) + expandVertically(animationSpec = spring(stiffness = Spring.StiffnessHigh)),
+                        exit = fadeOut(animationSpec = tween(120)) + shrinkVertically(animationSpec = spring(stiffness = Spring.StiffnessHigh))
+                    ) {
+                        Column {
+                            HorizontalDivider(
+                                modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp),
+                                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                            )
+                            AncLevelCard(
+                                isConnected = isConnected,
+                                effectiveModel = effectiveModel,
+                                level = uiState.ancLevel,
+                                onLevelChange = { viewModel.setAncLevel(it) },
+                                asCard = false
+                            )
+                        }
+                    }
                     HorizontalDivider(
                         modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp),
                         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
@@ -658,6 +696,36 @@ fun BudsScreen(
                                     isConnected = uiState.isConnected,
                                     useAmbientSoundDuringCalls = uiState.useAmbientSoundDuringCalls,
                                     onCheckedChange = { viewModel.setUseAmbientSoundDuringCalls(it) }
+                                )
+
+                                HorizontalDivider(
+                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 2.dp),
+                                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                                )
+
+                                if (effectiveModel.supportsTransparentVolume && activeNc != NoiseControlMode.TRANSPARENT) {
+                                    TransparentModeVolumeCard(
+                                        isConnected = isConnected,
+                                        effectiveModel = effectiveModel,
+                                        volume = uiState.ambientSoundVolume,
+                                        onVolumeChange = { viewModel.setAmbientSoundVolume(it) },
+                                        asCard = false
+                                    )
+
+                                    HorizontalDivider(
+                                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 2.dp),
+                                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                                    )
+                                }
+                            }
+
+                            if (effectiveModel.supportsAncLevel && activeNc != NoiseControlMode.NOISE_CANCELLATION) {
+                                AncLevelCard(
+                                    isConnected = isConnected,
+                                    effectiveModel = effectiveModel,
+                                    level = uiState.ancLevel,
+                                    onLevelChange = { viewModel.setAncLevel(it) },
+                                    asCard = false
                                 )
 
                                 HorizontalDivider(

@@ -200,6 +200,17 @@
 	<string name="toggle_more_settings">Əlavə Parametrləri Göstər/Gizlət</string>
 	<string name="noise_control_with_one_earbud">Tək Qulaqlıqla Səs-küy Nəzarəti</string>
 	<string name="use_ambient_sound_during_calls">Zənglər zamanı Ətraf Səsini İstifadə Et</string>
+	<string name="transparent_mode_volume">Şəffaf Rejim Səsi</string>
+	<string name="transparent_mode_volume_desc">Şəffaf rejimdə ötürülən ətraf səsinin səviyyəsini tənzimləyin.</string>
+	<string name="ambient_level_low">Aşağı</string>
+	<string name="ambient_level_medium">Orta</string>
+	<string name="ambient_level_high">Yüksək</string>
+	<string name="ambient_level_step">Səviyyə %d</string>
+	<string name="anc_level">Aktiv Səs-küy Boğma Səviyyəsi</string>
+	<string name="anc_level_desc">Aktiv səs-küyün boğulma intensivliyini tənzimləyin.</string>
+	<string name="anc_level_low">Aşağı</string>
+	<string name="anc_level_high">Yüksək</string>
+	<string name="anc_level_step">Səviyyə %d</string>
 	<string name="in_ear_detection_for_calls">Zənglər üçün Qulaqdaxili Aşkarlama</string>
 	<string name="play_calls_through_earbuds_when_in_ear_s">Zəngləri taxılarkən qulaqlığa, taxılmayanda isə dinamikə yönləndir</string>
 	<string name="left_right_sound_balance">Səs Balansı</string>

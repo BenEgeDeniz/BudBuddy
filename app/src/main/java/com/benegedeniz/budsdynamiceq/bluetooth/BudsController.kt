@@ -99,6 +99,8 @@ class BudsController(
     val useAmbientSoundDuringCalls = deviceState.useAmbientSoundDuringCalls.asStateFlow()
     val inEarDetectionForCalls = deviceState.inEarDetectionForCalls.asStateFlow()
     val doubleTapEdgeEnabled = deviceState.doubleTapEdgeEnabled.asStateFlow()
+    val ambientSoundVolume = deviceState.ambientSoundVolume.asStateFlow()
+    val ancLevel = deviceState.ancLevel.asStateFlow()
     val stereoBalance = deviceState.stereoBalance.asStateFlow()
     val lastMatchedRule = deviceState.lastMatchedRule.asStateFlow()
     val manualPreset = deviceState.manualPreset.asStateFlow()
@@ -131,6 +133,8 @@ class BudsController(
         deviceState.savedDeviceMac.value = settingsRepo.getSavedMacAddress()
         deviceState.connectedModel.value = settingsRepo.getDetectedModel(deviceState.savedDeviceMac.value ?: "")
         deviceState.modelOverride.value = settingsRepo.getModelOverride(deviceState.savedDeviceMac.value ?: "")
+        deviceState.ambientSoundVolume.value = settingsRepo.getAmbientSoundVolume(deviceState.savedDeviceMac.value)
+        deviceState.ancLevel.value = settingsRepo.getAncLevel(deviceState.savedDeviceMac.value)
         loadCustomEqBands()
         
         scope.launch(Dispatchers.IO) {
@@ -268,6 +272,8 @@ class BudsController(
     fun connect(device: BluetoothDevice) {
         settingsRepo.saveMacAddress(device.address)
         deviceState.savedDeviceMac.value = device.address
+        deviceState.ambientSoundVolume.value = settingsRepo.getAmbientSoundVolume(device.address)
+        deviceState.ancLevel.value = settingsRepo.getAncLevel(device.address)
         loadCustomEqBands()
         targetDevice = device
 
@@ -619,6 +625,36 @@ class BudsController(
             byteArrayOf(if (enabled) 1 else 0)
         )
         packetQueue.trySend(packet)
+    }
+
+    fun setAmbientSoundVolume(value: Int) {
+        val max = effectiveModel.value.maxAmbientVolume
+        val clamped = value.coerceIn(0, max)
+        deviceState.ambientSoundVolume.value = clamped
+        val mac = deviceState.savedDeviceMac.value
+        settingsRepo.saveAmbientSoundVolume(mac, clamped)
+        if (deviceState.isConnected.value) {
+            val packet = SppPacketEncoder.buildPacket(
+                SppPacketEncoder.MSG_ID_AMBIENT_VOLUME,
+                byteArrayOf(clamped.toByte())
+            )
+            packetQueue.trySend(packet)
+        }
+    }
+
+    fun setAncLevel(value: Int) {
+        val max = effectiveModel.value.maxAncLevel
+        val clamped = value.coerceIn(0, max)
+        deviceState.ancLevel.value = clamped
+        val mac = deviceState.savedDeviceMac.value
+        settingsRepo.saveAncLevel(mac, clamped)
+        if (deviceState.isConnected.value) {
+            val packet = SppPacketEncoder.buildPacket(
+                SppPacketEncoder.MSG_ID_NOISE_REDUCTION_LEVEL,
+                byteArrayOf(clamped.toByte())
+            )
+            packetQueue.trySend(packet)
+        }
     }
 
     fun setStereoBalance(value: Int) {
