@@ -1,0 +1,3 @@
+- Artık ANC ve Ortam Sesi modu şiddetini ayarlayabilirsiniz
+- Küçük düzeltmeler.
+
