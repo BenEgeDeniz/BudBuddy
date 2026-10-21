@@ -92,9 +92,13 @@ class BudsViewModel(application: Application) : AndroidViewModel(application) {
             budsController.inEarDetectionForCalls,
             budsController.doubleTapEdgeEnabled,
             budsController.stereoBalance
-        ) { i, d, s -> Triple(i, d, s) }
-    ) { t1, t2 ->
-        FeaturesGroup(t1.first, t1.second, t1.third, t2.first, t2.second, t2.third)
+        ) { i, d, s -> Triple(i, d, s) },
+        combine(
+            budsController.ambientSoundVolume,
+            budsController.ancLevel
+        ) { ambVol, ancLvl -> Pair(ambVol, ancLvl) }
+    ) { t1, t2, levels ->
+        FeaturesGroup(t1.first, t1.second, t1.third, t2.first, t2.second, t2.third, levels.first, levels.second)
     }
 
     private val modelState = combine(
@@ -149,6 +153,8 @@ class BudsViewModel(application: Application) : AndroidViewModel(application) {
             useAmbientSoundDuringCalls = feat.ambCall,
             inEarDetectionForCalls = feat.inEarCall,
             doubleTapEdgeEnabled = feat.doubleTap,
+            ambientSoundVolume = feat.ambientVolume,
+            ancLevel = feat.ancLevel,
             stereoBalance = feat.balance,
             
             fitTestResultL = hw.fitL,
@@ -207,6 +213,14 @@ class BudsViewModel(application: Application) : AndroidViewModel(application) {
 
     fun setUseAmbientSoundDuringCalls(enabled: Boolean) {
         budsController.setUseAmbientSoundDuringCalls(enabled)
+    }
+
+    fun setAmbientSoundVolume(volume: Int) {
+        budsController.setAmbientSoundVolume(volume)
+    }
+
+    fun setAncLevel(level: Int) {
+        budsController.setAncLevel(level)
     }
 
     fun setInEarDetectionForCalls(enabled: Boolean) {
@@ -302,7 +316,7 @@ private data class HardwareGroup(
     val isRightMuted: Boolean
 )
 private data class FeaturesGroup(
-    val convDet: Boolean, val oneEarNC: Boolean, val ambCall: Boolean, val inEarCall: Boolean, val doubleTap: Boolean, val balance: Int
+    val convDet: Boolean, val oneEarNC: Boolean, val ambCall: Boolean, val inEarCall: Boolean, val doubleTap: Boolean, val balance: Int, val ambientVolume: Int, val ancLevel: Int
 )
 private data class ModelGroup(
     val connected: BudsModel, val override: BudsModel?, val effective: BudsModel

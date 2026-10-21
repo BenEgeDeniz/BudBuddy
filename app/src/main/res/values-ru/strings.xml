@@ -200,6 +200,17 @@
 	<string name="toggle_more_settings">Показать дополнительные настройки</string>
 	<string name="noise_control_with_one_earbud">Шумоподавление с одним наушником</string>
 	<string name="use_ambient_sound_during_calls">Окружающий звук во время звонков</string>
+	<string name="transparent_mode_volume">Громкость звукового фона</string>
+	<string name="transparent_mode_volume_desc">Регулировка громкости внешних звуков в режиме прозрачности.</string>
+	<string name="ambient_level_low">Низкий</string>
+	<string name="ambient_level_medium">Средний</string>
+	<string name="ambient_level_high">Высокий</string>
+	<string name="ambient_level_step">Уровень %d</string>
+	<string name="anc_level">Уровень активного шумоподавления</string>
+	<string name="anc_level_desc">Регулировка интенсивности активного шумоподавления.</string>
+	<string name="anc_level_low">Низкий</string>
+	<string name="anc_level_high">Высокий</string>
+	<string name="anc_level_step">Уровень %d</string>
 	<string name="in_ear_detection_for_calls">Определение в ухе для звонков</string>
 	<string name="play_calls_through_earbuds_when_in_ear_s">Звонки через наушники, когда они в ушах, и через динамик, когда нет</string>
 	<string name="left_right_sound_balance">Баланс звука</string>
