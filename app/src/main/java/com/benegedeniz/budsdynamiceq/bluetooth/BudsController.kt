@@ -434,12 +434,11 @@ class BudsController(
         socket = null
     }
 
-    fun sendEqualizer(preset: EqPreset?) {
+    fun sendEqualizer(preset: EqPreset?, force: Boolean = false) {
         if (preset == EqPreset.DEFAULT || preset == EqPreset.IGNORE) return
 
         val isCustom = preset?.isCustom == true
-        if (isCustom && lastSentEq == preset) return
-        if (!isCustom && preset == lastSentEq && preset != null) return
+        if (!force && preset != null && preset == lastSentEq) return
 
         lastSentEq = preset
 
