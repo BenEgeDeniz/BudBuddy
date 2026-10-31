@@ -84,8 +84,9 @@ class RulesCoordinator(
                 val settingsChanged = eqToSend != lastPushedEq || ncToSend != lastPushedNc
                 
                 if (settingsChanged || justConnected || justPutBothInEar) {
+                    val forceRePush = justConnected || justPutBothInEar
                     budsController.setLastMatchedRule(matchingRule)
-                    if (eqToSend != null) budsController.sendEqualizer(eqToSend)
+                    if (eqToSend != null) budsController.sendEqualizer(eqToSend, force = forceRePush)
                     if (ncToSend != null) budsController.sendNoiseControl(ncToSend)
                     
                     if (settingsChanged && !justConnected && !justPutBothInEar) {
